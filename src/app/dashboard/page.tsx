@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import { open } from '@tauri-apps/api/dialog';
 import { addFolder, deleteFolder, getFolders, getUsers } from '../../../lib/prisma-commands';
 import type { User } from "@prisma/client";
-import { Folder, Loader, Trash2 } from 'lucide-react';
+import { FileVideo, Film, Folder, Loader, Play, PlayCircle, Trash2 } from 'lucide-react';
 import { FileEntry, readDir } from '@tauri-apps/api/fs'
 import { cn } from '@/lib/utils';
 import { invoke } from '@tauri-apps/api/tauri';
@@ -127,11 +127,24 @@ export default function Dashboard() {
                         transition={{ duration: 0.15 }}
                     >
                         <div className={cn('flex flex-row items-center justify-center gap-1 text-lg font-medium text-primary',
-
-
                         )}>
+
                             {asChild && <Folder size={20} />}
                             {folderPath.replace(/\\/g, '/').split('/').pop()}
+                            {folders.length > 0 && (
+                                <div className='flex flex-row items-center justify-center gap-0.5 rounded-md bg-tertiary py-0.5 text-sm'>
+                                    <Folder className='h-auto w-[40%]' />
+                                    {folders.length > 0 && folders.length}
+                                </div>
+                            )}
+                            {files.length > 0 && (
+                                <div className='flex flex-row items-center justify-center rounded-md bg-tertiary py-0.5 text-sm'>
+                                    <FileVideo className='h-auto w-[40%]' />
+                                    {files.length}
+                                </div>
+                            )}
+
+
                         </div>
                         {asChild !== true && (
                             <motion.span
@@ -169,7 +182,11 @@ export default function Dashboard() {
                                         exit={{ scale: 0 }}
                                         whileHover={{ x: 10 }}
                                     >
-                                        {!file.children && <span>{file.name}</span>}
+                                        {!file.children &&
+                                            <div className='flex flex-row items-center justify-center gap-1'>
+                                                <Film size={17} />
+                                                {file.name}
+                                            </div>}
                                     </motion.li>
 
                                 )
