@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { M_PLUS_1p } from "next/font/google";
 import "./globals.css";
+import { Navbar } from "./_main-components/main-components";
 
-const inter = Inter({ subsets: ["latin"] });
+const mplus = M_PLUS_1p({
+  subsets: ["latin"],
+  weight: ["100", "300", "400", "500", "700", "800", "900"],
+})
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -16,7 +20,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+
+      <body className={`${mplus.className} antialiased`}><Navbar />{children}</body>
     </html>
   );
 }
