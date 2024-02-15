@@ -11,30 +11,31 @@ export default function Home() {
   function ChooseUser() {
 
     let [users, setUsers] = useState<User[]>();
+    let [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
       getUsers().then((data) => {
         if (data) {
           setUsers(data);
+
         }
+        setIsLoading(false);
       })
     }, [])
 
-    if (users?.length === 1 && users[0].pin !== null) {
+    if (!isLoading && users?.length === 1 && users[0].pin !== null) {
       return (
         <main className="flex flex-col items-center justify-center">
           <PinInputReturningUser userPin={users[0].pin} userId={users[0].id} />
         </main>
       )
-    } else if (!users) {
+    } else if (!isLoading && !users) {
+      return (
+        <main className="flex flex-col items-center justify-center">
+          <PinInputNewUser />
+        </main>
+      )
 
-      setTimeout(() => {
-        return (
-          <main className="flex flex-col items-center justify-center">
-            <PinInputNewUser />
-          </main>
-        )
-      }, 2000);
 
     }
 
@@ -71,7 +72,9 @@ export default function Home() {
 
     useEffect(() => {
       if (pins.join('').length === pinLength) {
-        createNewUser({ userPin: pins.join('') });
+        createNewUser({ userPin: pins.join('') }).then(() => {
+          window.location.reload();
+        });
       }
 
     }, [pins]);

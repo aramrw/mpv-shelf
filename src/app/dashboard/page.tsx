@@ -5,15 +5,20 @@ import React, { useEffect, useState } from 'react'
 import { open } from '@tauri-apps/api/dialog';
 import { addFolder, deleteFolder, getFolders, getUsers } from '../../../lib/prisma-commands';
 import type { User } from "@prisma/client";
-import { FileVideo, Film, Folder, Loader, Play, PlayCircle, Trash2 } from 'lucide-react';
+import { Captions, FileVideo, Film, Folder, Loader, Play, PlayCircle, Trash2 } from 'lucide-react';
 import { FileEntry, readDir } from '@tauri-apps/api/fs'
 import { cn } from '@/lib/utils';
 import { invoke } from '@tauri-apps/api/tauri';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
+import {
+    ContextMenu,
+    ContextMenuContent,
+    ContextMenuItem,
+    ContextMenuTrigger,
+} from "@/components/ui/context-menu"
 
 
 export default function Dashboard() {
-
     let [folderPaths, setFolderPaths] = useState<string[]>([]);
     let [currentUser, setCurrentUser] = useState<User>();
 
@@ -102,12 +107,12 @@ export default function Dashboard() {
                             return file.name;
                         }
                     });
-                    console.log("folders:", folders);
+                    //console.log("folders:", folders);
 
                     setFiles(videoFiles);
                     setFolders(folders);
                     setSubtitleFiles(subtitleFiles);
-                    console.log(res);
+                    console.log(folderPath);
                 }
             })
         }, [])
@@ -115,54 +120,86 @@ export default function Dashboard() {
         if (!deleting) {
             return (
                 <main className='h-full w-full overflow-hidden'>
-                    <motion.div className={cn('flex cursor-pointer flex-row items-center justify-between rounded-md bg-accent p-1 shadow-sm',
-                        (expanded && files.length > 0 && !asChild) && 'rounded-b-none border-b-4 border-tertiary',
-                        (expanded && folders.length > 0 && !asChild) && 'rounded-b-none border-b-4 border-tertiary',
-                        (asChild && expanded) && ' px-1 border-none my-1.5'
-                    )}
-                        onClick={() => {
-                            setExpanded(!expanded);
-                        }}
-                        whileHover={{ scale: 0.98 }}
-                        transition={{ duration: 0.15 }}
-                    >
-                        <div className={cn('flex flex-row items-center justify-center gap-1 text-lg font-medium text-primary',
-                        )}>
-
-                            {asChild && <Folder size={20} />}
-                            {folderPath.replace(/\\/g, '/').split('/').pop()}
-                            {folders.length > 0 && (
-                                <div className='flex flex-row items-center justify-center gap-0.5 rounded-md bg-tertiary py-0.5 text-sm'>
-                                    <Folder className='h-auto w-[40%]' />
-                                    {folders.length > 0 && folders.length}
-                                </div>
+                    <ContextMenu>
+                        <ContextMenuTrigger>
+                            <motion.div className={cn('flex cursor-pointer flex-row items-center justify-between rounded-md bg-accent p-1 shadow-sm',
+                                (expanded && files.length > 0 && !asChild) && 'rounded-b-none border-b-4 border-tertiary',
+                                (expanded && folders.length > 0 && !asChild) && 'rounded-b-none border-b-4 border-tertiary',
+                                (asChild && expanded) && ' px-1 border-none my-1.5'
                             )}
-                            {files.length > 0 && (
-                                <div className='flex flex-row items-center justify-center rounded-md bg-tertiary py-0.5 text-sm'>
-                                    <FileVideo className='h-auto w-[40%]' />
-                                    {files.length}
-                                </div>
-                            )}
+                                onClick={(e) => {
+                                    if (e.button === 0)
+                                        setExpanded(!expanded);
+                                }}
+                                whileHover={{ scale: 0.99 }}
+                                transition={{ duration: 0.15 }}
 
-
-                        </div>
-                        {asChild !== true && (
-                            <motion.span
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                                className=''
                             >
-                                <Trash2 className='rounded-lg p-0.5 text-destructive hover:bg-white' onClick={() => {
-                                    setDeleting(true);
-                                    // trigger the delete folder db command
-                                    deleteFolder({ folderPath }).then(() => {
-                                        window.location.reload();
-                                    });
-                                }} />
+                                <div className={cn('flex flex-row items-center justify-center gap-1 text-lg font-medium text-primary',
+                                )}>
 
-                            </motion.span>
-                        )}
-                    </motion.div>
+                                    {asChild && <Folder size={20} />}
+                                    {folders.length === 0 && files.length === 0 && subtitleFiles.length === 0 ?
+                                        <span className='line-through'>{folderPath.replace(/\\/g, '/').split('/').pop()}
+                                        </span>
+
+                                        : (
+                                            <span>
+                                                {folderPath.replace(/\\/g, '/').split('/').pop()}
+                                            </span>
+                                        )}
+                                    {folders.length > 0 && (
+                                        <div className='flex flex-row items-center justify-center gap-0.5 rounded-md bg-tertiary px-0.5 py-0.5 text-sm'>
+                                            <Folder size={15} />
+                                            {folders.length > 0 && folders.length}
+                                        </div>
+                                    )}
+                                    {files.length > 0 && (
+                                        <div className='flex flex-row items-center justify-center rounded-md bg-tertiary px-0.5 py-0.5 text-sm'>
+                                            <FileVideo size={15} />
+                                            {files.length}
+                                        </div>
+                                    )}
+                                    {subtitleFiles.length > 0 && (
+                                        <div className='flex flex-row items-center justify-center rounded-md bg-tertiary px-0.5 py-0.5 text-sm'>
+                                            <Captions size={15} />
+                                            {subtitleFiles.length}
+                                        </div>
+                                    )}
+
+
+                                </div>
+                                {asChild !== true && (
+                                    <motion.span
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        className=''
+                                    >
+                                        <Trash2 className='rounded-lg p-0.5 text-destructive hover:bg-white' onClick={() => {
+                                            setDeleting(true);
+                                            // trigger the delete folder db command
+                                            deleteFolder({ folderPath }).then(() => {
+                                                window.location.reload();
+                                            });
+                                        }} />
+
+                                    </motion.span>
+                                )}
+                            </motion.div>
+                        </ContextMenuTrigger>
+                        <ContextMenuContent>
+                            <ContextMenuItem className='cursor-pointer'
+                                onClick={(e) => {
+                                    if (e.button === 0) {
+                                        invoke('show_in_folder', { path: `${folderPath}` });
+                                    }
+                                }}
+                            >
+                                Open In File Explorer
+                            </ContextMenuItem>
+                        </ContextMenuContent>
+                    </ContextMenu>
+
                     <ul className='overflow-hidden overflow-y-auto bg-muted'>
                         {
                             expanded && files.map((file, index) => {
