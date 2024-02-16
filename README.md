@@ -8,7 +8,7 @@
 - Renames subtitle files to match videos (WIP).
 - Allows for deeply nested folder navigation.
 
- **mpv-shelf is made with [Tuari](https://tauri.app/about/intro) & [NextJS](https://vercel.com/solutions/nextjs?utm_source=next-site&utm_medium=footer&utm_campaign=home).**
+ **mpv-shelf is made with [Tuari](https://tauri.app/about/intro) & [NextJS](https://nextjs.org/).**
 
 
 ## Contributing 🖥️
