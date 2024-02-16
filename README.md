@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## What is mpv-shelf?
+- Mpv Shelf is a cross-platform wrapper for any folder(s) that contains videos you would like to keep track of.
+- Compatible with **any video player out of the box** (no config required). *However*, it was created for **[mpv](https://mpv.io/)** in particular.
 
-## Getting Started
+  ## Features
+- Houses all your video/anime folders in one place.
+- Keeps track of which videos you have/haven't watched.
+- Renames subtitle files to match videos (WIP).
+- Allows for deeply nested folder navigation.
 
-First, run the development server:
+ **mpv-shelf is made with [Tuari](https://tauri.app/about/intro) & [NextJS](https://vercel.com/solutions/nextjs?utm_source=next-site&utm_medium=footer&utm_campaign=home).**
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+## Contributing 🖥️
+
+- #### clone the project ⬇️
+
+```
+git clone https://github.com/aramrw/ydict
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- install dev-dependencies.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+npm i
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+- run the dev server.
 
-## Learn More
+```
+npm run tauri dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+- // _or to see front-end only_
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- Open **[http://localhost:3000](http://localhost:3000)**.
+- _You can start editing the page by modifying the files in the `app` folder. The page auto-updates as you edit the file._
