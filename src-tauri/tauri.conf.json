@@ -40,6 +40,9 @@
         "open": false,
         "scope": [],
         "sidecar": true
+      },
+      "path": {
+        "all": true
       }
     },
     "bundle": {

@@ -5,6 +5,7 @@ import { createNewUser, getUsers } from "../../lib/prisma-commands";
 import { motion } from "framer-motion";
 import type { User } from "@prisma/client";
 import { useRouter } from 'next/navigation';
+import { invoke } from '@tauri-apps/api/tauri';
 
 export default function Home() {
 
@@ -14,13 +15,13 @@ export default function Home() {
     let [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-      getUsers().then((data) => {
-        if (data) {
-          setUsers(data);
-
+      getUsers().then((users) => {
+        if (users) {
+          setUsers(users);
+          console.log(users);
         }
         setIsLoading(false);
-      })
+      });
     }, [])
 
     if (!isLoading && users?.length === 1 && users[0].pin !== null) {
@@ -35,11 +36,7 @@ export default function Home() {
           <PinInputNewUser />
         </main>
       )
-
-
     }
-
-
   }
 
   function PinInputNewUser() {

@@ -1,23 +1,23 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use serde::{Deserialize, Serialize};
 use std::process::Command;
 use tauri::generate_handler;
-//use tauri::{CustomMenuItem, Menu, MenuItem, Submenu};
+
+#[derive(Serialize, Deserialize)]
+struct User {
+    id: i64,
+    pin: Option<String>,
+}
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(generate_handler![open_video, show_in_folder])
+        .plugin(tauri_plugin_sql::Builder::default().build())
+        .invoke_handler(generate_handler![open_video, show_in_folder, current_dir,])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
-
-// fn create_app_menu() -> Menu {
-//     Menu::new().add_submenu(Submenu::new(
-//         "App",
-//         Menu::new().add_native_item(MenuItem::CloseWindow),
-//     ))
-// }
 
 #[tauri::command]
 fn open_video(path: &str) {
@@ -73,3 +73,15 @@ fn show_in_folder(path: String) {
         Command::new("open").args(["-R", &path]).spawn().unwrap();
     }
 }
+
+#[tauri::command]
+fn current_dir() {
+    println!("Current directory: {:?}", std::env::current_dir());
+}
+
+// #[tauri::command]
+// fn base_dir() {
+//     let base_dir = tauri::api::path::BaseDirectory::AppData;
+
+//     println!("Base directory: {:?}", base_dir);
+// }

@@ -1,15 +1,20 @@
-"use server"
-
-import prisma from "@/db";
+import Database from "tauri-plugin-sql-api"
+import { User, Folder, Video } from "@prisma/client";
 
 export async function getUsers() {
-    let users = await prisma.user.findMany();
+    const db = await Database.load("sqlite:main.db");
 
-    if (users.length === 0) {
-        return null;
-    } else {
-        return users;
+    let users: User[] = [];
+
+    try {
+        users = await db.select(
+            "SELECT * from user"
+        )
+    } catch (e) {
+        console.log("error", e);
     }
+
+    return users;
 }
 
 export async function createNewUser({
@@ -17,11 +22,20 @@ export async function createNewUser({
 }: {
     userPin: string
 }) {
-    await prisma.user.create({
-        data: {
-            pin: userPin,
-        }
+    let db = await Database.load("sqlite:main.db");
+
+    await db.execute(
+        "CREATE TABLE IF NOT EXISTS user (id INTEGER PRIMARY KEY AUTOINCREMENT, pin TEXT NOT NULL)"
+    ).catch((e) => {
+        console.log("error", e);
     })
+
+    await db.execute(
+        "INSERT into user (pin) VALUES ($1)", [userPin]
+    ).catch((e) => {
+        console.log("error", e);
+    });
+
 }
 
 export async function addFolder({
@@ -31,17 +45,12 @@ export async function addFolder({
     userId: number,
     folderPath: string
 }) {
-    await prisma.folder.create({
-        data: {
-            user: {
-                connect: {
-                    id: userId
-                }
-            },
-            path: folderPath
+    let db = await Database.load("sqlite:main.db");
 
-        }
-    })
+    await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL UNIQUE, FOREIGN KEY (userId) REFERENCES user(id))")
+
+    await db.execute("INSERT into folder (userId, path) VALUES ($1, $2)", [userId, folderPath])
+
 }
 
 export async function getFolders({
@@ -49,13 +58,20 @@ export async function getFolders({
 }: {
     userId: number
 }) {
-    let folders = await prisma.folder.findMany({
-        where: {
-            userId: userId
-        }
-    })
+    let db = await Database.load("sqlite:main.db");
 
-    return folders;
+    console.log("userId", userId);
+
+    try {
+        // Directly return the result of the query
+        let folders: Folder[] = await db.select("SELECT * from folder WHERE userId = $1", [userId]);
+        //console.log("folders", folders);
+        return folders;
+    } catch (e) {
+        console.log(e);
+        // Return an empty array or handle the error as needed
+        return [];
+    }
 }
 
 export async function deleteFolder({
@@ -64,11 +80,9 @@ export async function deleteFolder({
     folderPath: string
 
 }) {
-    await prisma.folder.delete({
-        where: {
-            path: folderPath
-        }
-    })
+    let db = await Database.load("sqlite:main.db");
+
+    await db.execute("DELETE from folder WHERE path = $1", [folderPath])
 }
 
 export async function updateVideoWatched({
@@ -80,31 +94,24 @@ export async function updateVideoWatched({
     // first check if the video exists, if not make it.
     // ps: videos ONLY get created HERE. 
 
-    console.log("videoPath", videoPath);
+    //console.log("videoPath", videoPath);
 
-    let video = await prisma.video.findUnique({
-        where: {
-            path: videoPath
-        }
-    })
+    let db = await Database.load("sqlite:main.db");
 
-    if (!video) {
-        await prisma.video.create({
-            data: {
-                path: videoPath,
-                watched: true
+    try {
+        await db.select("SELECT * from video WHERE path = ($1)", [videoPath]).then(async (res) => {
+            if (res) {
+                await db.execute("INSERT into video (path, watched) VALUES ($1, $2)", [videoPath, 1])
+
+
             }
         })
-    } else {
-        await prisma.video.update({
-            where: {
-                path: videoPath
-            },
-            data: {
-                watched: true
-            }
-        })
+    } catch (e) {
+        console.log(e);
+        // if this error gets thrown it means the Video table hasnt been created yet
+        await db.execute("CREATE TABLE IF NOT EXISTS video (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT NOT NULL UNIQUE, watched BOOLEAN NOT NULL DEFAULT 0)")
     }
+
 
 
 }
@@ -114,11 +121,30 @@ export async function getVideo({
 }: {
     videoPath: string,
 }) {
-    let video = await prisma.video.findUnique({
-        where: {
-            path: videoPath
-        }
-    })
+    let db = await Database.load("sqlite:main.db");
 
-    return video;
+    // let video: Video = {
+    //     id: -1,
+    //     path: "",
+    //     watched: false
+    // };
+
+    let video: any;
+
+    try {
+        video = await db.select("SELECT * from video WHERE path = ($1)", [videoPath])
+    } catch (e) {
+        console.log(e);
+        // if this error gets thrown it means the Video table hasnt been created yet
+        await db.execute("CREATE TABLE IF NOT EXISTS video (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT NOT NULL UNIQUE, watched BOOLEAN NOT NULL DEFAULT 0)")
+    }
+
+
+    if (video.length !== 0) {
+        console.log("video", video);
+        return video[0];
+    } else {
+        return null
+    }
+
 }

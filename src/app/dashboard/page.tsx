@@ -43,6 +43,7 @@ export default function Dashboard() {
 
     // get all the folder paths from the folder table with user id on startup
     useEffect(() => {
+        console.log(currentUser);
 
         getFolders({ userId: currentUser?.id as number }).then((folders) => {
             if (folders) {
@@ -50,7 +51,7 @@ export default function Dashboard() {
             }
         });
 
-    }, [])
+    }, [currentUser])
 
 
     function AddFolder(
@@ -122,6 +123,7 @@ export default function Dashboard() {
             })
         }, [])
 
+        // get all the videos from the db on startup
         useEffect(() => {
             setPrismaVideos([]);
             if (currentUser && files.length > 0) {
@@ -133,7 +135,6 @@ export default function Dashboard() {
                             //console.log(prismaVideos);
                         }
                     })
-
                 }
             }
         }, [finishedSettingFiles == true])
