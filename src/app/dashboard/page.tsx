@@ -137,7 +137,7 @@ export default function Dashboard() {
                     })
                 }
             }
-        }, [finishedSettingFiles == true])
+        }, [finishedSettingFiles])
 
         if (!deleting) {
             return (
@@ -235,7 +235,7 @@ export default function Dashboard() {
 
                                             // update the video as watched in the db
                                             updateVideoWatched({ videoPath: file.path }).then(() => {
-
+                                                setFinishedSettingFiles(!finishedSettingFiles);
                                             });
                                         }}
                                         key={index}
