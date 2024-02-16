@@ -70,3 +70,55 @@ export async function deleteFolder({
         }
     })
 }
+
+export async function updateVideoWatched({
+    videoPath,
+}: {
+    videoPath: string,
+}) {
+
+    // first check if the video exists, if not make it.
+    // ps: videos ONLY get created HERE. 
+
+    console.log("videoPath", videoPath);
+
+    let video = await prisma.video.findUnique({
+        where: {
+            path: videoPath
+        }
+    })
+
+    if (!video) {
+        await prisma.video.create({
+            data: {
+                path: videoPath,
+                watched: true
+            }
+        })
+    } else {
+        await prisma.video.update({
+            where: {
+                path: videoPath
+            },
+            data: {
+                watched: true
+            }
+        })
+    }
+
+
+}
+
+export async function getVideo({
+    videoPath,
+}: {
+    videoPath: string,
+}) {
+    let video = await prisma.video.findUnique({
+        where: {
+            path: videoPath
+        }
+    })
+
+    return video;
+}

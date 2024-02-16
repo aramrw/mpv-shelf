@@ -22,3 +22,9 @@ model Folder {
   userId Int
   user   User   @relation(fields: [userId], references: [id], name: "UserFolders")
 }
+
+model Video {
+  id      Int     @id @default(autoincrement())
+  path    String  @unique
+  watched Boolean @default(false)
+}

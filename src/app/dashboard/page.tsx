@@ -3,9 +3,9 @@
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
 import { open } from '@tauri-apps/api/dialog';
-import { addFolder, deleteFolder, getFolders, getUsers } from '../../../lib/prisma-commands';
-import type { User } from "@prisma/client";
-import { Captions, FileVideo, Film, Folder, Loader, Play, PlayCircle, Trash2 } from 'lucide-react';
+import { addFolder, deleteFolder, getFolders, getUsers, getVideo, updateVideoWatched } from '../../../lib/prisma-commands';
+import type { User, Video } from "@prisma/client";
+import { Captions, Eye, FileVideo, Film, Folder, Loader, Play, PlayCircle, Trash2 } from 'lucide-react';
 import { FileEntry, readDir } from '@tauri-apps/api/fs'
 import { cn } from '@/lib/utils';
 import { invoke } from '@tauri-apps/api/tauri';
@@ -16,6 +16,7 @@ import {
     ContextMenuItem,
     ContextMenuTrigger,
 } from "@/components/ui/context-menu"
+
 
 
 export default function Dashboard() {
@@ -82,7 +83,10 @@ export default function Dashboard() {
         let [expanded, setExpanded] = useState(false);
         let [subtitleFiles, setSubtitleFiles] = useState<FileEntry[]>([]);
         let [deleting, setDeleting] = useState(false);
+        let [prismaVideos, setPrismaVideos] = useState<Video[]>([]);
+        let [finishedSettingFiles, setFinishedSettingFiles] = useState(false);
 
+        // get all the files and folders in the folder path on startup
         useEffect(() => {
             readDir(folderPath).then((res) => {
                 if (res) {
@@ -112,10 +116,27 @@ export default function Dashboard() {
                     setFiles(videoFiles);
                     setFolders(folders);
                     setSubtitleFiles(subtitleFiles);
-                    console.log(folderPath);
+                    setFinishedSettingFiles(true);
                 }
+
             })
         }, [])
+
+        useEffect(() => {
+            setPrismaVideos([]);
+            if (currentUser && files.length > 0) {
+                setPrismaVideos([]);
+                for (const file of files) {
+                    getVideo({ videoPath: file.path }).then((video) => {
+                        if (video) {
+                            setPrismaVideos(prevVideos => [...prevVideos, video]);
+                            //console.log(prismaVideos);
+                        }
+                    })
+
+                }
+            }
+        }, [finishedSettingFiles == true])
 
         if (!deleting) {
             return (
@@ -211,6 +232,10 @@ export default function Dashboard() {
                                             // open the file in the default video player
                                             invoke('open_video', { path: file.path });
 
+                                            // update the video as watched in the db
+                                            updateVideoWatched({ videoPath: file.path }).then(() => {
+
+                                            });
                                         }}
                                         key={index}
 
@@ -222,8 +247,19 @@ export default function Dashboard() {
                                         {!file.children &&
                                             <div className='flex flex-row items-center justify-center gap-1'>
                                                 <Film size={17} />
-                                                {file.name}
-                                            </div>}
+                                                {/* Check if the file's path matches any video's path in prismaVideos */}
+                                                {prismaVideos.some(video => video.path === file.path) ? (
+                                                    <div className='flex flex-row items-center justify-center gap-1 rounded-sm px-0.5 font-medium'>
+                                                        <Eye size={17} />
+                                                        <span>
+                                                            {file.name}
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <span>{file.name}</span>
+                                                )}
+                                            </div>
+                                        }
                                     </motion.li>
 
                                 )
