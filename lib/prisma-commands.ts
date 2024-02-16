@@ -91,6 +91,8 @@ export async function updateVideoWatched({
     videoPath: string,
 }) {
 
+    console.log("Updating: ", videoPath);
+
     // first check if the video exists, if not make it.
     // ps: videos ONLY get created HERE. 
 
@@ -99,11 +101,11 @@ export async function updateVideoWatched({
     let db = await Database.load("sqlite:main.db");
 
     try {
-        await db.select("SELECT * from video WHERE path = ($1)", [videoPath]).then(async (res) => {
-            if (res) {
+        await db.select("SELECT * from video WHERE path = ($1)", [videoPath]).then(async (res: any) => {
+            if (res.length === 0) {
                 await db.execute("INSERT into video (path, watched) VALUES ($1, $2)", [videoPath, 1])
-
-
+            } else {
+                await db.execute("UPDATE video SET watched = 1 WHERE path = ($1)", [videoPath])
             }
         })
     } catch (e) {
@@ -141,10 +143,22 @@ export async function getVideo({
 
 
     if (video.length !== 0) {
-        console.log("video", video);
+        //console.log("video", video);
         return video[0];
     } else {
         return null
     }
 
+}
+
+export async function unwatchVideo({
+    videoPath,
+}: {
+    videoPath: string,
+}) {
+    let db = await Database.load("sqlite:main.db");
+
+    console.log("videoPath", videoPath);
+
+    await db.execute("UPDATE video SET watched = 0 WHERE path = ($1)", [videoPath])
 }

@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
 import { open } from '@tauri-apps/api/dialog';
-import { addFolder, deleteFolder, getFolders, getUsers, getVideo, updateVideoWatched } from '../../../lib/prisma-commands';
+import { addFolder, deleteFolder, getFolders, getUsers, getVideo, unwatchVideo, updateVideoWatched } from '../../../lib/prisma-commands';
 import type { User, Video } from "@prisma/client";
 import { Captions, Eye, FileVideo, Film, Folder, Loader, Play, PlayCircle, Trash2 } from 'lucide-react';
 import { FileEntry, readDir } from '@tauri-apps/api/fs'
@@ -197,7 +197,8 @@ export default function Dashboard() {
                                         whileTap={{ scale: 0.9 }}
                                         className=''
                                     >
-                                        <Trash2 className='rounded-lg p-0.5 text-destructive hover:bg-white' onClick={() => {
+                                        <Trash2 className='rounded-lg p-0.5 text-destructive hover:bg-white' onClick={(e) => {
+                                            e.stopPropagation();
                                             setDeleting(true);
                                             // trigger the delete folder db command
                                             deleteFolder({ folderPath }).then(() => {
@@ -249,9 +250,21 @@ export default function Dashboard() {
                                             <div className='flex flex-row items-center justify-center gap-1'>
                                                 <Film size={17} />
                                                 {/* Check if the file's path matches any video's path in prismaVideos */}
-                                                {prismaVideos.some(video => video.path === file.path) ? (
+                                                {prismaVideos.some(video => video.path === file.path && video.watched) ? (
                                                     <div className='flex flex-row items-center justify-center gap-1 rounded-sm px-0.5 font-medium'>
-                                                        <Eye size={17} />
+                                                        <motion.div
+                                                            whileHover={{ scale: 1.2 }}
+                                                            whileTap={{ scale: 0.9 }}
+                                                            onClick={(e) => {
+                                                                // set the video as unwatched when the user clicks on the eye icon
+                                                                e.stopPropagation();
+                                                                unwatchVideo({ videoPath: file.path }).then(() => {
+                                                                    setFinishedSettingFiles(!finishedSettingFiles);
+                                                                });
+                                                            }}
+                                                        >
+                                                            <Eye size={17} />
+                                                        </motion.div>
                                                         <span>
                                                             {file.name}
                                                         </span>
