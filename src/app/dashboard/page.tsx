@@ -336,8 +336,11 @@ export default function Dashboard() {
                                                 {prismaVideos.some(video => video.path === file.path && video.watched) ? (
                                                     <div className='flex flex-row items-center justify-center gap-1 rounded-sm px-0.5 font-medium'>
                                                         <motion.div
-                                                            whileHover={{ scale: 1.2 }}
-                                                            whileTap={{ scale: 0.9 }}
+                                                            className={cn('',
+                                                                userSettings?.animations === "Off" && 'hover:opacity-20'
+                                                            )}
+                                                            whileHover={userSettings?.animations === "On" ? { scale: 1.2 } : undefined}
+                                                            whileTap={userSettings?.animations === "On" ? { scale: 0.9 } : undefined}
                                                             onClick={(e) => {
                                                                 // set the video as unwatched when the user clicks on the eye icon
                                                                 e.stopPropagation();

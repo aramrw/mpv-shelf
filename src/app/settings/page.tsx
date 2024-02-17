@@ -348,7 +348,12 @@ export default function Settings() {
                         </ul>
                     </li>
                 </ul>
-                <Button variant="outline" className='mx-2 select-none' type='submit' >
+                <Button variant="outline" className={cn('mx-2 select-none',
+                    formState?.fontSize === "Medium" && 'text-lg',
+                    formState?.fontSize === "Large" && 'text-xl',
+                    formState?.fontSize === "XLarge" && 'text-2xl',
+
+                )} type='submit' >
                     Save
                 </Button>
             </form>
