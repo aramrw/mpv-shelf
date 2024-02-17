@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
 import { z } from 'zod'
-import { getUserSettings, getUsers, updateSettings, updateUserPin } from '../../../lib/prisma-commands'
+import { getUserSettings, getUsers, turnOnPin, updateSettings, updateUserPin } from '../../../lib/prisma-commands'
 import { useTheme } from 'next-themes'
 import { User } from '@prisma/client';
 import {
@@ -47,6 +47,10 @@ export default function Settings() {
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        if (currentUser?.pin === "disabled" && formState.usePin === "On") {
+
+        }
         // Collect form data directly from the form elements
         const formData = new FormData(e.currentTarget);
         const formValues = {
@@ -73,8 +77,11 @@ export default function Settings() {
         if (currentUser?.pin) {
             if (newPin && newPin !== currentUser?.pin.toString()) {
                 updateUserPin({ userId: currentUser.id, newPin: newPin.toString() });
+            } else if (formState.usePin === "Off") {
+                updateUserPin({ userId: currentUser.id, newPin: "disabled" });
             }
         }
+
 
     };
 
@@ -108,13 +115,19 @@ export default function Settings() {
         }
     }, [currentUser])
 
-    // useEffect(() => {
-    //     console.log("formState", formState);
-    // }, [formState])
+    useEffect(() => {
+        if (currentUser?.pin === "disabled" && formState.usePin === "On") {
+            setLocked(false);
+        }
+    }, [currentUser])
 
 
     return (
-        <main className='h-fit w-full'>
+        <main className={cn('h-fit w-full',
+            formState?.fontSize === "Medium" && 'text-lg',
+            formState?.fontSize === "Large" && 'text-xl',
+            formState?.fontSize === "XLarge" && 'text-2xl',
+        )}>
             <form className='h-fit w-full' onSubmit={handleSubmit}>
                 <h1 className='h-fit w-full select-none bg-tertiary px-1 font-bold'>Settings</h1>
                 <ul className='flex h-full w-full flex-col gap-2 p-2'>
@@ -177,8 +190,8 @@ export default function Settings() {
                                             <TooltipTrigger asChild>
                                                 <Info className={cn('h-auto w-4 cursor-pointer',
                                                     formState?.fontSize === "Medium" && 'h-auto w-5',
-                                                    formState?.fontSize === "Large" && 'h-auto w-7',
-                                                    formState?.fontSize === "XLarge" && 'h-auto w-9'
+                                                    formState?.fontSize === "Large" && 'h-auto w-6',
+                                                    formState?.fontSize === "XLarge" && 'h-auto w-7'
                                                 )}
                                                 />
                                             </TooltipTrigger>
@@ -222,12 +235,13 @@ export default function Settings() {
                                             // call a native dialog with tauri api //.. ask if user really wants to disable pin
                                             ConfirmTurnOffPin().then((confirmed) => {
                                                 if (confirmed) {
-                                                    setFormState({ ...formState, usePin: e.target.value });
-                                                    if (currentUser?.id)
-                                                        updateUserPin({ userId: currentUser.id, newPin: 'disabled' });
+                                                    setFormState({ ...formState, usePin: "Off" });
+
                                                 }
                                             });
 
+                                        } else if (e.target.value === 'On') {
+                                            setFormState({ ...formState, usePin: "On" });
                                         }
                                     }}
                                 >
@@ -241,7 +255,9 @@ export default function Settings() {
                                     <div className={cn('flex w-1/2 flex-row',
                                     )}>
                                         {!locked && (
-                                            <motion.div className='h-full cursor-pointer rounded-l-sm bg-accent px-1'
+                                            <motion.div className={cn('flex h-full cursor-pointer flex-row items-center justify-center rounded-l-sm bg-accent px-1',
+
+                                            )}
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
                                                 onClick={() => {
@@ -256,41 +272,49 @@ export default function Settings() {
                                                     }
 
                                                 }}>
-                                                <Copy className={cn('h-full w-4',
+                                                <Copy className={cn('h-5/6 w-4',
                                                     formState?.fontSize === "Medium" && 'h-auto w-5',
-                                                    formState?.fontSize === "Large" && 'h-auto w-7',
-                                                    formState?.fontSize === "XLarge" && 'h-auto w-8'
-                                                )} />
+                                                    formState?.fontSize === "Large" && 'h-auto w-6',
+                                                    formState?.fontSize === "XLarge" && 'h-auto w-7'
+                                                )}
+                                                />
                                             </motion.div>
                                         )}
                                         <input className={cn('w-full rounded-l-sm bg-accent px-1 font-medium',
                                             locked && 'cursor-not-allowed select-none opacity-50 focus:outline-none',
-                                            !locked && 'rounded-none'
-                                        )} type='password' name='pin' maxLength={4} pattern='[0-9]{4}' title='Numbers Only' placeholder="&#8226;&#8226;&#8226;&#8226;" readOnly={locked} onChange={(e) => {
+                                            !locked && 'rounded-none',
+                                            currentUser.pin === "disabled" && formState.usePin === "On" && "animate-pulse text-white",
+                                        )} type='password' name='pin' maxLength={4} pattern='[0-9]{4}' title='Numbers Only' placeholder={currentUser.pin === "disabled" && formState.usePin === "On" ? "Enter a pin #" : `••••`} readOnly={locked} onChange={(e) => {
                                             if (e.target.value.length === 4) {
                                                 // ask the user if they want to change the pin 
-                                                ConfirmChangePin().then((confirm) => {
-                                                    if (confirm) {
-                                                        setLocked(true);
-                                                        if (currentUser?.pin) {
-                                                            if (currentUser?.id && e.target.value !== currentUser.pin.toString()) {
-                                                                updateUserPin({ userId: currentUser.id, newPin: e.target.value }).then(() => {
-                                                                    setCurrentUser({ ...currentUser, pin: e.target.value });
-                                                                    toast({
-                                                                        title: 'Pin Changed!',
-                                                                        description: 'Your pin has been updated.',
-                                                                        duration: 1500,
-                                                                    });
-                                                                });
-                                                            } else if (currentUser?.id && e.target.value === currentUser.pin.toString()) {
-                                                                AlertNoChangesMade().then(() => {
-                                                                    setLocked(true);
-                                                                });
-                                                            }
-                                                        }
+                                                if (currentUser.pin)
+                                                    if (currentUser?.id && e.target.value === currentUser.pin.toString()) {
+                                                        AlertNoChangesMade().then(() => {
+                                                            setLocked(true);
+                                                        });
+                                                    } else {
+                                                        ConfirmChangePin().then((confirm) => {
+                                                            if (confirm) {
+                                                                setLocked(true);
+                                                                if (currentUser?.pin) {
+                                                                    if (currentUser?.id && e.target.value !== currentUser.pin.toString()) {
+                                                                        updateUserPin({ userId: currentUser.id, newPin: e.target.value }).then(() => {
+                                                                            setCurrentUser({ ...currentUser, pin: e.target.value });
 
+                                                                            toast({
+                                                                                title: 'Pin Changed!',
+                                                                                description: 'Your pin has been updated.',
+                                                                                duration: 1500,
+                                                                            });
+                                                                        });
+                                                                        turnOnPin({ userId: currentUser.id })
+                                                                    }
+                                                                }
+
+                                                            }
+                                                        });
                                                     }
-                                                });
+
                                             }
                                         }}
                                         />
@@ -302,17 +326,17 @@ export default function Settings() {
                                             }}
                                         >
                                             {locked ? (
-                                                <Lock className={cn('h-full w-4',
+                                                <Lock className={cn('h-5/6 w-4',
                                                     formState?.fontSize === "Medium" && 'h-auto w-5',
-                                                    formState?.fontSize === "Large" && 'h-auto w-7',
-                                                    formState?.fontSize === "XLarge" && 'h-auto w-8'
+                                                    formState?.fontSize === "Large" && 'h-auto w-6',
+                                                    formState?.fontSize === "XLarge" && 'h-auto w-7'
                                                 )}
                                                 />
                                             ) : (
-                                                <Unlock className={cn('h-full w-4 cursor-pointer ',
+                                                <Unlock className={cn('h-5/6 w-4 cursor-pointer ',
                                                     formState?.fontSize === "Medium" && 'h-auto w-5',
-                                                    formState?.fontSize === "Large" && 'h-auto w-7',
-                                                    formState?.fontSize === "XLarge" && 'h-auto w-8'
+                                                    formState?.fontSize === "Large" && 'h-auto w-6',
+                                                    formState?.fontSize === "XLarge" && 'h-auto w-7'
                                                 )}
                                                 />
                                             )}

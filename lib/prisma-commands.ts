@@ -234,3 +234,13 @@ export async function getUserSettings({
     }
 
 }
+
+export async function turnOnPin({
+    userId
+}: {
+    userId: number
+}) {
+    const db = await Database.load("sqlite:main.db");
+
+    await db.execute("UPDATE settings SET usePin = 'On' WHERE userId = $1", [userId])
+}

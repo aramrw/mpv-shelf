@@ -29,3 +29,9 @@ export async function AlertNoChangesMade() {
 
     return;
 }
+
+export async function AlertNoPinEntered() {
+    await message(`You did not enter a pin. If you don't need a pin #, select "Off" in the "Use Pin" setting.`, { title: `No pin entered.`, type: 'error' });
+
+    return;
+}

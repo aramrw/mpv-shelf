@@ -181,7 +181,13 @@ export default function Dashboard() {
                             >
                                 <div className={cn('flex flex-row items-center justify-center gap-1 font-medium text-primary',
                                 )}>
-                                    {asChild && <Folder />}
+                                    {asChild && <Folder className={cn('h-auto w-4',
+                                        userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                                        userSettings?.fontSize === "Large" && 'h-auto w-7',
+                                        userSettings?.fontSize === "XLarge" && 'h-auto w-9'
+                                    )}
+
+                                    />}
                                     {folders.length === 0 && files.length === 0 && subtitleFiles.length === 0 ?
                                         <span className={cn('line-through',
                                             userSettings?.fontSize === "Medium" && 'text-lg',
@@ -189,9 +195,8 @@ export default function Dashboard() {
                                             userSettings?.fontSize === "XLarge" && 'text-2xl',
                                         )}>{folderPath.replace(/\\/g, '/').split('/').pop()}
                                         </span>
-
                                         : (
-                                            <span className={cn('',
+                                            <span className={cn('text-base',
                                                 userSettings?.fontSize === "Medium" && 'text-lg',
                                                 userSettings?.fontSize === "Large" && 'text-xl',
                                                 userSettings?.fontSize === "XLarge" && 'text-2xl',
@@ -200,7 +205,7 @@ export default function Dashboard() {
                                             </span>
                                         )}
                                     {folders.length > 0 && (
-                                        <div className='flex flex-row items-center justify-center gap-0.5 rounded-md bg-tertiary px-0.5 py-0.5'>
+                                        <div className='flex flex-row items-center justify-center gap-0.5 rounded-md bg-tertiary px-0.5'>
                                             <Folder className={cn('h-auto w-4',
                                                 userSettings?.fontSize === "Medium" && 'h-auto w-5',
                                                 userSettings?.fontSize === "Large" && 'h-auto w-7',
@@ -208,11 +213,17 @@ export default function Dashboard() {
                                             )}
 
                                             />
-                                            {folders.length > 0 && folders.length}
+                                            <span className={cn('text-sm',
+                                                userSettings?.fontSize === "Medium" && 'text-lg',
+                                                userSettings?.fontSize === "Large" && 'text-xl',
+                                                userSettings?.fontSize === "XLarge" && 'text-2xl',
+                                            )}>
+                                                {folders.length > 0 && folders.length}
+                                            </span>
                                         </div>
                                     )}
                                     {files.length > 0 && (
-                                        <div className={cn('flex flex-row items-center justify-center text-sm rounded-md bg-tertiary px-0.5 py-0.5',
+                                        <div className={cn('flex flex-row items-center justify-center text-sm rounded-md bg-tertiary px-0.5 ',
                                             userSettings?.fontSize === "Medium" && 'text-base',
                                             userSettings?.fontSize === "Large" && 'text-lg',
                                             userSettings?.fontSize === "XLarge" && 'text-xl',
@@ -229,7 +240,7 @@ export default function Dashboard() {
                                         </div>
                                     )}
                                     {subtitleFiles.length > 0 && (
-                                        <div className={cn('flex flex-row items-center justify-center text-sm rounded-md bg-tertiary px-0.5 py-0.5',
+                                        <div className={cn('flex flex-row items-center justify-center text-sm rounded-md bg-tertiary px-0.5 ',
                                             userSettings?.fontSize === "Medium" && 'text-base',
                                             userSettings?.fontSize === "Large" && 'text-lg',
                                             userSettings?.fontSize === "XLarge" && 'text-xl',
