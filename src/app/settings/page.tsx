@@ -123,7 +123,7 @@ export default function Settings() {
                         <ul className='flex flex-col gap-3 p-2'>
                             <li className='flex h-fit w-full bg-muted'>
                                 <h1 className='w-1/2 select-none font-medium'>Theme</h1>
-                                <select className='w-1/2 rounded-sm bg-accent font-medium' name='theme'
+                                <select className='w-1/2 cursor-pointer rounded-sm bg-accent font-medium' name='theme'
                                     value={formState.theme}
                                     onChange={(e) => {
                                         setFormState({ ...formState, theme: e.target.value })
@@ -140,7 +140,7 @@ export default function Settings() {
                             </li>
                             <li className='flex h-fit w-full bg-muted'>
                                 <h1 className='w-1/2 select-none font-medium'>Font Size</h1>
-                                <select className='w-1/2 rounded-sm bg-accent font-medium' name='fontSize'
+                                <select className='w-1/2 cursor-pointer rounded-sm bg-accent font-medium' name='fontSize'
                                     value={formState.fontSize}
                                     onChange={(e) => {
                                         setFormState({ ...formState, fontSize: e.target.value })
@@ -154,7 +154,7 @@ export default function Settings() {
                             </li>
                             <li className='flex h-fit w-full bg-muted'>
                                 <h1 className='w-1/2 select-none font-medium'>Animations</h1>
-                                <select className='w-1/2 rounded-sm bg-accent font-medium' name='animations'
+                                <select className='w-1/2 cursor-pointer rounded-sm bg-accent font-medium' name='animations'
                                     value={formState.animations}
                                     onChange={(e) => {
                                         setFormState({ ...formState, animations: e.target.value })
@@ -197,7 +197,7 @@ export default function Settings() {
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
-                                <select className='w-1/2 rounded-sm bg-accent font-medium' name='autoRename'
+                                <select className='w-1/2 cursor-pointer rounded-sm bg-accent font-medium' name='autoRename'
                                     value={formState.autoRename}
                                     onChange={(e) => {
                                         setFormState({ ...formState, autoRename: e.target.value });
@@ -215,7 +215,7 @@ export default function Settings() {
                         <ul className='flex flex-col gap-3 p-2'>
                             <li className='flex h-fit w-full justify-between bg-muted'>
                                 <h1 className='w-1/2 select-none font-medium'>Use Pin</h1>
-                                <select className='w-1/2 rounded-sm bg-accent font-medium' name='usePin'
+                                <select className='w-1/2 cursor-pointer rounded-sm bg-accent font-medium' name='usePin'
                                     value={formState.usePin}
                                     onChange={(e) => {
                                         if (e.target.value === 'Off') {
