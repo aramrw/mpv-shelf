@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { writeText } from '@tauri-apps/api/clipboard'
 import { useToast } from '@/components/ui/use-toast'
-import ConfirmTurnOffPin from './_components/confirm'
+import { AlertNoChangesMade, ConfirmChangePin, ConfirmTurnOffPin } from './_components/confirm'
 
 const formSchema = z.object({
     theme: z.enum(['Light', 'Dark']),
@@ -264,10 +264,34 @@ export default function Settings() {
                                             </motion.div>
                                         )}
                                         <input className={cn('w-full rounded-l-sm bg-accent px-1 font-medium',
-                                            locked && 'cursor-not-allowed select-none opacity-50',
+                                            locked && 'cursor-not-allowed select-none opacity-50 focus:outline-none',
                                             !locked && 'rounded-none'
-                                        )} type='password' name='pin' maxLength={4} pattern='[0-9]{4}' title='Numbers Only' value={currentUser.pin.toString()} readOnly={locked} onChange={(e) => {
+                                        )} type='password' name='pin' maxLength={4} pattern='[0-9]{4}' title='Numbers Only' placeholder="&#8226;&#8226;&#8226;&#8226;" readOnly={locked} onChange={(e) => {
+                                            if (e.target.value.length === 4) {
+                                                // ask the user if they want to change the pin 
+                                                ConfirmChangePin().then((confirm) => {
+                                                    if (confirm) {
+                                                        setLocked(true);
+                                                        if (currentUser?.pin) {
+                                                            if (currentUser?.id && e.target.value !== currentUser.pin.toString()) {
+                                                                updateUserPin({ userId: currentUser.id, newPin: e.target.value }).then(() => {
+                                                                    setCurrentUser({ ...currentUser, pin: e.target.value });
+                                                                    toast({
+                                                                        title: 'Pin Changed!',
+                                                                        description: 'Your pin has been updated.',
+                                                                        duration: 1500,
+                                                                    });
+                                                                });
+                                                            } else if (currentUser?.id && e.target.value === currentUser.pin.toString()) {
+                                                                AlertNoChangesMade().then(() => {
+                                                                    setLocked(true);
+                                                                });
+                                                            }
+                                                        }
 
+                                                    }
+                                                });
+                                            }
                                         }}
                                         />
                                         <motion.div className='flex h-full cursor-pointer flex-row items-center justify-center rounded-r-sm bg-accent px-1'

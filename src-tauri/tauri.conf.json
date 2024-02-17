@@ -17,7 +17,7 @@
         "all": true,
         "ask": false,
         "confirm": true,
-        "message": false,
+        "message": true,
         "open": true,
         "save": false
       },
