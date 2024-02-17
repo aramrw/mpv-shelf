@@ -240,7 +240,11 @@ export default function Dashboard() {
                                             whileTap={{ scale: 0.9 }}
                                             className=''
                                         >
-                                            <Trash2 className='rounded-lg p-0.5 text-destructive hover:bg-white' onClick={(e) => {
+                                            <Trash2 className={cn('rounded-lg p-0.5 text-destructive hover:bg-white h-auto w-6',
+                                                userSettings?.fontSize === "Medium" && 'h-auto w-7',
+                                                userSettings?.fontSize === "Large" && 'h-auto w-8',
+                                                userSettings?.fontSize === "XLarge" && 'h-auto w-9'
+                                            )} onClick={(e) => {
                                                 e.stopPropagation();
                                                 setDeleting(true);
                                                 // trigger the delete folder db command
