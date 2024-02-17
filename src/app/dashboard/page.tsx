@@ -23,6 +23,7 @@ import { SettingSchema } from '../settings/page';
 export default function Dashboard() {
     let [folderPaths, setFolderPaths] = useState<string[]>([]);
     let [currentUser, setCurrentUser] = useState<User>();
+    let [userSettings, setUserSettings] = useState<SettingSchema>();
 
     // fetch the user object from db on start
     useEffect(() => {
@@ -42,8 +43,6 @@ export default function Dashboard() {
 
     }, [])
 
-
-
     // get all the folder paths from the folder table with user id on startup
     useEffect(() => {
         console.log(currentUser);
@@ -56,6 +55,17 @@ export default function Dashboard() {
 
     }, [currentUser])
 
+    // fetch the settings object from db on start
+    useEffect(() => {
+        if (currentUser?.id) {
+            getUserSettings({ userId: currentUser?.id }).then((settings) => {
+                if (settings) {
+                    console.log("settings", settings);
+                    setUserSettings(settings);
+                }
+            })
+        }
+    }, [currentUser])
 
     function AddFolder(
     ) {
@@ -63,6 +73,11 @@ export default function Dashboard() {
             <main
             >
                 <Button variant="outline"
+                    className={cn('select-none',
+                        userSettings?.fontSize === "Medium" && 'text-lg mx-0',
+                        userSettings?.fontSize === "Large" && 'text-xl mx-0',
+                        userSettings?.fontSize === "XLarge" && 'text-2xl mx-0',
+                    )}
                     onClick={() => {
                         open({
                             directory: true
@@ -89,7 +104,7 @@ export default function Dashboard() {
         let [deleting, setDeleting] = useState(false);
         let [prismaVideos, setPrismaVideos] = useState<Video[]>([]);
         let [finishedSettingFiles, setFinishedSettingFiles] = useState(false);
-        let [userSettings, setUserSettings] = useState<SettingSchema>();
+
 
 
         // get all the files and folders in the folder path on startup
@@ -145,17 +160,7 @@ export default function Dashboard() {
         }, [finishedSettingFiles])
 
         // grabs the users settings from the db on startup
-        // fetch the settings object from db on start
-        useEffect(() => {
-            if (currentUser?.id) {
-                getUserSettings({ userId: currentUser?.id }).then((settings) => {
-                    if (settings) {
-                        console.log("settings", settings);
-                        setUserSettings(settings);
-                    }
-                })
-            }
-        }, [currentUser])
+
 
 
 

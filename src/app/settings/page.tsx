@@ -352,7 +352,6 @@ export default function Settings() {
                     formState?.fontSize === "Medium" && 'text-lg',
                     formState?.fontSize === "Large" && 'text-xl',
                     formState?.fontSize === "XLarge" && 'text-2xl',
-
                 )} type='submit' >
                     Save
                 </Button>
