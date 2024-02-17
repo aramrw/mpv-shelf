@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
 import { set, z } from 'zod'
-import { getUsers, updateSettings, updateUserPin } from '../../../lib/prisma-commands'
+import { getUserSettings, getUsers, updateSettings, updateUserPin } from '../../../lib/prisma-commands'
 import { useTheme } from 'next-themes'
 import { User } from '@prisma/client';
 import {
@@ -24,6 +24,7 @@ const formSchema = z.object({
     fontSize: z.enum(['Small', 'Medium', 'Large', 'XLarge']),
     animations: z.enum(['On', 'Off']),
     autoRename: z.enum(['On', 'Off']),
+    usePin: z.enum(['On', 'Off']),
 })
 
 export type SettingSchema = z.infer<typeof formSchema>
@@ -92,8 +93,17 @@ export default function Settings() {
                 }
             }
         })
-
     }, [])
+
+    useEffect(() => {
+        if (currentUser?.id) {
+            getUserSettings({ userId: currentUser?.id }).then((settings) => {
+                if (settings) {
+                    setFormState(settings);
+                }
+            })
+        }
+    }, [currentUser])
 
 
     return (
