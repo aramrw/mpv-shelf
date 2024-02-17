@@ -221,6 +221,8 @@ export async function getUserSettings({
     try {
         let settings: SettingSchema[] = await db.select("SELECT * from settings WHERE userId = $1", [userId])
 
+        //console.log("settings", settings[0]);
+
         if (settings.length === 0) {
             return null;
         } else {

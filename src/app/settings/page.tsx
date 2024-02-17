@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
-import { set, z } from 'zod'
+import { z } from 'zod'
 import { getUserSettings, getUsers, updateSettings, updateUserPin } from '../../../lib/prisma-commands'
 import { useTheme } from 'next-themes'
 import { User } from '@prisma/client';
@@ -78,7 +78,7 @@ export default function Settings() {
 
     };
 
-    // fetch the user object from db on start + get the settings object from the db
+    // fetch the user object from db on start 
     useEffect(() => {
         getUsers().then((users) => {
             if (users) {
@@ -95,15 +95,22 @@ export default function Settings() {
         })
     }, [])
 
+    // fetch the settings object from db on start
     useEffect(() => {
         if (currentUser?.id) {
             getUserSettings({ userId: currentUser?.id }).then((settings) => {
                 if (settings) {
+                    //console.log("settings", settings);
                     setFormState(settings);
+                    //console.log("formState", formState);
                 }
             })
         }
     }, [currentUser])
+
+    // useEffect(() => {
+    //     console.log("formState", formState);
+    // }, [formState])
 
 
     return (
@@ -117,7 +124,7 @@ export default function Settings() {
                             <li className='flex h-fit w-full bg-muted'>
                                 <h1 className='w-1/2 select-none font-medium'>Theme</h1>
                                 <select className='w-1/2 rounded-sm bg-accent font-medium' name='theme'
-                                    defaultValue={formState.theme}
+                                    value={formState.theme}
                                     onChange={(e) => {
                                         setTheme(e.target.value);
                                     }}
@@ -132,8 +139,10 @@ export default function Settings() {
                             <li className='flex h-fit w-full bg-muted'>
                                 <h1 className='w-1/2 select-none font-medium'>Font Size</h1>
                                 <select className='w-1/2 rounded-sm bg-accent font-medium' name='fontSize'
-                                    defaultValue={formState.fontSize}
-                                //onChange={handleInputChange}
+                                    value={formState.fontSize}
+                                    onChange={() => {
+                                        // dummy onchange so react shuts the fuck up
+                                    }}
                                 >
                                     <option className='font-medium'>Small</option>
                                     <option className='font-medium'>Medium</option>
@@ -144,7 +153,10 @@ export default function Settings() {
                             <li className='flex h-fit w-full bg-muted'>
                                 <h1 className='w-1/2 select-none font-medium'>Animations</h1>
                                 <select className='w-1/2 rounded-sm bg-accent font-medium' name='animations'
-                                    defaultValue={formState.animations}
+                                    value={formState.animations}
+                                    onChange={() => {
+                                        // dummy onchange so react shuts the fuck up
+                                    }}
                                 //onChange={handleInputChange}
                                 >
                                     <option className='font-medium'>On</option>
@@ -184,7 +196,10 @@ export default function Settings() {
                                     </Tooltip>
                                 </TooltipProvider>
                                 <select className='w-1/2 rounded-sm bg-accent font-medium' name='autoRename'
-                                    defaultValue={formState.autoRename}
+                                    value={formState.autoRename}
+                                    onChange={() => {
+                                        // dummy onchange so react shuts the fuck up
+                                    }}
                                 >
                                     <option className='font-medium'>On</option>
                                     <option className='font-medium'>Off</option>
@@ -199,7 +214,7 @@ export default function Settings() {
                             <li className='flex h-fit w-full justify-between bg-muted'>
                                 <h1 className='w-1/2 select-none font-medium'>Use Pin</h1>
                                 <select className='w-1/2 rounded-sm bg-accent font-medium' name='usePin'
-                                    defaultValue={formState.usePin}
+                                    value={formState.usePin}
                                     onChange={(e) => {
                                         if (e.target.value === 'Off') {
                                             // call a native dialog with tauri api //.. ask if user really wants to disable pin
@@ -241,7 +256,9 @@ export default function Settings() {
                                         <input className={cn('w-full rounded-l-sm bg-accent px-1 font-medium',
                                             locked && 'cursor-not-allowed select-none opacity-50',
                                             !locked && 'rounded-none'
-                                        )} type='password' name='pin' maxLength={4} pattern='[0-9]{4}' title='Numbers Only' defaultValue={currentUser.pin.toString()} readOnly={locked}
+                                        )} type='password' name='pin' maxLength={4} pattern='[0-9]{4}' title='Numbers Only' value={currentUser.pin.toString()} readOnly={locked} onChange={() => {
+                                            // dummy onchange so react shuts the fuck up
+                                        }}
                                         />
                                         <motion.div className='h-full cursor-pointer rounded-r-sm bg-accent px-1'
                                             whileHover={{ scale: 1.05 }}
