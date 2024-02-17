@@ -165,17 +165,39 @@ export async function unwatchVideo({
 }
 
 export async function updateSettings({
-    formData
+    formData,
+    userId
 }: {
     formData: SettingSchema
+    userId: number
 }) {
     const db = await Database.load("sqlite:main.db");
 
-    db.execute("CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY AUTOINCREMENT, theme TEXT NOT NULL, fontSize TEXT NOT NULLL").catch((e) => {
+    await db.execute("CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL UNIQUE, theme TEXT NOT NULL, fontSize TEXT NOT NULL, animations TEXT NOT NULL, autoRename TEXT NOT NULL, FOREIGN KEY (userId) REFERENCES user(id))").catch((e) => {
         console.log("error", e);
     });
 
-    db.execute("INSERT into settings (theme, fontSize) VALUES ($1, $2)", [formData.theme, formData.fontSize]).catch((e) => {
+    await db.execute(`
+        INSERT INTO settings (userId, theme, fontSize, animations, autoRename)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT(userId) DO UPDATE SET
+        theme = excluded.theme,
+        fontSize = excluded.fontSize,
+        animations = excluded.animations,
+        autoRename = excluded.autoRename
+    `, [userId, formData.theme, formData.fontSize, formData.animations, formData.autoRename]).catch((e) => {
         console.log("error", e);
     });
+}
+
+export async function updateUserPin({
+    userId,
+    newPin
+}: {
+    userId: number,
+    newPin: string
+}) {
+    const db = await Database.load("sqlite:main.db");
+
+    await db.execute("UPDATE user SET pin = $1 WHERE id = $2", [newPin, userId])
 }
