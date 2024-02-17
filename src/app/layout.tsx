@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "./_main-components/main-components";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { getUserSettings } from "../../lib/prisma-commands";
 
 const mplus = M_PLUS_1p({
   subsets: ["latin"],

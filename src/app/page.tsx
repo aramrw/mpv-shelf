@@ -133,7 +133,7 @@ export default function Home() {
 
     useEffect(() => {
       if (pins.join('').length === pinLength) {
-        if (pins.join('') === userPin) {
+        if (pins.join('') === userPin || userPin === 'disabled') {
           localStorage.setItem('userID', userId.toString());
           router.push('/dashboard');
         }

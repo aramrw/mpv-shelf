@@ -15,9 +15,9 @@ import {
 import { Copy, Info, Lock, Unlock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
-import { confirm } from '@tauri-apps/api/dialog'
 import { writeText } from '@tauri-apps/api/clipboard'
 import { useToast } from '@/components/ui/use-toast'
+import ConfirmTurnOffPin from './_components/confirm'
 
 const formSchema = z.object({
     theme: z.enum(['Light', 'Dark']),
@@ -126,7 +126,9 @@ export default function Settings() {
                                 <select className='w-1/2 rounded-sm bg-accent font-medium' name='theme'
                                     value={formState.theme}
                                     onChange={(e) => {
-                                        setTheme(e.target.value);
+                                        setFormState({ ...formState, theme: e.target.value })
+                                        setTheme(e.target.value.toLowerCase());
+
                                     }}
                                     onLoad={(e) => {
                                         setTheme(formState.theme);
@@ -140,8 +142,8 @@ export default function Settings() {
                                 <h1 className='w-1/2 select-none font-medium'>Font Size</h1>
                                 <select className='w-1/2 rounded-sm bg-accent font-medium' name='fontSize'
                                     value={formState.fontSize}
-                                    onChange={() => {
-                                        // dummy onchange so react shuts the fuck up
+                                    onChange={(e) => {
+                                        setFormState({ ...formState, fontSize: e.target.value })
                                     }}
                                 >
                                     <option className='font-medium'>Small</option>
@@ -154,10 +156,10 @@ export default function Settings() {
                                 <h1 className='w-1/2 select-none font-medium'>Animations</h1>
                                 <select className='w-1/2 rounded-sm bg-accent font-medium' name='animations'
                                     value={formState.animations}
-                                    onChange={() => {
-                                        // dummy onchange so react shuts the fuck up
+                                    onChange={(e) => {
+                                        setFormState({ ...formState, animations: e.target.value })
                                     }}
-                                //onChange={handleInputChange}
+
                                 >
                                     <option className='font-medium'>On</option>
                                     <option className='font-medium'>Off</option>
@@ -197,8 +199,8 @@ export default function Settings() {
                                 </TooltipProvider>
                                 <select className='w-1/2 rounded-sm bg-accent font-medium' name='autoRename'
                                     value={formState.autoRename}
-                                    onChange={() => {
-                                        // dummy onchange so react shuts the fuck up
+                                    onChange={(e) => {
+                                        setFormState({ ...formState, autoRename: e.target.value });
                                     }}
                                 >
                                     <option className='font-medium'>On</option>
@@ -218,6 +220,14 @@ export default function Settings() {
                                     onChange={(e) => {
                                         if (e.target.value === 'Off') {
                                             // call a native dialog with tauri api //.. ask if user really wants to disable pin
+                                            ConfirmTurnOffPin().then((confirmed) => {
+                                                if (confirmed) {
+                                                    setFormState({ ...formState, usePin: e.target.value });
+                                                    if (currentUser?.id)
+                                                        updateUserPin({ userId: currentUser.id, newPin: 'disabled' });
+                                                }
+                                            });
+
                                         }
                                     }}
                                 >
@@ -256,11 +266,11 @@ export default function Settings() {
                                         <input className={cn('w-full rounded-l-sm bg-accent px-1 font-medium',
                                             locked && 'cursor-not-allowed select-none opacity-50',
                                             !locked && 'rounded-none'
-                                        )} type='password' name='pin' maxLength={4} pattern='[0-9]{4}' title='Numbers Only' value={currentUser.pin.toString()} readOnly={locked} onChange={() => {
-                                            // dummy onchange so react shuts the fuck up
+                                        )} type='password' name='pin' maxLength={4} pattern='[0-9]{4}' title='Numbers Only' value={currentUser.pin.toString()} readOnly={locked} onChange={(e) => {
+
                                         }}
                                         />
-                                        <motion.div className='h-full cursor-pointer rounded-r-sm bg-accent px-1'
+                                        <motion.div className='flex h-full cursor-pointer flex-row items-center justify-center rounded-r-sm bg-accent px-1'
                                             whileHover={{ scale: 1.05 }}
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => {
