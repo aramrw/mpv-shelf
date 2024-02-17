@@ -1,5 +1,6 @@
 import Database from "tauri-plugin-sql-api"
 import { User, Folder, Video } from "@prisma/client";
+import { SettingSchema } from "@/app/settings/page";
 
 export async function getUsers() {
     const db = await Database.load("sqlite:main.db");
@@ -161,4 +162,20 @@ export async function unwatchVideo({
     console.log("videoPath", videoPath);
 
     await db.execute("UPDATE video SET watched = 0 WHERE path = ($1)", [videoPath])
+}
+
+export async function updateSettings({
+    formData
+}: {
+    formData: SettingSchema
+}) {
+    const db = await Database.load("sqlite:main.db");
+
+    db.execute("CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY AUTOINCREMENT, theme TEXT NOT NULL, fontSize TEXT NOT NULLL").catch((e) => {
+        console.log("error", e);
+    });
+
+    db.execute("INSERT into settings (theme, fontSize) VALUES ($1, $2)", [formData.theme, formData.fontSize]).catch((e) => {
+        console.log("error", e);
+    });
 }

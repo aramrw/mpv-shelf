@@ -20,8 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-
-      <body className={`${mplus.className} antialiased`}><Navbar />{children}</body>
+      <body className={`${mplus.className} antialiased `}><Navbar />{children}</body>
     </html>
   );
 }

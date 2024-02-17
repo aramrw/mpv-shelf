@@ -30,7 +30,8 @@
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
     "tauri-plugin-sql-api": "github:tauri-apps/tauri-plugin-sql#v1",
-    "tauri-plugin-store-api": "github:tauri-apps/tauri-plugin-store#v1"
+    "tauri-plugin-store-api": "github:tauri-apps/tauri-plugin-store#v1",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/node": "^20",

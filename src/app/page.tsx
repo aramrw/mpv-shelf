@@ -36,7 +36,8 @@ export default function Home() {
           <PinInputNewUser />
         </main>
       )
-    }
+    } // else if (!isLoading && users?.length > 1) 
+    // display a list of users to choose from
   }
 
   function PinInputNewUser() {

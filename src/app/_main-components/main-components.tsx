@@ -1,11 +1,16 @@
 "use client"
 
-import { HelpCircle, Settings, Sliders } from 'lucide-react'
+import { ArrowBigLeft, HelpCircle, MoveLeft, Settings, Sliders } from 'lucide-react'
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 
 export function Navbar() {
     let [isHidden, setIsHidden] = useState(false);
+
+    const router = useRouter();
+    const pathname = usePathname();
 
     // Function to handle the end of a drag event
     const handleDragEnd = (event: any, info: any) => {
@@ -25,20 +30,44 @@ export function Navbar() {
             animate={{ y: isHidden ? -100 : 0 }} // Adjust this value to control how far the navbar moves up
             transition={{ type: 'spring', stiffness: 300 }}
         >
-            <motion.div
-                className='cursor-pointer'
-                whileTap={{ scale: 0.9 }}
-                whileHover={{ scale: 1.1 }}
-            >
-                <HelpCircle />
-            </motion.div>
+            <div className='flex w-full flex-row items-center justify-between gap-1'>
+                {pathname === "/settings" && (
+                    <motion.div
+                        className='cursor-pointer rounded-sm bg-muted px-1'
+                        whileTap={{ scale: 0.9 }}
+                        whileHover={{ scale: 1.1 }}
+                        onClick={() => {
+                            router.back();
+                        }}
+                    >
+                        <MoveLeft />
+                    </motion.div>
+                )}
+                <motion.div
+                    className='cursor-pointer'
+                    whileTap={{ scale: 0.9 }}
+                    whileHover={{ scale: 1.1 }}
+                >
+                    <HelpCircle />
+                </motion.div>
 
-            <motion.div
-                whileTap={{ scale: 0.9 }}
-                whileHover={{ scale: 1.1 }}
-            >
-                <Sliders className="h-full w-fit cursor-pointer" />
-            </motion.div>
+
+
+            </div>
+
+            {pathname !== "/settings" && (
+                <motion.div
+                    whileTap={{ scale: 0.9 }}
+                    whileHover={{ scale: 1.1 }}
+                >
+                    <Link href="/settings">
+                        <Sliders className="h-full w-fit cursor-pointer" />
+                    </Link>
+                </motion.div>
+            )}
+
+
+
 
         </motion.div>
     );
