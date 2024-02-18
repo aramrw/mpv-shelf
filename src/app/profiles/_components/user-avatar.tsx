@@ -22,7 +22,9 @@ export function UserAvatar({
             asChild && "h-auto w-1/6 text-lg font-medium"
         )}>
             <AvatarImage src={userObject.imagePath ? userObject.imagePath : ""} alt={userObject.id.toString()} className="object-contain" style={{ backgroundImage: `url(${userObject.imagePath})` }} />
-            <AvatarFallback>{userObject.id}</AvatarFallback>
+            <AvatarFallback className={cn("bg-accent font-bold",
+                asChild && "h-16 w-16 text-lg font-bold"
+            )}>{userObject.id}</AvatarFallback>
         </Avatar>
     )
 }
