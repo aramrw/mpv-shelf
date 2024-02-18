@@ -38,7 +38,7 @@ export default function Home() {
       )
     }
 
-    if (!isLoading && users?.length === 0) {
+    if (!isLoading && users && users?.length === 0) {
       return (
         <main className="flex flex-col items-center justify-center">
           <PinInputNewUser />
@@ -46,7 +46,7 @@ export default function Home() {
       )
     }
 
-    if (users && !isLoading && users?.length > 1) {
+    if (!isLoading && users && users?.length > 1) {
       getCurrentUserGlobal().then((GLOBAL_USER) => {
         if (GLOBAL_USER && GLOBAL_USER?.userId !== -1 && users) {
           for (const user of users) {
@@ -55,6 +55,8 @@ export default function Home() {
               setUsers([user]);
             }
           }
+        } else {
+          router.push('/profiles');
         }
       })
     }

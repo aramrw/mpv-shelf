@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
 import { z } from 'zod'
-import { getUserSettings, getUsers, turnOnPin, updateSettings, updateUserPin } from '../../../lib/prisma-commands'
+import { getCurrentUserGlobal, getUserSettings, getUsers, setCurrentUserGlobal, turnOnPin, updateSettings, updateUserPin } from '../../../lib/prisma-commands'
 import { useTheme } from 'next-themes'
 import { User } from '@prisma/client';
 import {
@@ -18,6 +18,7 @@ import { motion } from 'framer-motion'
 import { writeText } from '@tauri-apps/api/clipboard'
 import { useToast } from '@/components/ui/use-toast'
 import { AlertNoChangesMade, ConfirmChangePin, ConfirmTurnOffPin } from './_components/confirm'
+import { useRouter } from 'next/navigation'
 
 const formSchema = z.object({
     theme: z.enum(['Light', 'Dark']),
@@ -44,6 +45,9 @@ export default function Settings() {
 
     const [currentUser, setCurrentUser] = useState<User>();
     const [locked, setLocked] = useState(true);
+    const [hasMultipleProfiles, setHasMultipleProfiles] = useState(false);
+
+    let router = useRouter();
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -89,16 +93,20 @@ export default function Settings() {
     useEffect(() => {
         getUsers().then((users) => {
             if (users) {
-                let id = localStorage.getItem('userID');
-                if (id) {
+                getCurrentUserGlobal().then((GLOBAL_USER) => {
                     for (const user of users) {
-                        if (user.id === Number(id)) {
+                        if (user.id === GLOBAL_USER?.userId) {
                             setCurrentUser(user);
                             break;
                         }
                     }
+                });
+
+                if (users.length > 1) {
+                    setHasMultipleProfiles(true);
                 }
             }
+
         })
     }, [])
 
@@ -152,6 +160,48 @@ export default function Settings() {
             <form className='h-fit w-full' onSubmit={handleSubmit}>
                 <h1 className='h-fit w-full select-none bg-tertiary px-1 font-bold'>Settings</h1>
                 <ul className='flex h-full w-full flex-col gap-2 p-2'>
+                    <li className='flex h-fit flex-col rounded-b-sm bg-muted'>
+                        <h1 className='select-none rounded-t-sm bg-accent px-1 font-bold'>User</h1>
+                        <ul className='flex flex-col gap-3 p-2'>
+                            {hasMultipleProfiles && (
+                                <li className='flex h-fit w-full justify-between bg-muted'>
+                                    <TooltipProvider>
+                                        <Tooltip delayDuration={1}>
+                                            <div className='flex w-1/2 flex-row items-center gap-1'>
+                                                <TooltipTrigger asChild>
+                                                    <Info className={cn('h-auto w-4 cursor-pointer',
+                                                        formState?.fontSize === "Medium" && 'h-auto w-5',
+                                                        formState?.fontSize === "Large" && 'h-auto w-6',
+                                                        formState?.fontSize === "XLarge" && 'h-auto w-7'
+                                                    )}
+                                                    />
+                                                </TooltipTrigger>
+                                                <h1 className='w-1/2 select-none font-medium'>Sign Out</h1>
+                                            </div>
+                                            <TooltipContent>
+                                                <div className='font-medium'>
+                                                    <span className=''>
+                                                        Takes you back to the <b>profile selection screen</b>.
+                                                        <br />
+                                                        You are currently signed in as  <b>User {currentUser?.id}</b>.
+                                                    </span>
+                                                </div>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                    <Button variant="outline" className='w-1/2 font-medium' onClick={() => {
+                                        setCurrentUserGlobal({ userId: -1 }).then(() => {
+                                            router.push('/');
+                                        })
+
+                                    }}>
+                                        Sign Out
+                                    </Button>
+                                </li>
+                            )}
+
+                        </ul>
+                    </li>
                     <li className='flex h-fit flex-col rounded-b-sm bg-muted'>
                         <h1 className='select-none rounded-t-sm bg-accent px-1 font-bold'>UI / UX</h1>
                         <ul className='flex flex-col gap-3 p-2'>
@@ -207,8 +257,8 @@ export default function Settings() {
                             <li className='flex h-fit w-full justify-between bg-muted'>
                                 <TooltipProvider>
                                     <Tooltip delayDuration={1}>
-                                        <div className='flex w-1/2 flex-row gap-1'>
-                                            <TooltipTrigger asChild>
+                                        <div className='flex w-1/2 flex-row items-center gap-1'>
+                                            <TooltipTrigger>
                                                 <Info className={cn('h-auto w-4 cursor-pointer',
                                                     formState?.fontSize === "Medium" && 'h-auto w-5',
                                                     formState?.fontSize === "Large" && 'h-auto w-6',

@@ -325,6 +325,12 @@ export async function getCurrentUserGlobal() {
 
 }
 
+
+// export async function signOut() {
+//     const db = await Database.load("sqlite:main.db");
+//     setCurrentUserGlobal({ userId: -1 })
+// }
+
 export async function setupAppWindow() {
     const appWindow = (await import('@tauri-apps/api/window')).appWindow
 
