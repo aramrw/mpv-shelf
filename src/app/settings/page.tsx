@@ -189,7 +189,7 @@ export default function Settings() {
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
-                                    <Button variant="outline" className={cn('mx-2 select-none w-1/2',
+                                    <Button variant="outline" className={cn('mx-2 select-none w-1/2 h-full',
                                         formState?.fontSize === "Medium" && 'text-lg',
                                         formState?.fontSize === "Large" && 'text-xl',
                                         formState?.fontSize === "XLarge" && 'text-2xl',
