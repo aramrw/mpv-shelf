@@ -20,6 +20,7 @@ import { useToast } from '@/components/ui/use-toast'
 import { AlertNoChangesMade, ConfirmChangePin, ConfirmTurnOffPin } from './_components/confirm'
 import { useRouter } from 'next/navigation'
 import { open } from '@tauri-apps/api/dialog'
+import { UserAvatar } from '../profiles/_components/user-avatar'
 
 const formSchema = z.object({
     theme: z.enum(['Light', 'Dark']),
@@ -169,15 +170,13 @@ export default function Settings() {
                                     <TooltipProvider>
                                         <Tooltip delayDuration={1}>
                                             <div className='flex w-1/2 flex-row items-center gap-1'>
-                                                <TooltipTrigger asChild>
-                                                    <Info className={cn('h-auto w-4 cursor-pointer',
-                                                        formState?.fontSize === "Medium" && 'h-auto w-5',
-                                                        formState?.fontSize === "Large" && 'h-auto w-6',
-                                                        formState?.fontSize === "XLarge" && 'h-auto w-7'
-                                                    )}
-                                                    />
+                                                <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-start'>
+                                                    <div className='flex h-fit w-full flex-row items-center'>
+                                                        {currentUser && (
+                                                            <UserAvatar userObject={currentUser} asChild />
+                                                        )}
+                                                    </div>
                                                 </TooltipTrigger>
-                                                <h1 className='w-1/2 select-none font-medium'>Sign Out</h1>
                                             </div>
                                             <TooltipContent>
                                                 <div className='font-medium'>
@@ -190,7 +189,11 @@ export default function Settings() {
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
-                                    <Button variant="outline" className='h-fit w-1/2 font-medium' onClick={() => {
+                                    <Button variant="outline" className={cn('mx-2 select-none w-1/2',
+                                        formState?.fontSize === "Medium" && 'text-lg',
+                                        formState?.fontSize === "Large" && 'text-xl',
+                                        formState?.fontSize === "XLarge" && 'text-2xl',
+                                    )} onClick={() => {
                                         setCurrentUserGlobal({ userId: -1 }).then(() => {
                                             router.push('/');
                                         })
@@ -202,7 +205,11 @@ export default function Settings() {
                             )}
                             <li className='flex h-fit w-full items-center justify-between bg-muted'>
                                 <h1 className='w-1/2 select-none font-medium'>Profile Picture</h1>
-                                <Button variant="outline" className='h-fit w-1/2 font-medium' onClick={() => {
+                                <Button variant="outline" className={cn('mx-2 select-none w-1/2',
+                                    formState?.fontSize === "Medium" && 'text-lg',
+                                    formState?.fontSize === "Large" && 'text-xl',
+                                    formState?.fontSize === "XLarge" && 'text-2xl',
+                                )} onClick={() => {
                                     // open a dialog to select a new profile picture
                                     open({
                                         directory: false,
@@ -217,7 +224,11 @@ export default function Settings() {
                                             updateProfilePicture({
                                                 userId: currentUser?.id,
                                                 imagePath: result?.toString()
-                                            })
+                                            }).then(() => {
+                                                if (currentUser) {
+                                                    window.location.reload();
+                                                }
+                                            });
                                         }
                                     });
 
