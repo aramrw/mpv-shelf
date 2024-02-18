@@ -3,7 +3,9 @@ import { IBM_Plex_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "./_main-components/main-components";
 import { Toaster } from "@/components/ui/toaster";
-
+import { appWindow } from "@tauri-apps/api/window";
+import { TauriEvent } from "@tauri-apps/api/event"
+import { setCurrentUserGlobal } from "../../lib/prisma-commands";
 
 const mplus = IBM_Plex_Sans_JP({
   subsets: ["latin"],
@@ -21,6 +23,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${mplus.className} antialiased `}>
@@ -31,3 +34,4 @@ export default function RootLayout({
     </html>
   );
 }
+

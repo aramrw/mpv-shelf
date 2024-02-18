@@ -1,16 +1,35 @@
 "use client"
 
 import { ArrowBigLeft, HelpCircle, MoveLeft, Settings, Sliders } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { WebviewWindow } from '@tauri-apps/api/window';
+import { setCurrentUserGlobal, setupAppWindow } from '../../../lib/prisma-commands';
 
 export function Navbar() {
     let [isHidden, setIsHidden] = useState(false);
+    const [appWindow, setAppWindow] = useState<WebviewWindow>()
 
     const router = useRouter();
     const pathname = usePathname();
+
+    useEffect(() => {
+        setupAppWindow().then((appWindow) => {
+            setAppWindow(appWindow)
+        })
+    })
+
+    useEffect(() => {
+        appWindow?.onCloseRequested((e) => {
+            e.preventDefault()
+            setCurrentUserGlobal({ userId: -1 }).then(() => {
+                appWindow?.close()
+            })
+        })
+
+    }, [appWindow])
 
     // Function to handle the end of a drag event
     const handleDragEnd = (event: any, info: any) => {

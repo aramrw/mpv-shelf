@@ -248,8 +248,6 @@ export async function getUserSettings({
 
         //console.log("settings", settings[0]);
 
-
-
         if (settings.length === 0) {
             await db.close();
             return null;
@@ -325,6 +323,10 @@ export async function getCurrentUserGlobal() {
         return null;
     }
 
+}
 
+export async function setupAppWindow() {
+    const appWindow = (await import('@tauri-apps/api/window')).appWindow
 
+    return appWindow
 }

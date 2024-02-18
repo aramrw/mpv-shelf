@@ -5,9 +5,10 @@ import { createNewUser, getCurrentUserGlobal, getUsers, setCurrentUserGlobal } f
 import { motion } from "framer-motion";
 import type { User } from "@prisma/client";
 import { useRouter } from 'next/navigation';
-import { invoke } from '@tauri-apps/api/tauri';
+
 
 export default function Home() {
+
 
   let router = useRouter();
 
@@ -47,7 +48,7 @@ export default function Home() {
 
     if (users && !isLoading && users?.length > 1) {
       getCurrentUserGlobal().then((GLOBAL_USER) => {
-        if (GLOBAL_USER && users) {
+        if (GLOBAL_USER && GLOBAL_USER?.userId !== -1 && users) {
           for (const user of users) {
             if (user.id === GLOBAL_USER.userId) {
               setUsers([]);
