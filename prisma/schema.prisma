@@ -13,6 +13,7 @@ datasource db {
 model User {
   id      Int      @id @default(autoincrement())
   pin     String?  @unique
+  image   Bytes?
   folders Folder[] @relation("UserFolders")
 }
 
@@ -27,4 +28,9 @@ model Video {
   id      Int     @id @default(autoincrement())
   path    String  @unique
   watched Boolean @default(false)
+}
+
+model Global {
+  id     String @id @default("GID99844589388427")
+  userId Int
 }

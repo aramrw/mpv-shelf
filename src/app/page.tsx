@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, createRef, useEffect, use } from 'react';
-import { createNewUser, getUsers } from "../../lib/prisma-commands";
+import { createNewUser, getCurrentUserGlobal, getUsers, setCurrentUserGlobal } from "../../lib/prisma-commands";
 import { motion } from "framer-motion";
 import type { User } from "@prisma/client";
 import { useRouter } from 'next/navigation';
@@ -9,11 +9,15 @@ import { invoke } from '@tauri-apps/api/tauri';
 
 export default function Home() {
 
+  let router = useRouter();
+
   function ChooseUser() {
 
     let [users, setUsers] = useState<User[]>();
     let [isLoading, setIsLoading] = useState(true);
 
+
+    // fetch the user object from db on start
     useEffect(() => {
       getUsers().then((users) => {
         if (users) {
@@ -24,20 +28,35 @@ export default function Home() {
       });
     }, [])
 
+
     if (!isLoading && users?.length === 1 && users[0].pin !== null) {
       return (
         <main className="flex flex-col items-center justify-center">
           <PinInputReturningUser userPin={users[0].pin} userId={users[0].id} />
         </main>
       )
-    } else if (!isLoading && !users) {
+    }
+
+    if (!isLoading && users?.length === 0) {
       return (
         <main className="flex flex-col items-center justify-center">
           <PinInputNewUser />
         </main>
       )
-    } // else if (!isLoading && users?.length > 1) 
-    // display a list of users to choose from
+    }
+
+    if (users && !isLoading && users?.length > 1) {
+      getCurrentUserGlobal().then((GLOBAL_USER) => {
+        if (GLOBAL_USER && users) {
+          for (const user of users) {
+            if (user.id === GLOBAL_USER.userId) {
+              setUsers([]);
+              setUsers([user]);
+            }
+          }
+        }
+      })
+    }
   }
 
   function PinInputNewUser() {
@@ -79,7 +98,7 @@ export default function Home() {
 
     return (
       <main className="flex flex-col items-center justify-center">
-        <motion.h1 className="text-2xl font-medium">First Time?</motion.h1>
+        <motion.h1 className="text-2xl font-medium">Create New Profile</motion.h1>
         <div className="my-4 flex space-x-2">
           {pins.map((pin, index) => (
             <input
@@ -134,12 +153,14 @@ export default function Home() {
     useEffect(() => {
       if (pins.join('').length === pinLength) {
         if (pins.join('') === userPin) {
-          localStorage.setItem('userID', userId.toString());
-          router.push('/dashboard');
+          setCurrentUserGlobal({ userId: userId }).then(() => {
+            router.push('/dashboard');
+          });
         }
       } else if (userPin === "disabled") {
-        localStorage.setItem('userID', userId.toString());
-        router.push('/dashboard');
+        setCurrentUserGlobal({ userId: userId }).then(() => {
+          router.push('/dashboard');
+        });
       }
 
     }, [pins]);
@@ -163,7 +184,11 @@ export default function Home() {
           ))}
         </div>
         <h2 className="text-lg">Enter your <b>pin</b> to get started.</h2>
-        <h3 className='cursor-pointer text-blue-500 underline underline-offset-2'>Forgot pin?</h3>
+        <h3 className='cursor-pointer text-blue-500 underline underline-offset-2'
+          onClick={() => {
+            router.push('/profiles/newUser')
+          }}
+        >Create New Profile</h3>
       </main>
     );
   }

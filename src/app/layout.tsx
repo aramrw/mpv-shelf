@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import { M_PLUS_1p } from "next/font/google";
+import { IBM_Plex_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "./_main-components/main-components";
-import { ThemeProvider } from "@/components/ui/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
-import { getUserSettings } from "../../lib/prisma-commands";
 
-const mplus = M_PLUS_1p({
+
+const mplus = IBM_Plex_Sans_JP({
   subsets: ["latin"],
-  weight: ["100", "300", "400", "500", "700", "800", "900"],
+  //weight: ["100", "300", "400", "500", "700", "800", "900"],
+  weight: ["100", "200", "300", "400", "500", "600", "700"]
 })
 
 export const metadata: Metadata = {
@@ -24,13 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${mplus.className} antialiased `}>
-        <ThemeProvider
-          enableSystem={true}
-        >
-          <Navbar />
-          {children}
-          <Toaster />
-        </ThemeProvider>
+        <Navbar />
+        {children}
+        <Toaster />
       </body>
     </html>
   );

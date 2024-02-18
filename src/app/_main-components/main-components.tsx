@@ -55,7 +55,7 @@ export function Navbar() {
 
             </div>
 
-            {pathname !== "/settings" && (
+            {(pathname !== "/settings" && !pathname.includes("/profile") && pathname !== "/") && (
                 <motion.div
                     whileTap={{ scale: 0.9 }}
                     whileHover={{ scale: 1.1 }}

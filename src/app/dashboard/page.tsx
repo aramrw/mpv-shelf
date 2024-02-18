@@ -1,15 +1,15 @@
 "use client"
 
 import { Button } from '@/components/ui/button'
-import React, { use, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { open } from '@tauri-apps/api/dialog';
-import { addFolder, deleteFolder, getFolders, getUserSettings, getUsers, getVideo, unwatchVideo, updateVideoWatched } from '../../../lib/prisma-commands';
+import { addFolder, deleteFolder, getCurrentUserGlobal, getFolders, getUserSettings, getUsers, getVideo, unwatchVideo, updateVideoWatched } from '../../../lib/prisma-commands';
 import type { User, Video } from "@prisma/client";
-import { Captions, Eye, FileVideo, Film, Folder, Loader, Play, PlayCircle, Trash2 } from 'lucide-react';
+import { Captions, Eye, Film, Folder, Folders, Loader, Trash2, VideoIcon } from 'lucide-react';
 import { FileEntry, readDir } from '@tauri-apps/api/fs'
 import { cn } from '@/lib/utils';
 import { invoke } from '@tauri-apps/api/tauri';
-import { MotionConfig, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -18,26 +18,23 @@ import {
 } from "@/components/ui/context-menu"
 import { SettingSchema } from '../settings/page';
 
-
-
 export default function Dashboard() {
     let [folderPaths, setFolderPaths] = useState<string[]>([]);
     let [currentUser, setCurrentUser] = useState<User>();
     let [userSettings, setUserSettings] = useState<SettingSchema>();
 
-    // fetch the user object from db on start
+    // fetch the user object from db on start and set the current user
     useEffect(() => {
         getUsers().then((users) => {
             if (users) {
-                let id = localStorage.getItem('userID');
-                if (id) {
+                getCurrentUserGlobal().then((GLOBAL_USER) => {
                     for (const user of users) {
-                        if (user.id === Number(id)) {
+                        if (user.id === Number(GLOBAL_USER?.userId)) {
                             setCurrentUser(user);
                             break;
                         }
                     }
-                }
+                });
             }
         })
 
@@ -105,8 +102,6 @@ export default function Dashboard() {
         let [prismaVideos, setPrismaVideos] = useState<Video[]>([]);
         let [finishedSettingFiles, setFinishedSettingFiles] = useState(false);
 
-
-
         // get all the files and folders in the folder path on startup
         useEffect(() => {
             readDir(folderPath).then((res) => {
@@ -160,10 +155,6 @@ export default function Dashboard() {
         }, [finishedSettingFiles])
 
         // grabs the users settings from the db on startup
-
-
-
-
         if (!deleting) {
             return (
 
@@ -173,92 +164,104 @@ export default function Dashboard() {
                             <motion.div className={cn('flex cursor-pointer flex-row items-center justify-between rounded-md bg-accent p-1 shadow-sm',
                                 (expanded && files.length > 0 && !asChild) && 'rounded-b-none border-b-4 border-tertiary',
                                 (expanded && folders.length > 0 && !asChild) && 'rounded-b-none border-b-4 border-tertiary',
-                                (asChild && expanded) && ' px-1 border-none my-1.5',
+                                (asChild && expanded) && ' px-1 border-none ',
                                 userSettings?.animations === "Off" && 'hover:opacity-70',
                             )}
                                 onClick={(e) => {
                                     if (e.button === 0)
                                         setExpanded(!expanded);
                                 }}
-                                whileHover={userSettings?.animations === "On" ? { scale: 0.99 } : undefined}
+                                whileHover={(userSettings?.animations === "On") ? { scale: 0.99 } : undefined}
                                 transition={{ duration: 0.15 }}
 
                             >
-                                <div className={cn('flex flex-row items-center justify-center gap-1 font-medium text-primary',
+                                <div className={cn('flex flex-row items-center justify-center gap-1 font-medium text-primary text-sm',
                                 )}>
                                     {asChild && <Folder className={cn('h-auto w-4',
                                         userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                        userSettings?.fontSize === "Large" && 'h-auto w-7',
-                                        userSettings?.fontSize === "XLarge" && 'h-auto w-9'
+                                        userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                        userSettings?.fontSize === "XLarge" && 'h-auto w-7'
                                     )}
-
                                     />}
                                     {folders.length === 0 && files.length === 0 && subtitleFiles.length === 0 ?
                                         <span className={cn('line-through',
                                             userSettings?.fontSize === "Medium" && 'text-lg',
-                                            userSettings?.fontSize === "Large" && 'text-xl',
-                                            userSettings?.fontSize === "XLarge" && 'text-2xl',
+                                            userSettings?.fontSize === "Large" && 'text-2xl',
+                                            userSettings?.fontSize === "XLarge" && 'text-3xl',
+                                            (userSettings?.fontSize === "Medium" && asChild) && 'text-lg',
+                                            (userSettings?.fontSize === "Large" && asChild) && 'text-xl',
+                                            (userSettings?.fontSize === "XLarge" && asChild) && 'text-2xl',
                                         )}>{folderPath.replace(/\\/g, '/').split('/').pop()}
                                         </span>
                                         : (
                                             <span className={cn('text-base',
                                                 userSettings?.fontSize === "Medium" && 'text-lg',
-                                                userSettings?.fontSize === "Large" && 'text-xl',
-                                                userSettings?.fontSize === "XLarge" && 'text-2xl',
+                                                userSettings?.fontSize === "Large" && 'text-2xl',
+                                                userSettings?.fontSize === "XLarge" && 'text-3xl',
+                                                (userSettings?.fontSize === "Medium" && asChild) && 'text-lg',
+                                                (userSettings?.fontSize === "Large" && asChild) && 'text-xl',
+                                                (userSettings?.fontSize === "XLarge" && asChild) && 'text-2xl',
                                             )}>
                                                 {folderPath.replace(/\\/g, '/').split('/').pop()}
                                             </span>
                                         )}
                                     {folders.length > 0 && (
                                         <div className='flex flex-row items-center justify-center gap-0.5 rounded-md bg-tertiary px-0.5'>
-                                            <Folder className={cn('h-auto w-4',
-                                                userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                userSettings?.fontSize === "Large" && 'h-auto w-7',
-                                                userSettings?.fontSize === "XLarge" && 'h-auto w-9'
+                                            <Folders className={cn('h-auto w-4',
+                                                userSettings?.fontSize === "Medium" && 'h-auto w-4',
+                                                userSettings?.fontSize === "Large" && 'h-auto w-5',
+                                                userSettings?.fontSize === "XLarge" && 'h-auto w-6'
                                             )}
 
                                             />
-                                            <span className={cn('text-sm',
-                                                userSettings?.fontSize === "Medium" && 'text-lg',
-                                                userSettings?.fontSize === "Large" && 'text-xl',
-                                                userSettings?.fontSize === "XLarge" && 'text-2xl',
+                                            <span className={cn('text-xs',
+                                                userSettings?.fontSize === "Medium" && 'text-sm',
+                                                userSettings?.fontSize === "Large" && 'text-base',
+                                                userSettings?.fontSize === "XLarge" && 'text-lg',
                                             )}>
                                                 {folders.length > 0 && folders.length}
                                             </span>
                                         </div>
                                     )}
                                     {files.length > 0 && (
-                                        <div className={cn('flex flex-row items-center justify-center text-sm rounded-md bg-tertiary px-0.5 ',
-                                            userSettings?.fontSize === "Medium" && 'text-base',
-                                            userSettings?.fontSize === "Large" && 'text-lg',
-                                            userSettings?.fontSize === "XLarge" && 'text-xl',
-
+                                        <div className={cn('flex flex-row items-center justify-center text-sm rounded-md bg-tertiary px-0.5 gap-0.5',
                                         )}>
-                                            <FileVideo className={cn('h-auto w-4',
-                                                userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                userSettings?.fontSize === "Large" && 'h-auto w-7',
-                                                userSettings?.fontSize === "XLarge" && 'h-auto w-9'
+                                            <VideoIcon className={cn('h-auto w-4',
+                                                userSettings?.fontSize === "Medium" && 'h-auto w-4',
+                                                userSettings?.fontSize === "Large" && 'h-auto w-5',
+                                                userSettings?.fontSize === "XLarge" && 'h-auto w-6'
                                             )}
-
+                                                strokeWidth={1.85}
                                             />
-                                            {files.length}
+                                            <span className={cn('text-xs',
+                                                userSettings?.fontSize === "Medium" && 'text-sm',
+                                                userSettings?.fontSize === "Large" && 'text-base',
+                                                userSettings?.fontSize === "XLarge" && 'text-lg',
+                                            )}>
+                                                {files.length > 0 && files.length}
+                                            </span>
+
                                         </div>
                                     )}
                                     {subtitleFiles.length > 0 && (
-                                        <div className={cn('flex flex-row items-center justify-center text-sm rounded-md bg-tertiary px-0.5 ',
-                                            userSettings?.fontSize === "Medium" && 'text-base',
-                                            userSettings?.fontSize === "Large" && 'text-lg',
-                                            userSettings?.fontSize === "XLarge" && 'text-xl',
-
+                                        <div className={cn('flex flex-row items-center justify-center text-xs rounded-md bg-tertiary px-0.5 gap-0.5',
                                         )}>
                                             <Captions className={cn('h-auto w-4',
-                                                userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                userSettings?.fontSize === "Large" && 'h-auto w-7',
-                                                userSettings?.fontSize === "XLarge" && 'h-auto w-9'
+                                                userSettings?.fontSize === "Medium" && 'h-auto w-4',
+                                                userSettings?.fontSize === "Large" && 'h-auto w-5',
+                                                userSettings?.fontSize === "XLarge" && 'h-auto w-6'
                                             )}
+                                                strokeWidth={1.8}
+
 
                                             />
-                                            {subtitleFiles.length}
+                                            <span className={cn('text-xs',
+                                                userSettings?.fontSize === "Medium" && 'text-sm',
+                                                userSettings?.fontSize === "Large" && 'text-base',
+                                                userSettings?.fontSize === "XLarge" && 'text-lg',
+                                            )}>
+                                                {subtitleFiles.length > 0 && subtitleFiles.length}
+                                            </span>
                                         </div>
                                     )}
 
@@ -332,8 +335,8 @@ export default function Dashboard() {
                                             <div className='flex flex-row items-center justify-center gap-1'>
                                                 <Film className={cn('h-auto w-4',
                                                     userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                    userSettings?.fontSize === "Large" && 'h-auto w-7',
-                                                    userSettings?.fontSize === "XLarge" && 'h-auto w-9'
+                                                    userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                                    userSettings?.fontSize === "XLarge" && 'h-auto w-7'
                                                 )}
 
                                                 />
@@ -356,8 +359,8 @@ export default function Dashboard() {
                                                         >
                                                             <Eye className={cn('h-auto w-4',
                                                                 userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                                userSettings?.fontSize === "Large" && 'h-auto w-7',
-                                                                userSettings?.fontSize === "XLarge" && 'h-auto w-9'
+                                                                userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                                                userSettings?.fontSize === "XLarge" && 'h-auto w-7'
                                                             )}
 
                                                             />
@@ -365,7 +368,7 @@ export default function Dashboard() {
                                                         <span className={cn('text-sm',
                                                             userSettings?.fontSize === "Medium" && 'text-base',
                                                             userSettings?.fontSize === "Large" && 'text-lg',
-                                                            userSettings?.fontSize === "XLarge" && 'text-xl',
+                                                            userSettings?.fontSize === "XLarge" && 'text-2xl',
                                                         )}>
                                                             {file.name}
                                                         </span>
@@ -374,7 +377,7 @@ export default function Dashboard() {
                                                     <span className={cn('text-sm',
                                                         userSettings?.fontSize === "Medium" && 'text-base',
                                                         userSettings?.fontSize === "Large" && 'text-lg',
-                                                        userSettings?.fontSize === "XLarge" && 'text-xl',
+                                                        userSettings?.fontSize === "XLarge" && 'text-2xl',
                                                     )}>{file.name}</span>
                                                 )}
                                             </div>

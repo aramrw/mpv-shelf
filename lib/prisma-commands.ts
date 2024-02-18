@@ -1,6 +1,7 @@
 import Database from "tauri-plugin-sql-api"
 import { User, Folder, Video } from "@prisma/client";
 import { SettingSchema } from "@/app/settings/page";
+import { Global } from "@prisma/client";
 
 export async function getUsers() {
     const db = await Database.load("sqlite:main.db");
@@ -14,6 +15,8 @@ export async function getUsers() {
     } catch (e) {
         console.log("error", e);
     }
+
+    await db.close();
 
     return users;
 }
@@ -37,6 +40,7 @@ export async function createNewUser({
         console.log("error", e);
     });
 
+    await db.close();
 }
 
 export async function addFolder({
@@ -52,6 +56,7 @@ export async function addFolder({
 
     await db.execute("INSERT into folder (userId, path) VALUES ($1, $2)", [userId, folderPath])
 
+    await db.close();
 }
 
 export async function getFolders({
@@ -67,12 +72,21 @@ export async function getFolders({
         // Directly return the result of the query
         let folders: Folder[] = await db.select("SELECT * from folder WHERE userId = $1", [userId]);
         //console.log("folders", folders);
-        return folders;
+        if (folders.length === 0) {
+            await db.close();
+            return folders;
+        } else {
+            await db.close();
+            return folders;
+        }
+
     } catch (e) {
         console.log(e);
         // Return an empty array or handle the error as needed
+        await db.close();
         return [];
     }
+
 }
 
 export async function deleteFolder({
@@ -84,6 +98,8 @@ export async function deleteFolder({
     let db = await Database.load("sqlite:main.db");
 
     await db.execute("DELETE from folder WHERE path = $1", [folderPath])
+
+    await db.close();
 }
 
 export async function updateVideoWatched({
@@ -115,7 +131,7 @@ export async function updateVideoWatched({
         await db.execute("CREATE TABLE IF NOT EXISTS video (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT NOT NULL UNIQUE, watched BOOLEAN NOT NULL DEFAULT 0)")
     }
 
-
+    await db.close();
 
 }
 
@@ -143,12 +159,15 @@ export async function getVideo({
     }
 
 
-    if (video.length !== 0) {
+    if (video && video.length !== 0) {
         //console.log("video", video);
+        await db.close();
         return video[0];
     } else {
+        await db.close();
         return null
     }
+
 
 }
 
@@ -162,6 +181,8 @@ export async function unwatchVideo({
     console.log("videoPath", videoPath);
 
     await db.execute("UPDATE video SET watched = 0 WHERE path = ($1)", [videoPath])
+
+    await db.close();
 }
 
 export async function updateSettings({
@@ -198,6 +219,8 @@ export async function updateSettings({
     `, [userId, formData.theme, formData.fontSize, formData.animations, formData.autoRename, formData.usePin]).catch((e) => {
         console.log("error", e);
     });
+
+    await db.close();
 }
 
 export async function updateUserPin({
@@ -210,6 +233,8 @@ export async function updateUserPin({
     const db = await Database.load("sqlite:main.db");
 
     await db.execute("UPDATE user SET pin = $1 WHERE id = $2", [newPin, userId])
+
+    await db.close();
 }
 
 export async function getUserSettings({
@@ -223,15 +248,21 @@ export async function getUserSettings({
 
         //console.log("settings", settings[0]);
 
+
+
         if (settings.length === 0) {
+            await db.close();
             return null;
         } else {
+            await db.close();
             return settings[0];
         }
     } catch (e) {
         console.log(e);
+        await db.close();
         return null;
     }
+
 
 }
 
@@ -243,4 +274,57 @@ export async function turnOnPin({
     const db = await Database.load("sqlite:main.db");
 
     await db.execute("UPDATE settings SET usePin = 'On' WHERE userId = $1", [userId])
+
+    await db.close();
+}
+
+
+export async function setCurrentUserGlobal({ userId }: { userId: number }) {
+    const db = await Database.load("sqlite:main.db");
+
+    // Use a constant ID since there will only ever be one record in this table.
+    const GLOBAL_ID = 'GID99844589388427';
+
+    // Ensure the global table exists
+    await db.execute(`
+        CREATE TABLE IF NOT EXISTS global (
+            id TEXT PRIMARY KEY, 
+            userId INTEGER NOT NULL
+        )
+    `);
+
+    // Set the current user. The ON CONFLICT clause is used to upsert the userId for the constant ID.
+    await db.execute(`
+        INSERT INTO global (id, userId) 
+        VALUES ($1, $2)
+        ON CONFLICT(id) DO UPDATE SET 
+        userId = excluded.userId
+    `, [GLOBAL_ID, userId]);
+
+    await db.close();
+}
+
+export async function getCurrentUserGlobal() {
+    const db = await Database.load("sqlite:main.db");
+
+    const GLOBAL_ID = 'GID99844589388427';
+
+    try {
+        const GLOBAL_USER: Global[] = await db.select("SELECT * from global WHERE id = $1", [GLOBAL_ID])
+
+        if (GLOBAL_USER) {
+            await db.close();
+            return GLOBAL_USER[0];
+        }
+
+        await db.close();
+        return null;
+    } catch (e) {
+        console.log(e);
+        await db.close();
+        return null;
+    }
+
+
+
 }

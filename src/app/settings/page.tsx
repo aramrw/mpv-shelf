@@ -121,6 +121,27 @@ export default function Settings() {
         }
     }, [currentUser])
 
+    function ToastClickToSee() {
+
+        toast({
+            className: 'cursor-pointer',
+            title: 'Pin Copied!',
+            description: `Click to see pin.`,
+            duration: 1500,
+
+            onClick: () => {
+                if (currentUser?.pin) {
+                    toast({
+                        className: 'cursor-pointer',
+                        description: `UserID: ${currentUser.id}・Pin: ${currentUser.pin}`,
+                        duration: 1500,
+                    });
+                }
+            }
+        })
+
+    }
+
 
     return (
         <main className={cn('h-fit w-full',
@@ -264,11 +285,7 @@ export default function Settings() {
                                                     // copy the pin to clipboard
                                                     if (currentUser?.pin) {
                                                         writeText(currentUser.pin.toString());
-                                                        toast({
-                                                            title: 'Pin Copied!',
-                                                            description: 'Your pin has been copied to the clipboard.',
-                                                            duration: 1500,
-                                                        })
+                                                        ToastClickToSee();
                                                     }
 
                                                 }}>
