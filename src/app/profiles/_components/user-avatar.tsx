@@ -11,13 +11,12 @@ export function UserAvatar({
     userObject: User
 }) {
 
-    const imageDataUrl = userObject.image ? `data:image/jpeg;base64,${userObject.image}` : null;
-
+    console.log(userObject);
 
 
     return (
         <Avatar className="h-20 w-20 text-xl font-medium">
-            <AvatarImage src={imageDataUrl ? imageDataUrl : "https://github.com/account"} alt={userObject.id.toString()} />
+            <AvatarImage src={userObject.imagePath ? userObject.imagePath : ""} alt={userObject.id.toString()} className="object-contain" style={{ backgroundImage: `url(${userObject.imagePath})` }} />
             <AvatarFallback>{userObject.id}</AvatarFallback>
         </Avatar>
     )

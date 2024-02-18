@@ -2,7 +2,8 @@ import Database from "tauri-plugin-sql-api"
 import { User, Folder, Video } from "@prisma/client";
 import { SettingSchema } from "@/app/settings/page";
 import { Global } from "@prisma/client";
-import { Blob } from "buffer";
+import { convertFileSrc } from '@tauri-apps/api/tauri';
+
 
 export async function getUsers() {
     const db = await Database.load("sqlite:main.db");
@@ -29,8 +30,14 @@ export async function createNewUser({
 }) {
     let db = await Database.load("sqlite:main.db");
 
+    console.log("creating new user", userPin);
+
     await db.execute(
-        "CREATE TABLE IF NOT EXISTS user (id INTEGER PRIMARY KEY AUTOINCREMENT, pin TEXT NOT NULL)"
+        `CREATE TABLE IF NOT EXISTS user (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            pin TEXT NOT NULL, 
+            imagePath TEXT  
+        )`
     ).catch((e) => {
         console.log("error", e);
     })
@@ -340,13 +347,13 @@ export async function updateProfilePicture({
     userId: number
     imagePath: string
 }) {
-    // const db = await Database.load("sqlite:main.db");
+    const db = await Database.load("sqlite:main.db");
 
+    const imageUrl = convertFileSrc(imagePath);
 
+    await db.execute("UPDATE user SET imagePath = $1 WHERE id = $2", [imageUrl, userId])
 
-    // await db.execute("UPDATE user SET image = $1 WHERE id = $2", [imageBuffer, userId])
-
-    // await db.close();
+    await db.close();
 }
 
 export async function getProfilePicture({
@@ -356,10 +363,10 @@ export async function getProfilePicture({
 }) {
     const db = await Database.load("sqlite:main.db");
 
-    let image: Blob;
+
 
     try {
-        image = await db.select("SELECT image from user WHERE id = $1", [userId])
+        const image: string = await db.select("SELECT imagePath from user WHERE id = $1", [userId])
 
         if (image) {
             await db.close();

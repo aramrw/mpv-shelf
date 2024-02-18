@@ -22,7 +22,7 @@
         "save": false
       },
       "fs": {
-        "all": false,
+        "all": true,
         "copyFile": false,
         "createDir": true,
         "exists": true,
@@ -31,7 +31,7 @@
         "removeDir": false,
         "removeFile": false,
         "renameFile": true,
-        "scope": ["**"],
+        "scope": [""],
         "writeFile": false
       },
       "shell": {
@@ -84,6 +84,11 @@
         "startDragging": false,
         "unmaximize": false,
         "unminimize": false
+      },
+      "protocol": {
+        "all": true,
+        "asset": true,
+        "assetScope": ["**"]
       }
     },
     "bundle": {

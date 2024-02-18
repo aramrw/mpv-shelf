@@ -11,10 +11,10 @@ datasource db {
 }
 
 model User {
-  id      Int      @id @default(autoincrement())
-  pin     String?  @unique
-  image   Bytes?
-  folders Folder[] @relation("UserFolders")
+  id        Int      @id @default(autoincrement())
+  pin       String?  @unique
+  imagePath String?
+  folders   Folder[] @relation("UserFolders")
 }
 
 model Folder {

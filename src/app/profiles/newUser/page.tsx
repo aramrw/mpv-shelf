@@ -38,6 +38,7 @@ export default function NewUser() {
         }, []);
 
         useEffect(() => {
+            console.log(pins.join(''));
             if (pins.join('').length === pinLength) {
                 createNewUser({ userPin: pins.join('') }).then(() => {
                     router.push('/profiles');

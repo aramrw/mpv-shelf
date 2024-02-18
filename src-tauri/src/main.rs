@@ -2,7 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use serde::{Deserialize, Serialize};
-use std::{fs, process::Command};
+use std::process::Command;
 use tauri::generate_handler;
 
 #[derive(Serialize, Deserialize)]
