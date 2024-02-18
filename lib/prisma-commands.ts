@@ -2,6 +2,7 @@ import Database from "tauri-plugin-sql-api"
 import { User, Folder, Video } from "@prisma/client";
 import { SettingSchema } from "@/app/settings/page";
 import { Global } from "@prisma/client";
+import { Blob } from "buffer";
 
 export async function getUsers() {
     const db = await Database.load("sqlite:main.db");
@@ -326,13 +327,48 @@ export async function getCurrentUserGlobal() {
 }
 
 
-// export async function signOut() {
-//     const db = await Database.load("sqlite:main.db");
-//     setCurrentUserGlobal({ userId: -1 })
-// }
-
 export async function setupAppWindow() {
     const appWindow = (await import('@tauri-apps/api/window')).appWindow
 
     return appWindow
+}
+
+export async function updateProfilePicture({
+    userId,
+    imagePath
+}: {
+    userId: number
+    imagePath: string
+}) {
+    // const db = await Database.load("sqlite:main.db");
+
+
+
+    // await db.execute("UPDATE user SET image = $1 WHERE id = $2", [imageBuffer, userId])
+
+    // await db.close();
+}
+
+export async function getProfilePicture({
+    userId
+}: {
+    userId: number
+}) {
+    const db = await Database.load("sqlite:main.db");
+
+    let image: Blob;
+
+    try {
+        image = await db.select("SELECT image from user WHERE id = $1", [userId])
+
+        if (image) {
+            await db.close();
+            return image;
+        }
+    } catch (e) {
+        console.log(e);
+        await db.close();
+        return null;
+    }
+
 }

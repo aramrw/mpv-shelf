@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
 import { z } from 'zod'
-import { getCurrentUserGlobal, getUserSettings, getUsers, setCurrentUserGlobal, turnOnPin, updateSettings, updateUserPin } from '../../../lib/prisma-commands'
+import { getCurrentUserGlobal, getUserSettings, getUsers, setCurrentUserGlobal, turnOnPin, updateProfilePicture, updateSettings, updateUserPin } from '../../../lib/prisma-commands'
 import { useTheme } from 'next-themes'
 import { User } from '@prisma/client';
 import {
@@ -19,6 +19,7 @@ import { writeText } from '@tauri-apps/api/clipboard'
 import { useToast } from '@/components/ui/use-toast'
 import { AlertNoChangesMade, ConfirmChangePin, ConfirmTurnOffPin } from './_components/confirm'
 import { useRouter } from 'next/navigation'
+import { open } from '@tauri-apps/api/dialog'
 
 const formSchema = z.object({
     theme: z.enum(['Light', 'Dark']),
@@ -160,11 +161,11 @@ export default function Settings() {
             <form className='h-fit w-full' onSubmit={handleSubmit}>
                 <h1 className='h-fit w-full select-none bg-tertiary px-1 font-bold'>Settings</h1>
                 <ul className='flex h-full w-full flex-col gap-2 p-2'>
-                    <li className='flex h-fit flex-col rounded-b-sm bg-muted'>
+                    <li className='flex h-fit flex-col justify-center rounded-b-sm bg-muted'>
                         <h1 className='select-none rounded-t-sm bg-accent px-1 font-bold'>User</h1>
                         <ul className='flex flex-col gap-3 p-2'>
                             {hasMultipleProfiles && (
-                                <li className='flex h-fit w-full justify-between bg-muted'>
+                                <li className='flex h-fit w-full items-center justify-between bg-muted'>
                                     <TooltipProvider>
                                         <Tooltip delayDuration={1}>
                                             <div className='flex w-1/2 flex-row items-center gap-1'>
@@ -189,7 +190,7 @@ export default function Settings() {
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
-                                    <Button variant="outline" className='w-1/2 font-medium' onClick={() => {
+                                    <Button variant="outline" className='h-fit w-1/2 font-medium' onClick={() => {
                                         setCurrentUserGlobal({ userId: -1 }).then(() => {
                                             router.push('/');
                                         })
@@ -199,10 +200,34 @@ export default function Settings() {
                                     </Button>
                                 </li>
                             )}
+                            <li className='flex h-fit w-full items-center justify-between bg-muted'>
+                                <h1 className='w-1/2 select-none font-medium'>Profile Picture</h1>
+                                <Button variant="outline" className='h-fit w-1/2 font-medium' onClick={() => {
+                                    // open a dialog to select a new profile picture
+                                    open({
+                                        directory: false,
+                                        multiple: false,
+                                        filters: [{
+                                            name: 'Image',
+                                            extensions: ['png', 'jpeg', 'jpg', 'gif']
+                                        }],
+                                        title: "Select Profile Picture"
+                                    }).then((result) => {
+                                        if (result && currentUser) {
+                                            updateProfilePicture({
+                                                userId: currentUser?.id,
+                                                imagePath: result?.toString()
+                                            })
+                                        }
+                                    });
 
+                                }}>
+                                    Change
+                                </Button>
+                            </li>
                         </ul>
                     </li>
-                    <li className='flex h-fit flex-col rounded-b-sm bg-muted'>
+                    <li className='flex h-fit flex-col justify-center rounded-b-sm bg-muted'>
                         <h1 className='select-none rounded-t-sm bg-accent px-1 font-bold'>UI / UX</h1>
                         <ul className='flex flex-col gap-3 p-2'>
                             <li className='flex h-fit w-full bg-muted'>
@@ -251,7 +276,7 @@ export default function Settings() {
                             </li>
                         </ul>
                     </li>
-                    <li className='flex h-fit flex-col rounded-b-sm bg-muted'>
+                    <li className='flex h-fit flex-col justify-center rounded-b-sm bg-muted'>
                         <h1 className='select-none rounded-t-sm bg-accent px-1 font-bold'>Application</h1>
                         <ul className='flex flex-col gap-3 p-2'>
                             <li className='flex h-fit w-full justify-between bg-muted'>
@@ -294,7 +319,7 @@ export default function Settings() {
 
                         </ul>
                     </li>
-                    <li className='flex h-fit flex-col rounded-b-sm bg-muted'>
+                    <li className='flex h-fit flex-col justify-center rounded-b-sm bg-muted'>
                         <h1 className='select-none rounded-t-sm bg-accent px-1 font-bold'>Security</h1>
                         <ul className='flex flex-col gap-3 p-2'>
                             <li className='flex h-fit w-full justify-between bg-muted'>
