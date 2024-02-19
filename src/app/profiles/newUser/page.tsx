@@ -48,7 +48,7 @@ export default function NewUser() {
         }, [pins]);
 
         return (
-            <main className="flex flex-col items-center justify-center">
+            <main className="mt-4 flex flex-col items-center justify-center">
                 <motion.h1 className="text-2xl font-medium">Create New Profile</motion.h1>
                 <div className="my-4 flex space-x-2">
                     {pins.map((pin, index) => (

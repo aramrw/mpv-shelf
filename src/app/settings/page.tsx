@@ -12,7 +12,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { Copy, Info, Lock, Unlock } from 'lucide-react'
+import { AlertCircle, Copy, Flame, Info, Lock, Skull, Unlock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { writeText } from '@tauri-apps/api/clipboard'
@@ -166,12 +166,12 @@ export default function Settings() {
                         <h1 className='select-none rounded-t-sm bg-accent px-1 font-bold'>User</h1>
                         <ul className='flex flex-col gap-3 p-2'>
                             {hasMultipleProfiles && (
-                                <li className='flex h-fit w-full items-center justify-between bg-muted'>
+                                <li className='fit flex max-h-96 w-full items-center justify-between bg-muted'>
                                     <TooltipProvider>
                                         <Tooltip delayDuration={1}>
                                             <div className='flex w-1/2 flex-row items-center gap-1'>
                                                 <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-start'>
-                                                    <div className='flex h-fit w-full flex-row items-center'>
+                                                    <div className='flex h-fit w-full flex-row items-center rounded-sm bg-accent'>
                                                         {currentUser && (
                                                             <UserAvatar userObject={currentUser} asChild />
                                                         )}
@@ -189,7 +189,7 @@ export default function Settings() {
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
-                                    <Button variant="outline" className={cn('mx-2 select-none w-1/2 h-full',
+                                    <Button variant="outline" className={cn('mx-2 select-none w-1/2 h-[6.1rem] p-0',
                                         formState?.fontSize === "Medium" && 'text-lg',
                                         formState?.fontSize === "Large" && 'text-xl',
                                         formState?.fontSize === "XLarge" && 'text-2xl',
@@ -204,8 +204,8 @@ export default function Settings() {
                                 </li>
                             )}
                             <li className='flex h-fit w-full items-center justify-between bg-muted'>
-                                <h1 className='w-1/2 select-none font-medium'>Profile Picture</h1>
-                                <Button variant="outline" className={cn('mx-2 select-none w-1/2',
+                                <h1 className='w-1/2 select-none rounded-sm bg-accent p-0.5 font-medium'>Profile Picture</h1>
+                                <Button variant="outline" className={cn('mx-2 select-none w-1/2 py-1 h-1/4',
                                     formState?.fontSize === "Medium" && 'text-lg',
                                     formState?.fontSize === "Large" && 'text-xl',
                                     formState?.fontSize === "XLarge" && 'text-2xl',
@@ -234,6 +234,45 @@ export default function Settings() {
 
                                 }}>
                                     Change
+                                </Button>
+                            </li>
+                            <li className='flex h-fit w-full items-center justify-between bg-muted'>
+                                <TooltipProvider>
+                                    <Tooltip delayDuration={1}>
+                                        <div className='flex w-1/2 flex-row items-center gap-1'>
+                                            <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-start'>
+                                                <div className='flex h-full w-full flex-row items-center gap-0.5 rounded-sm bg-accent p-0.5'>
+                                                    <Flame className={cn('h-auto w-4 cursor-pointer text-destructive',
+                                                        formState?.fontSize === "Medium" && 'h-auto w-5',
+                                                        formState?.fontSize === "Large" && 'h-auto w-6',
+                                                        formState?.fontSize === "XLarge" && 'h-auto w-7'
+                                                    )}
+                                                    />
+                                                    <h1 className='flex w-full select-none items-center font-medium'>Delete Account</h1>
+                                                </div>
+                                            </TooltipTrigger>
+                                        </div>
+                                        <TooltipContent>
+                                            <div className='font-medium'>
+                                                <div className='flex flex-col items-center justify-center gap-1'>
+                                                    <div className='flex flex-row gap-0.5'>
+                                                        <span className='rounded-sm font-bold'> Deletes your account and</span>
+                                                        <b className='text-destructive underline'>
+                                                            all associated data.</b>
+                                                    </div>
+                                                    <b className='rounded-md bg-accent px-1'> This action is <i className='underline'> irreversible.</i></b>
+                                                </div>
+                                            </div>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                <Button variant="outline" className={cn('mx-2 select-none w-1/2 py-1 h-1/4',
+                                    formState?.fontSize === "Medium" && 'text-lg',
+                                    formState?.fontSize === "Large" && 'text-xl',
+                                    formState?.fontSize === "XLarge" && 'text-2xl',
+                                )} onClick={() => {
+                                }}>
+                                    Delete Account
                                 </Button>
                             </li>
                         </ul>
@@ -293,16 +332,16 @@ export default function Settings() {
                             <li className='flex h-fit w-full justify-between bg-muted'>
                                 <TooltipProvider>
                                     <Tooltip delayDuration={1}>
-                                        <div className='flex w-1/2 flex-row items-center gap-1'>
-                                            <TooltipTrigger>
+                                        <div className='flex w-full flex-row gap-1'>
+                                            <TooltipTrigger className='flex w-full flex-row items-center justify-start gap-1'>
                                                 <Info className={cn('h-auto w-4 cursor-pointer',
                                                     formState?.fontSize === "Medium" && 'h-auto w-5',
                                                     formState?.fontSize === "Large" && 'h-auto w-6',
                                                     formState?.fontSize === "XLarge" && 'h-auto w-7'
                                                 )}
                                                 />
+                                                <h1 className='select-none font-medium'>Auto Rename</h1>
                                             </TooltipTrigger>
-                                            <h1 className='w-1/2 select-none font-medium'>Auto Rename</h1>
                                         </div>
                                         <TooltipContent>
                                             <div className='font-medium'>
@@ -317,7 +356,7 @@ export default function Settings() {
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
-                                <select className='w-1/2 cursor-pointer rounded-sm bg-accent font-medium' name='autoRename'
+                                <select className='w-full cursor-pointer rounded-sm bg-accent font-medium' name='autoRename'
                                     value={formState.autoRename}
                                     onChange={(e) => {
                                         setFormState({ ...formState, autoRename: e.target.value });
@@ -450,6 +489,7 @@ export default function Settings() {
                             )}
                         </ul>
                     </li>
+
                 </ul>
                 <Button variant="outline" className={cn('mx-2 select-none',
                     formState?.fontSize === "Medium" && 'text-lg',

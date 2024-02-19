@@ -19,7 +19,7 @@ export function UserAvatar({
 
     return (
         <Avatar className={cn("h-20 w-20 text-xl font-medium",
-            asChild && "h-auto w-1/6 text-lg font-medium"
+            asChild && "h-auto text-lg font-medium my-2 mx-2"
         )}>
             <AvatarImage src={userObject.imagePath ? userObject.imagePath : ""} alt={userObject.id.toString()} className="object-contain" style={{ backgroundImage: `url(${userObject.imagePath})` }} />
             <AvatarFallback className={cn("bg-accent font-bold",
