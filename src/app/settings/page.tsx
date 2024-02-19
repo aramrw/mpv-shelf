@@ -174,7 +174,7 @@ export default function Settings() {
             formState?.fontSize === "Large" && 'text-xl',
             formState?.fontSize === "XLarge" && 'text-2xl',
         )}>
-            <form className='h-fit w-full md:px-24 lg:px-32 xl:px-48' onSubmit={handleSubmit}>
+            <form className='h-fit w-full md:px-16 lg:px-32 xl:px-48' onSubmit={handleSubmit}>
 
                 <ul className='flex h-full w-full flex-col gap-2 p-2'>
                     <li className='flex h-fit flex-col justify-center rounded-b-sm bg-muted'>
@@ -185,13 +185,12 @@ export default function Settings() {
                                     <div className='flex h-fit w-full flex-row items-center justify-between gap-4 rounded-sm bg-monotone p-5'>
                                         {currentUser && (
                                             <>
-                                                <motion.div className='flex w-[60%] cursor-pointer items-center justify-center rounded-3xl'
+                                                <motion.div className='flex w-[60%] cursor-pointer items-center justify-center rounded-sm'
                                                     // whileHover={{ scale: 2 }}
                                                     // transition={{ duration: 1 }}
                                                     style={{
-                                                        backgroundImage: `url(${currentUser?.imagePath})`,
+                                                        background: `url(${currentUser?.imagePath})`,
                                                         backgroundSize: 'cover',
-
                                                     }}
                                                 >
                                                     <UserAvatar userObject={currentUser} asChild />
@@ -200,8 +199,8 @@ export default function Settings() {
 
                                                     <TooltipProvider>
                                                         <Tooltip delayDuration={1000}>
-                                                            <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-center'>
-                                                                <Button variant="outline" className={cn('select-none  h-full w-3/4 p-0 flex gap-1',
+                                                            <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-center text-base'>
+                                                                <Button variant="outline" className={cn('select-none h-full w-3/4 p-0 flex gap-1',
                                                                     formState?.fontSize === "Medium" && 'text-lg',
                                                                     formState?.fontSize === "Large" && 'text-xl',
                                                                     formState?.fontSize === "XLarge" && 'text-2xl',
@@ -219,7 +218,11 @@ export default function Settings() {
                                                                     )} />
                                                                 </Button>
                                                             </TooltipTrigger>
-                                                            <TooltipContent>
+                                                            <TooltipContent className={cn('select-none flex gap-1',
+                                                                formState?.fontSize === "Medium" && 'text-lg',
+                                                                formState?.fontSize === "Large" && 'text-xl',
+                                                                formState?.fontSize === "XLarge" && 'text-2xl',
+                                                            )}>
                                                                 <div className='text-center font-medium'>
                                                                     <span className='text-center'>
                                                                         Takes you back to the <b>profile selection screen</b>.
@@ -232,7 +235,7 @@ export default function Settings() {
                                                     </TooltipProvider>
                                                     <TooltipProvider>
                                                         <Tooltip delayDuration={1000}>
-                                                            <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-center'>
+                                                            <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-center text-base'>
                                                                 <Button variant="outline" className={cn('select-none  h-full w-3/4 p-0 flex gap-1',
                                                                     formState?.fontSize === "Medium" && 'text-lg',
                                                                     formState?.fontSize === "Large" && 'text-xl',
@@ -271,7 +274,11 @@ export default function Settings() {
                                                                     )} />
                                                                 </Button>
                                                             </TooltipTrigger>
-                                                            <TooltipContent side='bottom'>
+                                                            <TooltipContent side='bottom' className={cn('select-none flex gap-1',
+                                                                formState?.fontSize === "Medium" && 'text-lg',
+                                                                formState?.fontSize === "Large" && 'text-xl',
+                                                                formState?.fontSize === "XLarge" && 'text-2xl',
+                                                            )}>
                                                                 <div className='text-center font-medium'>
                                                                     <span className=''>
                                                                         Click to change your <b>profile picture</b>.
@@ -283,8 +290,8 @@ export default function Settings() {
                                                     {hasMultipleProfiles && (
                                                         <TooltipProvider>
                                                             <Tooltip delayDuration={300}>
-                                                                <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-center'>
-                                                                    <Button variant="destructive" className={cn('select-none w-3/4 py-[1px] h-fit text-sm flex flex-row justify-center items-center rounded-sm gap-1',
+                                                                <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-center text-base'>
+                                                                    <Button variant="destructive" className={cn('select-none w-3/4 py-[1px] h-fit  flex flex-row justify-center items-center rounded-sm gap-1',
                                                                         formState?.fontSize === "Medium" && 'text-lg',
                                                                         formState?.fontSize === "Large" && 'text-xl',
                                                                         formState?.fontSize === "XLarge" && 'text-2xl',
@@ -309,7 +316,11 @@ export default function Settings() {
                                                                         )} />
                                                                     </Button>
                                                                 </TooltipTrigger>
-                                                                <TooltipContent align='center' side='bottom' >
+                                                                <TooltipContent align='center' side='bottom' className={cn('select-none flex gap-1',
+                                                                    formState?.fontSize === "Medium" && 'text-lg',
+                                                                    formState?.fontSize === "Large" && 'text-xl',
+                                                                    formState?.fontSize === "XLarge" && 'text-2xl',
+                                                                )}>
                                                                     <div className='font-medium'>
                                                                         <div className='flex flex-col items-center justify-center gap-1'>
                                                                             <div className='flex flex-row gap-0.5'>
@@ -467,7 +478,11 @@ export default function Settings() {
                                                 <h1 className='select-none font-medium'>Auto Rename</h1>
                                             </TooltipTrigger>
                                         </div>
-                                        <TooltipContent align='start' side='bottom'>
+                                        <TooltipContent align='start' side='bottom' className={cn('select-none flex gap-1',
+                                            formState?.fontSize === "Medium" && 'text-lg',
+                                            formState?.fontSize === "Large" && 'text-xl',
+                                            formState?.fontSize === "XLarge" && 'text-2xl',
+                                        )}>
                                             <div className='font-medium'>
                                                 <span className='font-bold'>
                                                     Renames subtitle files to match video.
@@ -626,13 +641,13 @@ export default function Settings() {
                         {savedChanges ? (
                             <motion.div
                                 key="saved"
-                                className='flex w-full flex-row items-center gap-2'
+                                className='flex w-full flex-row items-center gap-2 text-base'
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.5 }}
                             >
-                                <Button variant="outline" className={cn('mx-2 select-none transition-all flex flex-row justify-center items-center gap-1',
+                                <Button variant="outline" className={cn('mx-2 select-none transition-all flex flex-row justify-center items-center gap-1 text-base ',
                                     formState?.fontSize === "Medium" && 'text-lg',
                                     formState?.fontSize === "Large" && 'text-xl',
                                     formState?.fontSize === "XLarge" && 'text-2xl',
@@ -648,13 +663,13 @@ export default function Settings() {
                         ) : (
                             <motion.div
                                 key="save"
-                                className='flex w-full flex-row items-center gap-2'
+                                className='flex w-full flex-row items-center gap-2 text-base'
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 transition={{ duration: 0.5 }}
                             >
-                                <Button variant="outline" className={cn('mx-2 select-none transition-all',
+                                <Button variant="outline" className={cn('mx-2 select-none transition-all text-base',
                                     formState?.fontSize === "Medium" && 'text-lg',
                                     formState?.fontSize === "Large" && 'text-xl',
                                     formState?.fontSize === "XLarge" && 'text-2xl',
