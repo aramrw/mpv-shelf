@@ -56,6 +56,10 @@ const config = {
           DEFAULT: "hsl(var(--tertiary))",
           foreground: "hsl(var(--tertiary-foreground))",
         },
+        monotone: {
+          DEFAULT: "hsl(var(--monotone))",
+          foreground: "hsl(var(--monotone-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

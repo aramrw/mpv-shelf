@@ -13,7 +13,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-import { Check, Copy, Info, Lock, Unlock } from 'lucide-react'
+import { ALargeSmall, Check, Copy, Delete, Images, Info, Lock, Moon, Sun, Unlock, UserMinus, UserPlus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AnimatePresence, motion } from 'framer-motion'
 import { writeText } from '@tauri-apps/api/clipboard'
@@ -174,86 +174,172 @@ export default function Settings() {
             formState?.fontSize === "Large" && 'text-xl',
             formState?.fontSize === "XLarge" && 'text-2xl',
         )}>
-            <form className='h-fit w-full' onSubmit={handleSubmit}>
-                <h1 className='h-fit w-full select-none bg-tertiary px-1 font-bold'>Settings</h1>
+            <form className='h-fit w-full md:px-24 lg:px-32 xl:px-48' onSubmit={handleSubmit}>
+
                 <ul className='flex h-full w-full flex-col gap-2 p-2'>
                     <li className='flex h-fit flex-col justify-center rounded-b-sm bg-muted'>
                         <h1 className='select-none rounded-t-sm bg-accent px-1 font-bold'>User</h1>
                         <ul className='flex flex-col gap-3 p-2'>
                             {hasMultipleProfiles && (
                                 <li className='fit flex max-h-96 w-full items-center justify-between gap-2 bg-muted'>
-                                    <TooltipProvider>
-                                        <Tooltip delayDuration={1}>
-                                            <div className='flex w-1/2 flex-row items-center gap-1'>
-                                                <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-start'>
-                                                    <div className='flex h-fit w-full flex-row items-center rounded-sm bg-accent'>
-                                                        {currentUser && (
-                                                            <UserAvatar userObject={currentUser} asChild />
-                                                        )}
-                                                    </div>
-                                                </TooltipTrigger>
-                                            </div>
-                                            <TooltipContent>
-                                                <div className='font-medium'>
-                                                    <span className=''>
-                                                        Takes you back to the <b>profile selection screen</b>.
-                                                        <br />
-                                                        You are currently signed in as  <b>User {currentUser?.id}</b>.
-                                                    </span>
-                                                </div>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </TooltipProvider>
-                                    <Button variant="outline" className={cn('select-none w-1/2 h-[6.1rem] p-0',
-                                        formState?.fontSize === "Medium" && 'text-lg',
-                                        formState?.fontSize === "Large" && 'text-xl',
-                                        formState?.fontSize === "XLarge" && 'text-2xl',
-                                    )} onClick={() => {
-                                        setCurrentUserGlobal({ userId: -1 }).then(() => {
-                                            router.push('/');
-                                        })
+                                    <div className='flex h-fit w-full flex-row items-center justify-between gap-4 rounded-sm bg-monotone p-5'>
+                                        {currentUser && (
+                                            <>
+                                                <motion.div className='flex w-[60%] cursor-pointer items-center justify-center rounded-3xl'
+                                                    // whileHover={{ scale: 2 }}
+                                                    // transition={{ duration: 1 }}
+                                                    style={{
+                                                        backgroundImage: `url(${currentUser?.imagePath})`,
+                                                        backgroundSize: 'cover',
 
-                                    }}>
-                                        Sign Out
-                                    </Button>
+                                                    }}
+                                                >
+                                                    <UserAvatar userObject={currentUser} asChild />
+                                                </motion.div>
+                                                <div className='flex h-fit w-full flex-col items-center justify-between gap-4 rounded-sm bg-monotone'>
+
+                                                    <TooltipProvider>
+                                                        <Tooltip delayDuration={1000}>
+                                                            <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-center'>
+                                                                <Button variant="outline" className={cn('select-none  h-full w-3/4 p-0 flex gap-1',
+                                                                    formState?.fontSize === "Medium" && 'text-lg',
+                                                                    formState?.fontSize === "Large" && 'text-xl',
+                                                                    formState?.fontSize === "XLarge" && 'text-2xl',
+                                                                )} onClick={() => {
+                                                                    setCurrentUserGlobal({ userId: -1 }).then(() => {
+                                                                        router.push('/');
+                                                                    })
+
+                                                                }}>
+                                                                    Sign Out
+                                                                    <UserMinus className={cn('h-auto w-4 cursor-pointer',
+                                                                        formState?.fontSize === "Medium" && 'h-auto w-5',
+                                                                        formState?.fontSize === "Large" && 'h-auto w-6',
+                                                                        formState?.fontSize === "XLarge" && 'h-auto w-7'
+                                                                    )} />
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                <div className='text-center font-medium'>
+                                                                    <span className='text-center'>
+                                                                        Takes you back to the <b>profile selection screen</b>.
+                                                                        <br />
+                                                                        You are currently signed in as  <b>User {currentUser?.id}</b>.
+                                                                    </span>
+                                                                </div>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                    <TooltipProvider>
+                                                        <Tooltip delayDuration={1000}>
+                                                            <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-center'>
+                                                                <Button variant="outline" className={cn('select-none  h-full w-3/4 p-0 flex gap-1',
+                                                                    formState?.fontSize === "Medium" && 'text-lg',
+                                                                    formState?.fontSize === "Large" && 'text-xl',
+                                                                    formState?.fontSize === "XLarge" && 'text-2xl',
+                                                                )} onClick={() => {
+                                                                    // open a dialog to select a new profile picture
+                                                                    open({
+                                                                        directory: false,
+                                                                        multiple: false,
+                                                                        filters: [{
+                                                                            name: 'Image',
+                                                                            extensions: ['png', 'jpeg', 'jpg', 'gif']
+                                                                        }],
+                                                                        title: "Select Profile Picture"
+                                                                    }).then((result) => {
+                                                                        if (result && currentUser) {
+                                                                            updateProfilePicture({
+                                                                                userId: currentUser?.id,
+                                                                                imagePath: result?.toString()
+                                                                            }).then(() => {
+                                                                                if (currentUser) {
+
+                                                                                    window.location.reload();
+
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                    });
+                                                                }
+                                                                }>
+                                                                    Change Avatar
+                                                                    <Images className={cn('h-auto w-4 cursor-pointer',
+                                                                        formState?.fontSize === "Medium" && 'h-auto w-5',
+                                                                        formState?.fontSize === "Large" && 'h-auto w-6',
+                                                                        formState?.fontSize === "XLarge" && 'h-auto w-7'
+                                                                    )} />
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent side='bottom'>
+                                                                <div className='text-center font-medium'>
+                                                                    <span className=''>
+                                                                        Click to change your <b>profile picture</b>.
+                                                                    </span>
+                                                                </div>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                    {hasMultipleProfiles && (
+                                                        <TooltipProvider>
+                                                            <Tooltip delayDuration={300}>
+                                                                <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-center'>
+                                                                    <Button variant="destructive" className={cn('select-none w-3/4 py-[1px] h-fit text-sm flex flex-row justify-center items-center rounded-sm gap-1',
+                                                                        formState?.fontSize === "Medium" && 'text-lg',
+                                                                        formState?.fontSize === "Large" && 'text-xl',
+                                                                        formState?.fontSize === "XLarge" && 'text-2xl',
+                                                                    )} onClick={() => {
+                                                                        ConfirmDeleteProfile().then((res) => {
+                                                                            if (res) {
+                                                                                if (currentUser?.id) {
+                                                                                    deleteProfile({ userId: currentUser.id }).then(() => {
+                                                                                        setCurrentUserGlobal({ userId: -1 }).then(() => {
+                                                                                            router.push('/');
+                                                                                        });
+                                                                                    });
+                                                                                }
+                                                                            }
+                                                                        });
+                                                                    }}>
+                                                                        Delete Profile
+                                                                        <Delete className={cn('h-auto w-4 cursor-pointer',
+                                                                            formState?.fontSize === "Medium" && 'h-auto w-5',
+                                                                            formState?.fontSize === "Large" && 'h-auto w-6',
+                                                                            formState?.fontSize === "XLarge" && 'h-auto w-7'
+                                                                        )} />
+                                                                    </Button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent align='center' side='bottom' >
+                                                                    <div className='font-medium'>
+                                                                        <div className='flex flex-col items-center justify-center gap-1'>
+                                                                            <div className='flex flex-row gap-0.5'>
+                                                                                <span className='rounded-sm font-bold'> Deletes your profile and</span>
+                                                                                <b className='text-destructive underline'>
+                                                                                    all associated data.</b>
+                                                                            </div>
+                                                                            <b className='rounded-sm bg-accent px-1'> This action is irreversible.</b>
+                                                                        </div>
+                                                                    </div>
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        </TooltipProvider>
+
+
+
+                                                    )}
+                                                </div>
+                                            </>
+                                        )}
+
+
+
+                                    </div>
                                 </li>
                             )}
-                            <li className='flex h-fit w-full items-center justify-between gap-2 bg-muted'>
-                                <h1 className='w-1/2 select-none rounded-sm bg-accent px-1.5 py-0.5 font-medium'>Profile Picture</h1>
-                                <Button variant="outline" className={cn('select-none w-1/2 py-1 h-1/4',
-                                    formState?.fontSize === "Medium" && 'text-lg',
-                                    formState?.fontSize === "Large" && 'text-xl',
-                                    formState?.fontSize === "XLarge" && 'text-2xl',
-                                )} onClick={() => {
-                                    // open a dialog to select a new profile picture
-                                    open({
-                                        directory: false,
-                                        multiple: false,
-                                        filters: [{
-                                            name: 'Image',
-                                            extensions: ['png', 'jpeg', 'jpg', 'gif']
-                                        }],
-                                        title: "Select Profile Picture"
-                                    }).then((result) => {
-                                        if (result && currentUser) {
-                                            updateProfilePicture({
-                                                userId: currentUser?.id,
-                                                imagePath: result?.toString()
-                                            }).then(() => {
-                                                if (currentUser) {
-                                                    window.location.reload();
-                                                }
-                                            });
-                                        }
-                                    });
 
-                                }}>
-                                    Change
-                                </Button>
-                            </li>
                             {!hasMultipleProfiles && (
-                                <li className='flex h-fit w-full items-center justify-between bg-muted'>
-                                    <Button variant="outline" className={cn('select-none w-full py-1 h-1/4 flex flex-row justify-center items-center',
+                                <li className='flex h-fit w-full items-center justify-center bg-muted'>
+                                    <Button variant="outline" className={cn('select-none w-1/2 py-1 h-1/4 flex flex-row justify-center items-center gap-1',
                                         formState?.fontSize === "Medium" && 'text-lg',
                                         formState?.fontSize === "Large" && 'text-xl',
                                         formState?.fontSize === "XLarge" && 'text-2xl',
@@ -261,50 +347,15 @@ export default function Settings() {
                                         router.push("/profiles/newUser")
                                     }}>
                                         Add New Profile
+                                        <UserPlus className={cn('h-auto w-4 cursor-pointer',
+                                            formState?.fontSize === "Medium" && 'h-auto w-5',
+                                            formState?.fontSize === "Large" && 'h-auto w-6',
+                                            formState?.fontSize === "XLarge" && 'h-auto w-7'
+                                        )} />
                                     </Button>
 
                                 </li>
                             )}
-                            <li className='flex h-fit w-full items-center justify-between bg-muted'>
-                                <TooltipProvider>
-                                    <Tooltip delayDuration={300}>
-                                        <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-start'>
-                                            <Button variant="destructive" className={cn('select-none w-full py-1 h-1/4 flex flex-row justify-center items-center rounded-sm ',
-                                                formState?.fontSize === "Medium" && 'text-lg',
-                                                formState?.fontSize === "Large" && 'text-xl',
-                                                formState?.fontSize === "XLarge" && 'text-2xl',
-                                            )} onClick={() => {
-                                                ConfirmDeleteProfile().then((res) => {
-                                                    if (res) {
-                                                        if (currentUser?.id) {
-                                                            deleteProfile({ userId: currentUser.id }).then(() => {
-                                                                setCurrentUserGlobal({ userId: -1 }).then(() => {
-                                                                    router.push('/');
-                                                                });
-                                                            });
-                                                        }
-                                                    }
-                                                });
-                                            }}>
-                                                Delete Profile
-                                            </Button>
-                                        </TooltipTrigger>
-                                        <TooltipContent align='center' side='bottom' >
-                                            <div className='font-medium'>
-                                                <div className='flex flex-col items-center justify-center gap-1'>
-                                                    <div className='flex flex-row gap-0.5'>
-                                                        <span className='rounded-sm font-bold'> Deletes your profile and</span>
-                                                        <b className='text-destructive underline'>
-                                                            all associated data.</b>
-                                                    </div>
-                                                    <b className='rounded-sm bg-accent px-1'> This action is <i className='underline'> irreversible.</i></b>
-                                                </div>
-                                            </div>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
-
-                            </li>
 
                         </ul>
                     </li>
@@ -312,7 +363,42 @@ export default function Settings() {
                         <h1 className='select-none rounded-t-sm bg-accent px-1 font-bold'>UI / UX</h1>
                         <ul className='flex flex-col gap-3 p-2'>
                             <li className='flex h-fit w-full bg-muted'>
-                                <h1 className='w-1/2 select-none font-medium'>Theme</h1>
+                                <div className='flex w-1/2 items-center justify-start gap-1'>
+                                    <h1 className='select-none font-medium'>Theme</h1>
+                                    <AnimatePresence mode='wait'>
+                                        {formState.theme === "Light" ? (
+                                            <motion.div
+                                                key="light"
+                                                animate={{ scale: 1.05 }}
+                                                initial={{ scale: 0.95 }}
+                                                exit={{ scale: 0.95 }}
+                                                transition={{ duration: 0.5 }}
+                                            >
+                                                <Sun className={cn('h-auto w-4 cursor-pointer',
+                                                    formState?.fontSize === "Medium" && 'h-auto w-5',
+                                                    formState?.fontSize === "Large" && 'h-auto w-6',
+                                                    formState?.fontSize === "XLarge" && 'h-auto w-7'
+                                                )} />
+                                            </motion.div>
+                                        ) : (
+                                            <motion.div
+                                                key="dark"
+                                                animate={{ scale: 1.05 }}
+                                                initial={{ scale: 0.95 }}
+                                                exit={{ scale: 0.95 }}
+                                                transition={{ duration: 0.5 }}
+                                            >
+                                                <Moon className={cn('h-auto w-4 cursor-pointer',
+                                                    formState?.fontSize === "Medium" && 'h-auto w-5',
+                                                    formState?.fontSize === "Large" && 'h-auto w-6',
+                                                    formState?.fontSize === "XLarge" && 'h-auto w-7'
+                                                )} />
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+
+                                </div>
                                 <select className='w-1/2 cursor-pointer rounded-sm bg-accent font-medium' name='theme'
                                     value={formState.theme}
                                     onChange={(e) => {
@@ -329,7 +415,14 @@ export default function Settings() {
                                 </select>
                             </li>
                             <li className='flex h-fit w-full bg-muted'>
-                                <h1 className='w-1/2 select-none font-medium'>Font Size</h1>
+                                <div className='flex w-1/2 items-center justify-start gap-1'>
+                                    <h1 className='select-none font-medium'>Font Size</h1>
+                                    <ALargeSmall className={cn('h-auto w-4 cursor-pointer',
+                                        formState?.fontSize === "Medium" && 'h-auto w-5',
+                                        formState?.fontSize === "Large" && 'h-auto w-6',
+                                        formState?.fontSize === "XLarge" && 'h-auto w-7'
+                                    )} />
+                                </div>
                                 <select className='w-1/2 cursor-pointer rounded-sm bg-accent font-medium' name='fontSize'
                                     value={formState.fontSize}
                                     onChange={(e) => {

@@ -7,7 +7,7 @@ import { User } from '@prisma/client';
 import { Button } from '@/components/ui/button';
 import { UserAvatar } from './_components/user-avatar';
 import { useRouter } from 'next/navigation';
-import { Loader } from 'lucide-react';
+import { Loader, Loader2 } from 'lucide-react';
 
 export default function Profiles() {
     const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -29,7 +29,7 @@ export default function Profiles() {
             <h1 className='select-none text-2xl font-bold'>Welcome Back!</h1>
             <h2 className='select-none font-medium'>Select Your Profile From The Users Below.</h2>
             <div className='flex h-fit w-fit flex-row items-center justify-center gap-4'>
-                {isLoading && <Loader className='h-auto w-20 animate-spin' />}
+                {isLoading && <Loader2 className='h-auto w-20 animate-spin text-accent' />}
                 {allUsers.length !== 0 && (
                     <>
                         {allUsers.map((user, index) => (
@@ -41,7 +41,7 @@ export default function Profiles() {
                                 onClick={() => {
                                     if (user.id)
                                         setCurrentUserGlobal({ userId: user.id }).then(() => {
-                                            router.push('/');
+                                            router.push('/home');
                                         })
                                 }}
                             >

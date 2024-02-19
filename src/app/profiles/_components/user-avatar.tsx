@@ -5,6 +5,7 @@ import {
 } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils";
 import { User } from "@prisma/client"
+import { UserIcon } from "lucide-react";
 
 export function UserAvatar({
     userObject,
@@ -18,13 +19,23 @@ export function UserAvatar({
 
 
     return (
-        <Avatar className={cn("h-20 w-20 text-xl font-medium",
-            asChild && "h-auto text-lg font-medium my-2 mx-2"
+        <Avatar className={cn("h-40 w-40 text-xl font-medium rounded-sm",
+            asChild && "h-auto w-full text-lg font-medium",
+            (asChild && userObject.imagePath) && "md:w-1/2"
         )}>
-            <AvatarImage src={userObject.imagePath ? userObject.imagePath : ""} alt={userObject.id.toString()} className="object-contain" style={{ backgroundImage: `url(${userObject.imagePath})` }} />
-            <AvatarFallback className={cn("bg-muted font-bold",
-                asChild && "h-20 w-20 text-lg font-bold"
-            )}>{userObject.id}</AvatarFallback>
+            <AvatarImage src={userObject.imagePath ? userObject.imagePath : ""} alt={userObject.id.toString()} className="object-contain" style={{
+                backgroundImage: `url(${userObject.imagePath})`,
+                backgroundSize: "cover",
+            }} />
+            <AvatarFallback className={cn("h-40 w-40 text-xl font-medium rounded-sm",
+                asChild && "w-full text-lg font-medium"
+            )}>
+                <div className="flex h-full w-full flex-col items-center justify-center">
+                    <span className="rounded-sm bg-accent p-1">{userObject.id}</span>
+                    <UserIcon className="" size={80} />
+                </div>
+
+            </AvatarFallback>
         </Avatar>
     )
 }

@@ -5,8 +5,17 @@ import { createNewUser } from '../../../../lib/prisma-commands';
 import { motion } from "framer-motion";
 import { useRouter } from 'next/navigation';
 import { UserPlus } from 'lucide-react';
+import { SettingSchema } from '@/app/settings/page';
 
 export default function NewUser() {
+
+    const [formData, setFormState] = useState<SettingSchema>({
+        theme: 'Light',
+        fontSize: 'Small',
+        animations: 'On',
+        autoRename: 'Off',
+        usePin: 'On'
+    });
 
     let router = useRouter();
 
@@ -41,7 +50,7 @@ export default function NewUser() {
         useEffect(() => {
             console.log(pins.join(''));
             if (pins.join('').length === pinLength) {
-                createNewUser({ userPin: pins.join('') }).then(() => {
+                createNewUser({ userPin: pins.join(''), formData: formData }).then(() => {
                     router.push('/profiles');
                 });
             }

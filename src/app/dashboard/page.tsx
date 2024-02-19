@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import { open } from '@tauri-apps/api/dialog';
 import { addFolder, deleteFolder, getCurrentUserGlobal, getFolders, getUserSettings, getUsers, getVideo, unwatchVideo, updateVideoWatched } from '../../../lib/prisma-commands';
 import type { User, Video } from "@prisma/client";
-import { Captions, Eye, Film, Folder, Folders, Loader, Trash2, VideoIcon } from 'lucide-react';
+import { Captions, Eye, Film, Folder, Folders, Loader, Loader2, Trash2, VideoIcon } from 'lucide-react';
 import { FileEntry, readDir } from '@tauri-apps/api/fs'
 import { cn } from '@/lib/utils';
 import { invoke } from '@tauri-apps/api/tauri';
@@ -62,7 +62,7 @@ export default function Dashboard() {
                 }
             })
         }
-    }, [currentUser])
+    }, [folderPaths])
 
     function AddFolder(
     ) {
@@ -420,7 +420,7 @@ export default function Dashboard() {
             )
         } else {
             return (
-                <Loader className='animate-spin' />
+                <Loader2 className='animate-spin text-accent' size={40} />
             )
         }
     }
@@ -438,7 +438,7 @@ export default function Dashboard() {
     } else {
         return (
             <main className='flex h-1/2 w-full flex-row items-center justify-center'>
-                <Loader className='animate-spin' size={40} />
+                <Loader2 className='animate-spin text-accent' size={100} />
             </main>
         )
     }

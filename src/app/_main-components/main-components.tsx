@@ -5,37 +5,13 @@ import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { WebviewWindow } from '@tauri-apps/api/window';
-import { setCurrentUserGlobal } from '../../../lib/prisma-commands';
-import { setupAppWindow } from '../../../lib/app-window';
+
 
 export function Navbar() {
     const router = useRouter();
     const pathname = usePathname();
 
     let [isHidden, setIsHidden] = useState(false);
-    const [appWindow, setAppWindow] = useState<WebviewWindow>()
-
-    useEffect(() => {
-        setupAppWindow().then((appWindow) => {
-            setAppWindow(appWindow)
-        })
-    }, [])
-
-    useEffect(() => {
-        console.log("rendering navbar")
-
-        appWindow?.onCloseRequested((e) => {
-            e.preventDefault()
-            if (pathname !== "/settings") {
-                setCurrentUserGlobal({ userId: -1 }).then(() => {
-                    appWindow?.close()
-                })
-            }
-        })
-
-    }, [pathname === "/"])
-
 
 
     // Function to handle the end of a drag event
@@ -58,7 +34,7 @@ export function Navbar() {
         >
             <div className='flex w-full flex-row items-center justify-between gap-1'>
                 {(pathname === "/settings" ||
-                    pathname === "/" ||
+                    pathname === "/home" ||
                     pathname === "/profiles/newUser"
                 ) && (
                         <motion.div
@@ -84,7 +60,7 @@ export function Navbar() {
 
             </div>
 
-            {(pathname !== "/settings" && !pathname.includes("/profile") && pathname !== "/") && (
+            {(pathname !== "/settings" && !pathname.includes("/profile") && pathname !== "/home") && (
                 <motion.div
                     whileTap={{ scale: 0.9 }}
                     whileHover={{ scale: 1.1 }}

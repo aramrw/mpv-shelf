@@ -8,25 +8,39 @@ import { convertFileSrc } from '@tauri-apps/api/tauri';
 export async function getUsers() {
     const db = await Database.load("sqlite:main.db");
 
-    let users: User[] = [];
+    await db.execute(
+        `CREATE TABLE IF NOT EXISTS user (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            pin TEXT NOT NULL, 
+            imagePath TEXT  
+        )`
+    )
 
-    try {
-        users = await db.select(
-            "SELECT * from user"
-        )
-    } catch (e) {
-        console.log("error", e);
+    let users: User[] = await db.select(
+        "SELECT * from user"
+    )
+
+    if (users.length !== 0) {
+        await db.close();
+        console.log("confirmed users", users);
+        return users;
+    } else {
+        await db.close();
+        //console.log("users", users);
+        return null;
     }
 
-    await db.close();
 
-    return users;
+
+
 }
 
 export async function createNewUser({
-    userPin
+    userPin,
+    formData
 }: {
     userPin: string
+    formData: SettingSchema
 }) {
     let db = await Database.load("sqlite:main.db");
 
@@ -47,6 +61,9 @@ export async function createNewUser({
     ).catch((e) => {
         console.log("error", e);
     });
+
+    updateSettings({ formData, userId: 1 });
+
 
     await db.close();
 }
@@ -126,7 +143,12 @@ export async function updateVideoWatched({
 
     let db = await Database.load("sqlite:main.db");
 
+
+
     try {
+
+        await db.execute("CREATE TABLE IF NOT EXISTS video (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT NOT NULL UNIQUE, watched BOOLEAN NOT NULL DEFAULT 0)")
+
         await db.select("SELECT * from video WHERE path = ($1)", [videoPath]).then(async (res: any) => {
             if (res.length === 0) {
                 await db.execute("INSERT into video (path, watched) VALUES ($1, $2)", [videoPath, 1])
@@ -137,7 +159,7 @@ export async function updateVideoWatched({
     } catch (e) {
         console.log(e);
         // if this error gets thrown it means the Video table hasnt been created yet
-        await db.execute("CREATE TABLE IF NOT EXISTS video (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT NOT NULL UNIQUE, watched BOOLEAN NOT NULL DEFAULT 0)")
+
     }
 
     await db.close();
@@ -151,29 +173,22 @@ export async function getVideo({
 }) {
     let db = await Database.load("sqlite:main.db");
 
-    // let video: Video = {
-    //     id: -1,
-    //     path: "",
-    //     watched: false
-    // };
-
     let video: any;
 
     try {
+        await db.execute("CREATE TABLE IF NOT EXISTS video (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT NOT NULL UNIQUE, watched BOOLEAN NOT NULL DEFAULT 0)")
+
         video = await db.select("SELECT * from video WHERE path = ($1)", [videoPath])
     } catch (e) {
         console.log(e);
-        // if this error gets thrown it means the Video table hasnt been created yet
-        await db.execute("CREATE TABLE IF NOT EXISTS video (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT NOT NULL UNIQUE, watched BOOLEAN NOT NULL DEFAULT 0)")
+
     }
 
 
     if (video && video.length !== 0) {
         //console.log("video", video);
-        await db.close();
         return video[0];
     } else {
-        await db.close();
         return null
     }
 
@@ -253,6 +268,18 @@ export async function getUserSettings({
 }) {
     const db = await Database.load("sqlite:main.db");
     try {
+
+        await db.execute(`
+    CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL UNIQUE, 
+    theme TEXT NOT NULL, 
+    fontSize TEXT NOT NULL, 
+    animations TEXT NOT NULL, 
+    autoRename TEXT NOT NULL, 
+    usePin TEXT NOT NULL,
+    FOREIGN KEY (userId) REFERENCES user(id))`).catch((e) => {
+            console.log("error", e);
+        });
+
         let settings: SettingSchema[] = await db.select("SELECT * from settings WHERE userId = $1", [userId])
 
         //console.log("settings", settings[0]);
@@ -315,7 +342,16 @@ export async function getCurrentUserGlobal() {
 
     const GLOBAL_ID = 'GID99844589388427';
 
+
     try {
+
+        // Ensure the global table exists
+        await db.execute(`
+        CREATE TABLE IF NOT EXISTS global (
+        id TEXT PRIMARY KEY, 
+        userId INTEGER NOT NULL
+        )`);
+
         const GLOBAL_USER: Global[] = await db.select("SELECT * from global WHERE id = $1", [GLOBAL_ID])
 
         if (GLOBAL_USER) {
