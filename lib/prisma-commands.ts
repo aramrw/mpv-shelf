@@ -379,3 +379,35 @@ export async function getProfilePicture({
     }
 
 }
+
+export async function deleteProfile({
+    userId
+}: {
+    userId: number
+}) {
+    const db = await Database.load("sqlite:main.db");
+
+    try {
+        // Start a transaction
+        await db.execute(`BEGIN TRANSACTION;`);
+
+        // Delete all folders associated with the user
+        await db.execute(`DELETE FROM folder WHERE userId = $1`, [userId]);
+
+        // Delete all settings associated with the user
+        await db.execute(`DELETE FROM settings WHERE userId = $1`, [userId]);
+
+        // Finally, delete the user
+        await db.execute(`DELETE FROM user WHERE id = $1`, [userId]);
+
+        // Commit the transaction
+        await db.execute(`COMMIT;`);
+    } catch (e) {
+        console.log(e);
+        // If an error occurs, rollback the transaction
+        await db.execute(`ROLLBACK;`);
+    } finally {
+        // Close the database connection
+        await db.close();
+    }
+}

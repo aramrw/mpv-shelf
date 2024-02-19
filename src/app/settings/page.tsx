@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
 import { z } from 'zod'
-import { getCurrentUserGlobal, getUserSettings, getUsers, setCurrentUserGlobal, turnOnPin, updateProfilePicture, updateSettings, updateUserPin } from '../../../lib/prisma-commands'
+import { deleteProfile, getCurrentUserGlobal, getUserSettings, getUsers, setCurrentUserGlobal, turnOnPin, updateProfilePicture, updateSettings, updateUserPin } from '../../../lib/prisma-commands'
 import { useTheme } from 'next-themes'
 import { User } from '@prisma/client';
 import {
@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { writeText } from '@tauri-apps/api/clipboard'
 import { useToast } from '@/components/ui/use-toast'
-import { AlertNoChangesMade, ConfirmChangePin, ConfirmTurnOffPin } from './_components/confirm'
+import { AlertNoChangesMade, ConfirmChangePin, ConfirmDeleteProfile, ConfirmTurnOffPin } from './_components/confirm'
 import { useRouter } from 'next/navigation'
 import { open } from '@tauri-apps/api/dialog'
 import { UserAvatar } from '../profiles/_components/user-avatar'
@@ -166,7 +166,7 @@ export default function Settings() {
                         <h1 className='select-none rounded-t-sm bg-accent px-1 font-bold'>User</h1>
                         <ul className='flex flex-col gap-3 p-2'>
                             {hasMultipleProfiles && (
-                                <li className='fit flex max-h-96 w-full items-center justify-between bg-muted'>
+                                <li className='fit flex max-h-96 w-full items-center justify-between gap-2 bg-muted'>
                                     <TooltipProvider>
                                         <Tooltip delayDuration={1}>
                                             <div className='flex w-1/2 flex-row items-center gap-1'>
@@ -189,7 +189,7 @@ export default function Settings() {
                                             </TooltipContent>
                                         </Tooltip>
                                     </TooltipProvider>
-                                    <Button variant="outline" className={cn('mx-2 select-none w-1/2 h-[6.1rem] p-0',
+                                    <Button variant="outline" className={cn('select-none w-1/2 h-[6.1rem] p-0',
                                         formState?.fontSize === "Medium" && 'text-lg',
                                         formState?.fontSize === "Large" && 'text-xl',
                                         formState?.fontSize === "XLarge" && 'text-2xl',
@@ -203,9 +203,9 @@ export default function Settings() {
                                     </Button>
                                 </li>
                             )}
-                            <li className='flex h-fit w-full items-center justify-between bg-muted'>
+                            <li className='flex h-fit w-full items-center justify-between gap-2 bg-muted'>
                                 <h1 className='w-1/2 select-none rounded-sm bg-accent p-0.5 font-medium'>Profile Picture</h1>
-                                <Button variant="outline" className={cn('mx-2 select-none w-1/2 py-1 h-1/4',
+                                <Button variant="outline" className={cn('select-none w-1/2 py-1 h-1/4',
                                     formState?.fontSize === "Medium" && 'text-lg',
                                     formState?.fontSize === "Large" && 'text-xl',
                                     formState?.fontSize === "XLarge" && 'text-2xl',
@@ -239,19 +239,27 @@ export default function Settings() {
                             <li className='flex h-fit w-full items-center justify-between bg-muted'>
                                 <TooltipProvider>
                                     <Tooltip delayDuration={1}>
-                                        <div className='flex w-1/2 flex-row items-center gap-1'>
-                                            <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-start'>
-                                                <div className='flex h-full w-full flex-row items-center gap-0.5 rounded-sm bg-accent p-0.5'>
-                                                    <Flame className={cn('h-auto w-4 cursor-pointer text-destructive',
-                                                        formState?.fontSize === "Medium" && 'h-auto w-5',
-                                                        formState?.fontSize === "Large" && 'h-auto w-6',
-                                                        formState?.fontSize === "XLarge" && 'h-auto w-7'
-                                                    )}
-                                                    />
-                                                    <h1 className='flex w-full select-none items-center font-medium'>Delete Account</h1>
-                                                </div>
-                                            </TooltipTrigger>
-                                        </div>
+                                        <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-start'>
+                                            <Button variant="destructive" className={cn('select-none w-full py-1 h-1/4 flex flex-row justify-center items-center',
+                                                formState?.fontSize === "Medium" && 'text-lg',
+                                                formState?.fontSize === "Large" && 'text-xl',
+                                                formState?.fontSize === "XLarge" && 'text-2xl',
+                                            )} onClick={() => {
+                                                ConfirmDeleteProfile().then((res) => {
+                                                    if (res) {
+                                                        if (currentUser?.id) {
+                                                            deleteProfile({ userId: currentUser.id }).then(() => {
+                                                                setCurrentUserGlobal({ userId: -1 }).then(() => {
+                                                                    router.push('/');
+                                                                });
+                                                            });
+                                                        }
+                                                    }
+                                                });
+                                            }}>
+                                                Delete Profile
+                                            </Button>
+                                        </TooltipTrigger>
                                         <TooltipContent>
                                             <div className='font-medium'>
                                                 <div className='flex flex-col items-center justify-center gap-1'>
@@ -266,14 +274,7 @@ export default function Settings() {
                                         </TooltipContent>
                                     </Tooltip>
                                 </TooltipProvider>
-                                <Button variant="outline" className={cn('mx-2 select-none w-1/2 py-1 h-1/4',
-                                    formState?.fontSize === "Medium" && 'text-lg',
-                                    formState?.fontSize === "Large" && 'text-xl',
-                                    formState?.fontSize === "XLarge" && 'text-2xl',
-                                )} onClick={() => {
-                                }}>
-                                    Delete Account
-                                </Button>
+
                             </li>
                         </ul>
                     </li>

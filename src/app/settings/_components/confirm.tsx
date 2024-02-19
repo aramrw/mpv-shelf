@@ -35,3 +35,15 @@ export async function AlertNoPinEntered() {
 
     return;
 }
+
+export async function ConfirmDeleteProfile() {
+    const confirmed = await confirm(`
+    Are you sure you would like to delete your profile? 
+    You will lose all data associated with this profile forever.`, { title: `Delete Account?`, type: 'error' });
+
+    if (confirmed) {
+        return true;
+    } else {
+        return false;
+    }
+}

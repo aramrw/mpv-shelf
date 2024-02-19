@@ -50,18 +50,21 @@ export function Navbar() {
             transition={{ type: 'spring', stiffness: 300 }}
         >
             <div className='flex w-full flex-row items-center justify-between gap-1'>
-                {pathname === "/settings" && (
-                    <motion.div
-                        className='cursor-pointer rounded-sm bg-muted px-1'
-                        whileTap={{ scale: 0.9 }}
-                        whileHover={{ scale: 1.1 }}
-                        onClick={() => {
-                            router.back();
-                        }}
-                    >
-                        <MoveLeft />
-                    </motion.div>
-                )}
+                {(pathname === "/settings" ||
+                    pathname === "/" ||
+                    pathname === "/newUser"
+                ) && (
+                        <motion.div
+                            className='cursor-pointer rounded-sm bg-muted px-1'
+                            whileTap={{ scale: 0.9 }}
+                            whileHover={{ scale: 1.1 }}
+                            onClick={() => {
+                                router.back();
+                            }}
+                        >
+                            <MoveLeft />
+                        </motion.div>
+                    )}
                 <motion.div
                     className='cursor-pointer'
                     whileTap={{ scale: 0.9 }}
