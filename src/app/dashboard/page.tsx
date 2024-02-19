@@ -161,6 +161,7 @@ export default function Dashboard() {
                 <main className='h-full w-full overflow-hidden'>
                     <ContextMenu>
                         <ContextMenuTrigger>
+                            {/* Main Parent Folder */}
                             <motion.div className={cn('flex cursor-pointer flex-row items-center justify-between rounded-md bg-accent p-1 shadow-sm',
                                 (expanded && files.length > 0 && !asChild) && 'rounded-b-none border-b-4 border-tertiary',
                                 (expanded && folders.length > 0 && !asChild) && 'rounded-b-none border-b-4 border-tertiary',
@@ -171,10 +172,11 @@ export default function Dashboard() {
                                     if (e.button === 0)
                                         setExpanded(!expanded);
                                 }}
-                                whileHover={(userSettings?.animations === "On") ? { scale: 0.99 } : undefined}
+                                whileHover={(userSettings?.animations === "On" && !asChild) ? { scale: 0.99 } : undefined}
                                 transition={{ duration: 0.15 }}
 
                             >
+                                {/* Displays all the tags for main parent folder. */}
                                 <div className={cn('flex flex-row items-center justify-center gap-1 font-medium text-primary text-sm',
                                 )}>
                                     {asChild && <Folder className={cn('h-auto w-4',
@@ -268,6 +270,7 @@ export default function Dashboard() {
 
                                 </div>
 
+                                {/* Only display trashcan when its a main parent folder */}
                                 {asChild !== true && (
                                     <motion.span
                                         whileHover={userSettings?.animations === "On" ? { scale: 1.1 } : undefined}
@@ -306,6 +309,7 @@ export default function Dashboard() {
                         </ContextMenuContent>
                     </ContextMenu>
 
+                    {/* Displays all the child files and folders */}
                     <ul className='overflow-hidden overflow-y-auto bg-muted'>
                         {
                             expanded && files.map((file, index) => {
@@ -329,7 +333,7 @@ export default function Dashboard() {
                                         initial={userSettings?.animations === "On" ? { scale: 0.8 } : undefined}
                                         animate={userSettings?.animations === "On" ? { scale: 1 } : undefined}
                                         exit={userSettings?.animations === "On" ? { scale: 0 } : undefined}
-                                        whileHover={userSettings?.animations === "On" ? { x: 10 } : undefined}
+                                        whileHover={userSettings?.animations === "On" ? { x: 1.5 } : undefined}
                                     >
                                         {!file.children &&
                                             <div className='flex flex-row items-center justify-center gap-1'>
@@ -400,7 +404,7 @@ export default function Dashboard() {
                                         initial={userSettings?.animations === "On" ? { scale: 0.8 } : undefined}
                                         animate={userSettings?.animations === "On" ? { scale: 1 } : undefined}
                                         exit={userSettings?.animations === "On" ? { scale: 0 } : undefined}
-                                        whileHover={userSettings?.animations === "On" ? { x: 10 } : undefined}
+                                        whileHover={userSettings?.animations === "On" ? { x: 1 } : undefined}
                                     >
 
                                         <FolderList folderPath={folder.path} asChild />

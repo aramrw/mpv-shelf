@@ -60,7 +60,7 @@ export async function addFolder({
 }) {
     let db = await Database.load("sqlite:main.db");
 
-    await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL UNIQUE, FOREIGN KEY (userId) REFERENCES user(id))")
+    await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, FOREIGN KEY (userId) REFERENCES user(id))")
 
     await db.execute("INSERT into folder (userId, path) VALUES ($1, $2)", [userId, folderPath])
 

@@ -204,7 +204,7 @@ export default function Settings() {
                                 </li>
                             )}
                             <li className='flex h-fit w-full items-center justify-between gap-2 bg-muted'>
-                                <h1 className='w-1/2 select-none rounded-sm bg-accent p-0.5 font-medium'>Profile Picture</h1>
+                                <h1 className='w-1/2 select-none rounded-sm bg-accent px-1.5 py-0.5 font-medium'>Profile Picture</h1>
                                 <Button variant="outline" className={cn('select-none w-1/2 py-1 h-1/4',
                                     formState?.fontSize === "Medium" && 'text-lg',
                                     formState?.fontSize === "Large" && 'text-xl',
@@ -238,7 +238,7 @@ export default function Settings() {
                             </li>
                             <li className='flex h-fit w-full items-center justify-between bg-muted'>
                                 <TooltipProvider>
-                                    <Tooltip delayDuration={1}>
+                                    <Tooltip delayDuration={300}>
                                         <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-start'>
                                             <Button variant="destructive" className={cn('select-none w-full py-1 h-1/4 flex flex-row justify-center items-center',
                                                 formState?.fontSize === "Medium" && 'text-lg',
@@ -260,7 +260,7 @@ export default function Settings() {
                                                 Delete Profile
                                             </Button>
                                         </TooltipTrigger>
-                                        <TooltipContent>
+                                        <TooltipContent align='center'>
                                             <div className='font-medium'>
                                                 <div className='flex flex-col items-center justify-center gap-1'>
                                                     <div className='flex flex-row gap-0.5'>
@@ -332,7 +332,7 @@ export default function Settings() {
                         <ul className='flex flex-col gap-3 p-2'>
                             <li className='flex h-fit w-full justify-between bg-muted'>
                                 <TooltipProvider>
-                                    <Tooltip delayDuration={1}>
+                                    <Tooltip delayDuration={200}>
                                         <div className='flex w-full flex-row gap-1'>
                                             <TooltipTrigger className='flex w-full flex-row items-center justify-start gap-1'>
                                                 <Info className={cn('h-auto w-4 cursor-pointer',
@@ -344,7 +344,7 @@ export default function Settings() {
                                                 <h1 className='select-none font-medium'>Auto Rename</h1>
                                             </TooltipTrigger>
                                         </div>
-                                        <TooltipContent>
+                                        <TooltipContent align='start'>
                                             <div className='font-medium'>
                                                 <span className='font-bold'>
                                                     Renames subtitle files to match video.
@@ -383,7 +383,6 @@ export default function Settings() {
                                             ConfirmTurnOffPin().then((confirmed) => {
                                                 if (confirmed) {
                                                     setFormState({ ...formState, usePin: "Off" });
-
                                                 }
                                             });
 
@@ -492,13 +491,19 @@ export default function Settings() {
                     </li>
 
                 </ul>
-                <Button variant="outline" className={cn('mx-2 select-none',
+
+                <Button variant="outline" className={cn('mx-2 select-none transition-all',
                     formState?.fontSize === "Medium" && 'text-lg',
                     formState?.fontSize === "Large" && 'text-xl',
                     formState?.fontSize === "XLarge" && 'text-2xl',
-                )} type='submit' >
+                )} type='submit' onClick={(e) => {
+                    e.currentTarget.style.backgroundColor = "#4BB543";
+                    e.currentTarget.style.color = "white";
+                    e.currentTarget.textContent = "Saved Changes";
+                }} >
                     Save
                 </Button>
+
             </form>
         </main>
     )

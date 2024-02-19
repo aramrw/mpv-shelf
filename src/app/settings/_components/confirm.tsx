@@ -4,7 +4,7 @@ import { confirm, message } from '@tauri-apps/api/dialog'
 export async function ConfirmTurnOffPin() {
 
     const confirmed = await confirm(`Are you sure you would like to turn off your pin? 
-This will allow anyone to access your videos.`, { title: `Turn off PIN?`, type: 'warning' });
+This will allow anyone to sign into your profile.`, { title: `Turn off PIN?`, type: 'warning' });
 
     if (confirmed) {
         return true;
