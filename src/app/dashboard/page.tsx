@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import { open } from '@tauri-apps/api/dialog';
 import { addFolder, deleteFolder, getCurrentUserGlobal, getFolders, getUserSettings, getUsers, getVideo, unwatchVideo, updateVideoWatched } from '../../../lib/prisma-commands';
 import type { User, Video } from "@prisma/client";
-import { Captions, ChevronDown, ChevronUp, Eye, Film, Folder, FolderInput, Folders, Loader, Loader2, MoveDown, MoveUp, Trash2, VideoIcon } from 'lucide-react';
+import { Captions, ChevronDown, ChevronUp, Eye, EyeOff, Film, Folder, FolderInput, Folders, Loader, Loader2, MoveDown, MoveUp, Trash2, VideoIcon, Watch } from 'lucide-react';
 import { FileEntry, readDir } from '@tauri-apps/api/fs'
 import { cn } from '@/lib/utils';
 import { invoke } from '@tauri-apps/api/tauri';
@@ -14,9 +14,12 @@ import {
     ContextMenu,
     ContextMenuContent,
     ContextMenuItem,
+    ContextMenuShortcut,
+    ContextMenuSubTrigger,
     ContextMenuTrigger,
 } from "@/components/ui/context-menu"
 import { SettingSchema } from '../settings/page';
+import { ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent } from '@radix-ui/react-context-menu';
 
 export default function Dashboard() {
     let [folderPaths, setFolderPaths] = useState<string[]>([]);
@@ -297,7 +300,7 @@ export default function Dashboard() {
                             </motion.div>
                         </ContextMenuTrigger>
                         <ContextMenuContent>
-                            <ContextMenuItem className='flex cursor-pointer items-center gap-1'
+                            <ContextMenuItem className='flex cursor-pointer items-center gap-1 font-medium'
                                 onClick={(e) => {
                                     if (e.button === 0) {
                                         invoke('show_in_folder', { path: `${folderPath}` });
@@ -395,41 +398,7 @@ export default function Dashboard() {
                                                 }
                                             </motion.li>
                                             <ContextMenuContent>
-                                                <ContextMenuItem className='cursor-pointer'
-                                                    onClick={(e) => {
-
-                                                        files.slice(0, index + 1).map((file) => {
-                                                            updateVideoWatched({ videoPath: file.path }).then(() => {
-                                                                setFinishedSettingFiles(!finishedSettingFiles);
-                                                            });
-                                                        })
-
-                                                    }}
-                                                >
-                                                    Cascade As Watched
-                                                    <ChevronDown className={cn('h-auto w-4 ',
-                                                        userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                        userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                                        userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                                    )} />
-                                                </ContextMenuItem>
-                                                <ContextMenuItem className='cursor-pointer'
-                                                    onClick={(e) => {
-                                                        files.slice(index, files.length).map((file) => {
-                                                            unwatchVideo({ videoPath: file.path }).then(() => {
-                                                                setFinishedSettingFiles(!finishedSettingFiles);
-                                                            });
-                                                        })
-                                                    }}
-                                                >
-                                                    Cascade As Unwatched
-                                                    <ChevronUp className={cn('h-auto w-4 ',
-                                                        userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                        userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                                        userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                                    )} />
-                                                </ContextMenuItem>
-                                                <ContextMenuItem className='flex cursor-pointer items-center gap-1'
+                                                <ContextMenuItem className='cursor-pointer gap-1 py-0.5 font-medium'
                                                     onClick={(e) => {
 
                                                         invoke('show_in_folder', { path: file.path });
@@ -443,6 +412,103 @@ export default function Dashboard() {
                                                         userSettings?.fontSize === "XLarge" && 'h-auto w-7'
                                                     )} />
                                                 </ContextMenuItem>
+                                                <ContextMenuSeparator className='my-1 h-[1px] bg-accent' />
+                                                <ContextMenuSub>
+                                                    <ContextMenuSubTrigger className='cursor-pointer gap-1 py-0.5 font-medium' inset>Watch</ContextMenuSubTrigger>
+                                                    <ContextMenuSubContent className="mx-2 overflow-hidden rounded-md border bg-popover p-1 font-medium text-popover-foreground shadow-md animate-in fade-in-80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
+                                                        {prismaVideos.some(video => video.path === file.path && !video.watched) ? (
+                                                            <ContextMenuItem
+                                                                className='flex cursor-pointer gap-1'
+                                                                onClick={(e) => {
+                                                                    updateVideoWatched({ videoPath: file.path }).then(() => {
+                                                                        setFinishedSettingFiles(!finishedSettingFiles);
+                                                                    });
+
+                                                                }}
+                                                            >
+                                                                Set Watched
+                                                                <Eye className={cn('h-auto w-4 ',
+                                                                    userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                                                                    userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                                                    userSettings?.fontSize === "XLarge" && 'h-auto w-7'
+                                                                )} />
+
+                                                            </ContextMenuItem>
+                                                        ) : (
+                                                            <ContextMenuItem className='flex cursor-pointer gap-1'
+                                                                onClick={(e) => {
+                                                                    unwatchVideo({ videoPath: file.path }).then(() => {
+                                                                        setFinishedSettingFiles(!finishedSettingFiles);
+                                                                    });
+
+                                                                }}
+                                                            >
+                                                                Unwatch
+                                                                <EyeOff className={cn('h-auto w-4 ',
+                                                                    userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                                                                    userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                                                    userSettings?.fontSize === "XLarge" && 'h-auto w-7'
+                                                                )} />
+                                                            </ContextMenuItem>
+                                                        )}
+
+                                                        <ContextMenuItem className='cursor-pointer'
+                                                            onClick={(e) => {
+
+                                                                files.slice(0, index + 1).map((file) => {
+                                                                    updateVideoWatched({ videoPath: file.path }).then(() => {
+                                                                        setFinishedSettingFiles(!finishedSettingFiles);
+                                                                    });
+                                                                })
+
+                                                            }}
+                                                        >
+                                                            <div className='flex gap-1'>
+                                                                <span>Cascade As</span>
+
+                                                                <div className='flex'>
+                                                                    <Eye className={cn('h-auto w-4 ',
+                                                                        userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                                                                        userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                                                        userSettings?.fontSize === "XLarge" && 'h-auto w-7'
+                                                                    )} />
+                                                                    <ChevronDown className={cn('h-auto w-4 ',
+                                                                        userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                                                                        userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                                                        userSettings?.fontSize === "XLarge" && 'h-auto w-7'
+                                                                    )} />
+                                                                </div>
+                                                            </div>
+                                                        </ContextMenuItem>
+                                                        <ContextMenuItem className='cursor-pointer'
+                                                            onClick={(e) => {
+                                                                files.slice(index, files.length).map((file) => {
+                                                                    unwatchVideo({ videoPath: file.path }).then(() => {
+                                                                        setFinishedSettingFiles(!finishedSettingFiles);
+                                                                    });
+                                                                })
+                                                            }}
+                                                        >
+                                                            <div className='flex gap-1'>
+                                                                <span>Cascade As</span>
+                                                                <div className='flex'>
+                                                                    <EyeOff className={cn('h-auto w-4 ',
+                                                                        userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                                                                        userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                                                        userSettings?.fontSize === "XLarge" && 'h-auto w-7'
+                                                                    )} />
+                                                                    <ChevronUp className={cn('h-auto w-4 ',
+                                                                        userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                                                                        userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                                                        userSettings?.fontSize === "XLarge" && 'h-auto w-7'
+                                                                    )} />
+                                                                </div>
+                                                            </div>
+                                                        </ContextMenuItem>
+                                                    </ContextMenuSubContent>
+                                                </ContextMenuSub>
+
+
                                             </ContextMenuContent>
                                         </ContextMenuTrigger>
                                     </ContextMenu>
