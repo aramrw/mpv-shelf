@@ -23,7 +23,7 @@ export default function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${mplus.className} antialiased `}>
+      <body className={`${mplus.className} antialiased overflow-auto `}  >
         <Navbar />
         {children}
         <Toaster />
