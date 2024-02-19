@@ -13,7 +13,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-import { ALargeSmall, Check, Copy, Delete, Images, Info, Lock, Moon, Sun, Unlock, UserMinus, UserPlus } from 'lucide-react'
+import { ALargeSmall, Check, Copy, Delete, Images, Info, Lock, Moon, Move3d, Sun, Unlock, UserMinus, UserPlus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AnimatePresence, motion } from 'framer-motion'
 import { writeText } from '@tauri-apps/api/clipboard'
@@ -380,10 +380,10 @@ export default function Settings() {
                                         {formState.theme === "Light" ? (
                                             <motion.div
                                                 key="light"
-                                                animate={{ scale: 1.05 }}
-                                                initial={{ scale: 0.95 }}
-                                                exit={{ scale: 0.95 }}
-                                                transition={{ duration: 0.5 }}
+                                                animate={formState.animations === "On" ? { scale: 1.05 } : undefined}
+                                                initial={formState.animations === "On" ? { scale: 0.95 } : undefined}
+                                                exit={formState.animations === "On" ? { scale: 0.95 } : undefined}
+                                                transition={formState.animations === "On" ? { duration: 0.5 } : undefined}
                                             >
                                                 <Sun className={cn('h-auto w-4 cursor-pointer',
                                                     formState?.fontSize === "Medium" && 'h-auto w-5',
@@ -393,11 +393,10 @@ export default function Settings() {
                                             </motion.div>
                                         ) : (
                                             <motion.div
-                                                key="dark"
-                                                animate={{ scale: 1.05 }}
-                                                initial={{ scale: 0.95 }}
-                                                exit={{ scale: 0.95 }}
-                                                transition={{ duration: 0.5 }}
+                                                animate={formState.animations === "On" ? { scale: 1.05 } : undefined}
+                                                initial={formState.animations === "On" ? { scale: 0.95 } : undefined}
+                                                exit={formState.animations === "On" ? { scale: 0.95 } : undefined}
+                                                transition={formState.animations === "On" ? { duration: 0.5 } : undefined}
                                             >
                                                 <Moon className={cn('h-auto w-4 cursor-pointer',
                                                     formState?.fontSize === "Medium" && 'h-auto w-5',
@@ -447,7 +446,22 @@ export default function Settings() {
                                 </select>
                             </li>
                             <li className='flex h-fit w-full bg-muted'>
-                                <h1 className='w-1/2 select-none font-medium'>Animations</h1>
+                                <div className='flex w-1/2 items-center justify-start gap-1'>
+                                    <h1 className='select-none font-medium'>Animations</h1>
+                                    <motion.div
+                                        whileHover={formState.animations === "On" ? { scale: 1.2 } : undefined}
+                                        whileTap={formState.animations === "On" ? { scale: 0.8 } : undefined}
+                                        transition={formState.animations ? { type: "spring", stiffness: 800, damping: 17 } : undefined}
+                                        drag
+                                        dragConstraints={formState.animations ? { left: 0, right: 0, top: 0, bottom: 0 } : undefined}
+                                    >
+                                        <Move3d className={cn('h-auto w-4 cursor-pointer',
+                                            formState?.fontSize === "Medium" && 'h-auto w-5',
+                                            formState?.fontSize === "Large" && 'h-auto w-6',
+                                            formState?.fontSize === "XLarge" && 'h-auto w-7'
+                                        )} />
+                                    </motion.div>
+                                </div>
                                 <select className='w-1/2 cursor-pointer rounded-sm bg-accent font-medium' name='animations'
                                     value={formState.animations}
                                     onChange={(e) => {
@@ -642,10 +656,10 @@ export default function Settings() {
                             <motion.div
                                 key="saved"
                                 className='flex w-full flex-row items-center gap-2 text-base'
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.5 }}
+                                initial={formState.animations === "On" ? { opacity: 0 } : undefined}
+                                animate={formState.animations === "On" ? { opacity: 1 } : undefined}
+                                exit={formState.animations === "On" ? { opacity: 0 } : undefined}
+                                transition={formState.animations === "On" ? { duration: 0.5 } : undefined}
                             >
                                 <Button variant="outline" className={cn('mx-2 select-none transition-all flex flex-row justify-center items-center gap-1 text-base ',
                                     formState?.fontSize === "Medium" && 'text-lg',
@@ -664,10 +678,10 @@ export default function Settings() {
                             <motion.div
                                 key="save"
                                 className='flex w-full flex-row items-center gap-2 text-base'
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.5 }}
+                                initial={formState.animations === "On" ? { opacity: 0 } : undefined}
+                                animate={formState.animations === "On" ? { opacity: 1 } : undefined}
+                                exit={formState.animations === "On" ? { opacity: 0 } : undefined}
+                                transition={formState.animations === "On" ? { duration: 0.5 } : undefined}
                             >
                                 <Button variant="outline" className={cn('mx-2 select-none transition-all text-base',
                                     formState?.fontSize === "Medium" && 'text-lg',
