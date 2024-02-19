@@ -5,6 +5,8 @@ import { createNewUser, getCurrentUserGlobal, getUsers, setCurrentUserGlobal } f
 import { motion } from "framer-motion";
 import type { User } from "@prisma/client";
 import { useRouter } from 'next/navigation';
+import { UserAvatar } from './profiles/_components/user-avatar';
+import { Button } from '@/components/ui/button';
 
 
 export default function Home() {
@@ -124,11 +126,20 @@ export default function Home() {
 
   function PinInputReturningUser({ userPin, userId }: { userPin: string, userId: number }) {
 
+    let randomQuotes = [
+      "One More Step!",
+      "Almost There!",
+      "For Your Eyes Only!",
+      "Just A Moment!",
+      "Not So Fast!",
+    ]
+
     let router = useRouter();
 
     const pinLength = 4;
     const [pins, setPins] = useState(Array(pinLength).fill(''));
     const inputRefs = Array(pinLength).fill(0).map(() => createRef());
+    const [currentUser, setCurrentUser] = useState<User>();
 
     const handleChange = (value: any, index: number) => {
       const newPins = [...pins];
@@ -168,9 +179,31 @@ export default function Home() {
 
     }, [pins]);
 
+    // get the user object to display the avatar
+    useEffect(() => {
+      getUsers().then((users) => {
+        if (users) {
+          for (const user of users) {
+            if (user.id === userId) {
+              setCurrentUser(user);
+            }
+          }
+        }
+      });
+
+    }, [userId]);
+
     return (
-      <main className="flex flex-col items-center justify-center">
-        <motion.h1 className="text-2xl font-medium">Welcome Back!</motion.h1>
+      <main className="mt-3 flex flex-col items-center justify-center">
+
+        <h1 className="select-none text-2xl font-medium">
+          {randomQuotes[Math.floor(Math.random() * randomQuotes.length)]}
+        </h1>
+        {(userId && currentUser) && (
+          <div className='mt-2'>
+            <UserAvatar userObject={currentUser} />
+          </div>
+        )}
         <div className="my-4 flex space-x-2">
           {pins.map((pin, index) => (
             <input
@@ -186,12 +219,14 @@ export default function Home() {
             />
           ))}
         </div>
-        <h2 className="text-lg">Enter your <b>pin</b> to get started.</h2>
-        <h3 className='cursor-pointer text-blue-500 underline underline-offset-2'
-          onClick={() => {
-            router.push('/profiles/newUser')
-          }}
-        >Create New Profile</h3>
+        <h2 className="select-none text-lg">Enter your <b>pin #</b> to get started.</h2>
+        <div className='flex w-full flex-row items-center justify-center gap-2'>
+          <Button variant="outline" className='mt-2 cursor-pointer text-blue-500 underline underline-offset-2'
+            onClick={() => {
+              // create db function for resetting pin
+            }}
+          >Forgot Pin?</Button>
+        </div>
       </main>
     );
   }

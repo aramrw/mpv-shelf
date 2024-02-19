@@ -52,7 +52,7 @@ export function Navbar() {
             <div className='flex w-full flex-row items-center justify-between gap-1'>
                 {(pathname === "/settings" ||
                     pathname === "/" ||
-                    pathname === "/newUser"
+                    pathname === "/profiles/newUser"
                 ) && (
                         <motion.div
                             className='cursor-pointer rounded-sm bg-muted px-1'
