@@ -6,30 +6,37 @@ import { motion } from 'framer-motion'
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { WebviewWindow } from '@tauri-apps/api/window';
-import { setCurrentUserGlobal, setupAppWindow } from '../../../lib/prisma-commands';
+import { setCurrentUserGlobal } from '../../../lib/prisma-commands';
+import { setupAppWindow } from '../../../lib/app-window';
 
 export function Navbar() {
-    let [isHidden, setIsHidden] = useState(false);
-    const [appWindow, setAppWindow] = useState<WebviewWindow>()
-
     const router = useRouter();
     const pathname = usePathname();
+
+    let [isHidden, setIsHidden] = useState(false);
+    const [appWindow, setAppWindow] = useState<WebviewWindow>()
 
     useEffect(() => {
         setupAppWindow().then((appWindow) => {
             setAppWindow(appWindow)
         })
-    })
+    }, [])
 
     useEffect(() => {
+        console.log("rendering navbar")
+
         appWindow?.onCloseRequested((e) => {
             e.preventDefault()
-            setCurrentUserGlobal({ userId: -1 }).then(() => {
-                appWindow?.close()
-            })
+            if (pathname !== "/settings") {
+                setCurrentUserGlobal({ userId: -1 }).then(() => {
+                    appWindow?.close()
+                })
+            }
         })
 
-    }, [appWindow])
+    }, [pathname === "/"])
+
+
 
     // Function to handle the end of a drag event
     const handleDragEnd = (event: any, info: any) => {
@@ -87,8 +94,6 @@ export function Navbar() {
                     </Link>
                 </motion.div>
             )}
-
-
 
 
         </motion.div>

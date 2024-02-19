@@ -77,6 +77,7 @@ export async function getFolders({
     console.log("userId", userId);
 
     try {
+        await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, FOREIGN KEY (userId) REFERENCES user(id))")
         // Directly return the result of the query
         let folders: Folder[] = await db.select("SELECT * from folder WHERE userId = $1", [userId]);
         //console.log("folders", folders);
@@ -284,7 +285,6 @@ export async function turnOnPin({
     await db.close();
 }
 
-
 export async function setCurrentUserGlobal({ userId }: { userId: number }) {
     const db = await Database.load("sqlite:main.db");
 
@@ -331,13 +331,6 @@ export async function getCurrentUserGlobal() {
         return null;
     }
 
-}
-
-
-export async function setupAppWindow() {
-    const appWindow = (await import('@tauri-apps/api/window')).appWindow
-
-    return appWindow
 }
 
 export async function updateProfilePicture({

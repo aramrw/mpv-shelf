@@ -1,4 +1,3 @@
-import React from 'react'
 import { confirm, message } from '@tauri-apps/api/dialog'
 
 export async function ConfirmTurnOffPin() {
@@ -46,4 +45,17 @@ export async function ConfirmDeleteProfile() {
     } else {
         return false;
     }
+}
+
+export async function ConfirmExitWithoutSave() {
+    const confirmed = await confirm(`You have unsaved changes. Continue without saving?`,
+        { title: `Unsaved Changes`, type: 'warning' })
+
+
+    if (confirmed) {
+        return true;
+    } else {
+        return false;
+    }
+
 }

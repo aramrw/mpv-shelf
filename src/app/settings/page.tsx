@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
-import { z } from 'zod'
+import { set, z } from 'zod'
 import { deleteProfile, getCurrentUserGlobal, getUserSettings, getUsers, setCurrentUserGlobal, turnOnPin, updateProfilePicture, updateSettings, updateUserPin } from '../../../lib/prisma-commands'
 import { useTheme } from 'next-themes'
 import { User } from '@prisma/client';
@@ -12,12 +12,13 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { AlertCircle, Copy, Flame, Info, Lock, Skull, Unlock } from 'lucide-react'
+
+import { Check, Copy, Info, Lock, Unlock } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { writeText } from '@tauri-apps/api/clipboard'
 import { useToast } from '@/components/ui/use-toast'
-import { AlertNoChangesMade, ConfirmChangePin, ConfirmDeleteProfile, ConfirmTurnOffPin } from './_components/confirm'
+import { AlertNoChangesMade, ConfirmChangePin, ConfirmDeleteProfile, ConfirmExitWithoutSave, ConfirmTurnOffPin } from './_components/confirm'
 import { useRouter } from 'next/navigation'
 import { open } from '@tauri-apps/api/dialog'
 import { UserAvatar } from '../profiles/_components/user-avatar'
@@ -34,6 +35,7 @@ export type SettingSchema = z.infer<typeof formSchema>
 
 export default function Settings() {
 
+
     const { toast } = useToast();
     const { setTheme } = useTheme();
 
@@ -48,6 +50,11 @@ export default function Settings() {
     const [currentUser, setCurrentUser] = useState<User>();
     const [locked, setLocked] = useState(true);
     const [hasMultipleProfiles, setHasMultipleProfiles] = useState(false);
+    const [savedChanges, setSavedChanges] = useState(true);
+
+    // this will be used to compare the form state [updated-state] with the savedChangeState [initial-state]
+    const [savedChangesFormState, setSavedChangesFormState] = useState({} as any);
+
 
     let router = useRouter();
 
@@ -112,24 +119,33 @@ export default function Settings() {
         })
     }, [])
 
-    // fetch the settings object from db on start
+    // fetch the settings object from db on start && update the formState with it
     useEffect(() => {
         if (currentUser?.id) {
             getUserSettings({ userId: currentUser?.id }).then((settings) => {
                 if (settings) {
-                    //console.log("settings", settings);
                     setFormState(settings);
-                    //console.log("formState", formState);
+                    setSavedChangesFormState(settings);
+                    setSavedChanges(true);
                 }
             })
         }
     }, [currentUser])
 
+
+    // check if the user has a pin set, if not, disable the pin option
     useEffect(() => {
         if (currentUser?.pin === "disabled" && formState.usePin === "On") {
             setLocked(false);
         }
     }, [currentUser])
+
+
+    // reset the savedChanges state when the formState updates
+    useEffect(() => {
+        setSavedChanges(false);
+    }, [formState])
+
 
     function ToastClickToSee() {
 
@@ -149,12 +165,11 @@ export default function Settings() {
                 }
             }
         })
-
     }
 
 
     return (
-        <main className={cn('h-fit w-full',
+        <main className={cn('h-fit pb-2 w-full',
             formState?.fontSize === "Medium" && 'text-lg',
             formState?.fontSize === "Large" && 'text-xl',
             formState?.fontSize === "XLarge" && 'text-2xl',
@@ -236,11 +251,25 @@ export default function Settings() {
                                     Change
                                 </Button>
                             </li>
+                            {!hasMultipleProfiles && (
+                                <li className='flex h-fit w-full items-center justify-between bg-muted'>
+                                    <Button variant="outline" className={cn('select-none w-full py-1 h-1/4 flex flex-row justify-center items-center',
+                                        formState?.fontSize === "Medium" && 'text-lg',
+                                        formState?.fontSize === "Large" && 'text-xl',
+                                        formState?.fontSize === "XLarge" && 'text-2xl',
+                                    )} onClick={() => {
+                                        router.push("/profiles/newUser")
+                                    }}>
+                                        Add New Profile
+                                    </Button>
+
+                                </li>
+                            )}
                             <li className='flex h-fit w-full items-center justify-between bg-muted'>
                                 <TooltipProvider>
                                     <Tooltip delayDuration={300}>
                                         <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-start'>
-                                            <Button variant="destructive" className={cn('select-none w-full py-1 h-1/4 flex flex-row justify-center items-center',
+                                            <Button variant="destructive" className={cn('select-none w-full py-1 h-1/4 flex flex-row justify-center items-center rounded-sm ',
                                                 formState?.fontSize === "Medium" && 'text-lg',
                                                 formState?.fontSize === "Large" && 'text-xl',
                                                 formState?.fontSize === "XLarge" && 'text-2xl',
@@ -260,15 +289,15 @@ export default function Settings() {
                                                 Delete Profile
                                             </Button>
                                         </TooltipTrigger>
-                                        <TooltipContent align='center'>
+                                        <TooltipContent align='center' side='bottom' >
                                             <div className='font-medium'>
                                                 <div className='flex flex-col items-center justify-center gap-1'>
                                                     <div className='flex flex-row gap-0.5'>
-                                                        <span className='rounded-sm font-bold'> Deletes your account and</span>
+                                                        <span className='rounded-sm font-bold'> Deletes your profile and</span>
                                                         <b className='text-destructive underline'>
                                                             all associated data.</b>
                                                     </div>
-                                                    <b className='rounded-md bg-accent px-1'> This action is <i className='underline'> irreversible.</i></b>
+                                                    <b className='rounded-sm bg-accent px-1'> This action is <i className='underline'> irreversible.</i></b>
                                                 </div>
                                             </div>
                                         </TooltipContent>
@@ -276,6 +305,7 @@ export default function Settings() {
                                 </TooltipProvider>
 
                             </li>
+
                         </ul>
                     </li>
                     <li className='flex h-fit flex-col justify-center rounded-b-sm bg-muted'>
@@ -344,7 +374,7 @@ export default function Settings() {
                                                 <h1 className='select-none font-medium'>Auto Rename</h1>
                                             </TooltipTrigger>
                                         </div>
-                                        <TooltipContent align='start'>
+                                        <TooltipContent align='start' side='bottom'>
                                             <div className='font-medium'>
                                                 <span className='font-bold'>
                                                     Renames subtitle files to match video.
@@ -383,6 +413,8 @@ export default function Settings() {
                                             ConfirmTurnOffPin().then((confirmed) => {
                                                 if (confirmed) {
                                                     setFormState({ ...formState, usePin: "Off" });
+                                                    setSavedChanges(true);
+                                                    setSavedChangesFormState(formState);
                                                 }
                                             });
 
@@ -450,6 +482,8 @@ export default function Settings() {
                                                                             });
                                                                         });
                                                                         turnOnPin({ userId: currentUser.id })
+                                                                        setSavedChanges(true);
+                                                                        setSavedChangesFormState(formState);
                                                                     }
                                                                 }
 
@@ -492,17 +526,56 @@ export default function Settings() {
 
                 </ul>
 
-                <Button variant="outline" className={cn('mx-2 select-none transition-all',
-                    formState?.fontSize === "Medium" && 'text-lg',
-                    formState?.fontSize === "Large" && 'text-xl',
-                    formState?.fontSize === "XLarge" && 'text-2xl',
-                )} type='submit' onClick={(e) => {
-                    e.currentTarget.style.backgroundColor = "#4BB543";
-                    e.currentTarget.style.color = "white";
-                    e.currentTarget.textContent = "Saved Changes";
-                }} >
-                    Save
-                </Button>
+                <AnimatePresence
+                    mode='wait'
+                >
+                    <AnimatePresence mode='wait'>
+                        {savedChanges ? (
+                            <motion.div
+                                key="saved"
+                                className='flex w-full flex-row items-center gap-2'
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.5 }}
+                            >
+                                <Button variant="outline" className={cn('mx-2 select-none transition-all flex flex-row justify-center items-center gap-1',
+                                    formState?.fontSize === "Medium" && 'text-lg',
+                                    formState?.fontSize === "Large" && 'text-xl',
+                                    formState?.fontSize === "XLarge" && 'text-2xl',
+                                )} type='submit'>
+                                    <Check className={cn('h-5/6 w-4',
+                                        formState?.fontSize === "Medium" && 'h-auto w-5',
+                                        formState?.fontSize === "Large" && 'h-auto w-6',
+                                        formState?.fontSize === "XLarge" && 'h-auto w-7'
+                                    )} />
+                                    Saved Changes
+                                </Button>
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="save"
+                                className='flex w-full flex-row items-center gap-2'
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.5 }}
+                            >
+                                <Button variant="outline" className={cn('mx-2 select-none transition-all',
+                                    formState?.fontSize === "Medium" && 'text-lg',
+                                    formState?.fontSize === "Large" && 'text-xl',
+                                    formState?.fontSize === "XLarge" && 'text-2xl',
+                                    (formState !== savedChangesFormState) && 'animate-pulse duration-400',
+                                )} type='submit' onClick={() => {
+                                    setSavedChanges(true);
+                                    setSavedChangesFormState(formState);
+                                }}>
+                                    Save
+                                </Button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </AnimatePresence>
 
             </form>
         </main>
