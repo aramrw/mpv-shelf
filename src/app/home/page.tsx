@@ -6,9 +6,13 @@ import type { User } from "@prisma/client";
 import { useRouter } from 'next/navigation';
 import { UserAvatar } from '../profiles/_components/user-avatar';
 import { Button } from '@/components/ui/button';
+import { Check, Loader2 } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 export default function Home() {
     let router = useRouter();
+
+
 
     function ChooseUser() {
 
@@ -79,12 +83,13 @@ export default function Home() {
         const inputRefs = Array(pinLength).fill(0).map(() => createRef());
         const [currentUser, setCurrentUser] = useState<User>();
 
+
         const handleChange = (value: any, index: number) => {
             const newPins = [...pins];
             newPins[index] = value;
             setPins(newPins);
 
-            if (value.length === 1 && index < pinLength - 1) {
+            if (inputRefs && value.length === 1 && index < pinLength - 1) {
                 (inputRefs[index + 1].current as HTMLInputElement).focus();
             }
         };
@@ -99,14 +104,9 @@ export default function Home() {
         };
 
         useEffect(() => {
-            (inputRefs[0].current as HTMLInputElement).focus();
-        }, []);
-
-        useEffect(() => {
             if (pins.join('').length === pinLength) {
                 if (pins.join('') === userPin) {
                     setCurrentUserGlobal({ userId: userId }).then(() => {
-                        router.push('/dashboard');
                     });
                 }
             } else if (userPin === "disabled") {
@@ -132,45 +132,67 @@ export default function Home() {
         }, [userId]);
 
         return (
-            <main className="mt-3 flex flex-col items-center justify-center">
-
-                <h1 className="select-none text-2xl font-medium">
-                    {randomQuotes[Math.floor(Math.random() * randomQuotes.length)]}
-                </h1>
-                {(userId && currentUser) && (
-                    <div className='mt-2'>
-                        <UserAvatar userObject={currentUser} />
-                    </div>
-                )}
-                <div className="my-4 flex space-x-2">
-                    {pins.map((pin, index) => (
-                        <input
-                            key={index}
-                            ref={inputRefs[index] as React.RefObject<HTMLInputElement>}
-                            type="tel" // Use "tel" to get the numeric keyboard on mobile devices
-                            maxLength={1}
-                            value={pin}
-                            onChange={(e) => handleChange(e.target.value, index)}
-                            onKeyDown={(e) => handleBackspace(e, index)}
-                            className="h-12 w-12 rounded border-2 border-gray-300 text-center text-xl"
-                            pattern="[0-9]*" // Ensure only numbers can be inputted
-                        />
-                    ))}
-                </div>
-                <h2 className="select-none text-lg">Enter your <b>pin #</b> to get started.</h2>
-                <div className='flex w-full flex-row items-center justify-center gap-2'>
-                    <Button variant="outline" className='mt-2 cursor-pointer text-blue-500 underline underline-offset-2'
-                        onClick={() => {
-                            // create db function for resetting pin
-                        }}
-                    >Forgot Pin?</Button>
-                </div>
+            <main className='mt-8 flex h-fit w-full items-center justify-center'>
+                <AnimatePresence mode='wait' onExitComplete={() => {
+                    router.push('/dashboard');
+                }}>
+                    {pins.join('') !== userPin ? (
+                        <motion.div className="mt-16 flex flex-col items-center justify-center gap-3"
+                            key={"NotSignedIn"}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.35, ease: "easeInOut", stiffness: 100, damping: 20 }}
+                        >
+                            <h1 className="select-none text-2xl font-bold">
+                                {randomQuotes[Math.floor(Math.random() * randomQuotes.length)]}
+                            </h1>
+                            {(userId && currentUser) && (
+                                <div >
+                                    <UserAvatar userObject={currentUser} />
+                                </div>
+                            )}
+                            <div className="flex space-x-2">
+                                {pins.map((pin, index) => (
+                                    <input
+                                        key={index}
+                                        ref={inputRefs[index] as React.RefObject<HTMLInputElement>}
+                                        type="tel" // Use "tel" to get the numeric keyboard on mobile devices
+                                        maxLength={1}
+                                        value={pin}
+                                        onChange={(e) => handleChange(e.target.value, index)}
+                                        onKeyDown={(e) => handleBackspace(e, index)}
+                                        className="h-12 w-12 rounded border-2 border-gray-300 text-center text-xl"
+                                        pattern="[0-9]*" // Ensure only numbers can be inputted
+                                    />
+                                ))}
+                            </div>
+                            <h2 className="select-none rounded-sm bg-muted px-1 text-lg">Enter your <b>pin #</b> to get started.</h2>
+                            <div className='flex w-full flex-row items-center justify-center gap-2'>
+                                <Button variant="outline" className='cursor-pointer text-blue-500 underline underline-offset-2'
+                                    onClick={() => {
+                                        // create db function for resetting pin
+                                    }}
+                                >Forgot Pin?</Button>
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <motion.div key={"SignedIn"} className="mt-3 flex h-full w-full flex-col items-center justify-center rounded-full bg-monotone"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 1, ease: "easeInOut", stiffness: 100, damping: 20 }}
+                        >
+                            <Check className='flex h-auto w-40 items-center justify-center text-center text-accent' />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </main>
         );
     }
 
     return (
-        <main className="h-fit w-full p-1 px-2">
+        <main className="flex h-1/2 items-center justify-center p-1 px-2">
             <ChooseUser />
         </main>
     );

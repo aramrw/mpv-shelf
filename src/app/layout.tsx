@@ -12,7 +12,7 @@ const mplus = IBM_Plex_Sans_JP({
 
 export const metadata: Metadata = {
   title: "MPV-SHELF",
-  description: "Cross platform folder wrapper to keep track of videos. Works with any video player.",
+  description: "Cross platform folder wrapper to keep track of videos.",
 };
 
 export default function RootLayout({
@@ -23,7 +23,7 @@ export default function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${mplus.className} antialiased overflow-auto `}  >
+      <body className={`${mplus.className} antialiased overflow-auto`} style={{ scrollbarGutter: "stable" }}  >
         <Navbar />
         {children}
         <Toaster />

@@ -2,7 +2,7 @@
 
 import React, { createRef, useEffect, useState } from 'react'
 import { createNewUser } from '../../../../lib/prisma-commands';
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from 'next/navigation';
 import { UserPlus } from 'lucide-react';
 import { SettingSchema } from '@/app/settings/page';
@@ -58,29 +58,37 @@ export default function NewUser() {
         }, [pins]);
 
         return (
-            <main className="mt-4 flex flex-col items-center justify-center">
-                <UserPlus className="h-auto w-10" />
-                <motion.h1 className="text-2xl font-medium">Create New Profile</motion.h1>
-                <div className="my-4 flex space-x-2">
-                    {pins.map((pin, index) => (
-                        <input
-                            key={index}
-                            ref={inputRefs[index] as React.RefObject<HTMLInputElement>}
-                            type="tel" // Use "tel" to get the numeric keyboard on mobile devices
-                            maxLength={1}
-                            value={pin}
-                            onChange={(e) => handleChange(e.target.value, index)}
-                            onKeyDown={(e) => handleBackspace(e, index)}
-                            className="h-12 w-12 rounded border-2 border-gray-300 text-center text-xl"
-                            pattern="[0-9]*" // Ensure only numbers can be inputted
-                        />
-                    ))}
-                </div>
-                <h2 className="text-lg">Enter a <b>pin</b> to protect your account.</h2>
-                <h3 className='rounded-sm bg-accent px-1 font-medium'>
-                    <b>Note:</b> You can change / turn this off later.
-                </h3>
-            </main>
+            <AnimatePresence>
+                <motion.main className="mt-4 flex flex-col items-center justify-center"
+
+                    initial={{ opacity: 0, y: -50 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 50 }}
+                    key={1}
+                >
+                    <UserPlus className="h-auto w-10" />
+                    <motion.h1 className="text-2xl font-medium">Create New Profile</motion.h1>
+                    <div className="my-4 flex space-x-2">
+                        {pins.map((pin, index) => (
+                            <input
+                                key={index}
+                                ref={inputRefs[index] as React.RefObject<HTMLInputElement>}
+                                type="tel" // Use "tel" to get the numeric keyboard on mobile devices
+                                maxLength={1}
+                                value={pin}
+                                onChange={(e) => handleChange(e.target.value, index)}
+                                onKeyDown={(e) => handleBackspace(e, index)}
+                                className="h-12 w-12 rounded border-2 border-gray-300 text-center text-xl"
+                                pattern="[0-9]*" // Ensure only numbers can be inputted
+                            />
+                        ))}
+                    </div>
+                    <h2 className="text-lg">Enter a <b>pin #</b> to protect your account.</h2>
+                    <h3 className='rounded-sm bg-accent px-1 font-medium'>
+                        <b>Note:</b> You can change / turn this off later.
+                    </h3>
+                </motion.main>
+            </AnimatePresence>
         );
     }
 

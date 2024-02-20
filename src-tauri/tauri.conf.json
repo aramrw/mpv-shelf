@@ -93,7 +93,7 @@
     },
     "bundle": {
       "active": true,
-      "category": "DeveloperTool",
+      "category": "Wrapper",
       "copyright": "",
       "deb": {
         "depends": []
@@ -106,7 +106,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.mpvshelf.dev",
+      "identifier": "com.mpvshelf.app",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -116,7 +116,7 @@
         "signingIdentity": null
       },
       "resources": [],
-      "shortDescription": "",
+      "shortDescription": "A cross-platform folder wrapper for mpv.",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,

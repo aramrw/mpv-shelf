@@ -27,7 +27,7 @@ export function UserAvatar({
                 backgroundImage: `url(${userObject.imagePath})`,
                 backgroundSize: "cover",
             }} />
-            <AvatarFallback className={cn("h-40 w-40 text-xl font-medium rounded-sm",
+            <AvatarFallback className={cn("h-40 w-40 text-xl font-medium rounded-sm  select-none",
                 asChild && "w-full text-lg font-medium"
             )}>
                 <div className="flex h-full w-full flex-col items-center justify-center">
