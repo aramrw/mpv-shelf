@@ -15,9 +15,11 @@ export default function ResetUserOnLoad() {
         })
     }, [])
 
+
+
     return (
         <main className="flex h-1/2 w-full items-center justify-center">
-            <Loader2 className="animate-spin text-accent" size={80} />
+            <Loader2 className="animate-spin text-accent" size={140} />
         </main>
     )
 }

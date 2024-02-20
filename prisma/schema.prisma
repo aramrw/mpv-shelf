@@ -15,6 +15,7 @@ model User {
   pin       String?  @unique
   imagePath String?
   folders   Folder[] @relation("UserFolders")
+  color     String?
 }
 
 model Folder {

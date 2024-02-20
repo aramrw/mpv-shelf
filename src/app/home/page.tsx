@@ -1,18 +1,17 @@
 "use client"
 
 import React, { useState, createRef, useEffect, use } from 'react';
-import { createNewUser, getCurrentUserGlobal, getUsers, setCurrentUserGlobal } from '../../../lib/prisma-commands';
+import { getCurrentUserGlobal, getUsers, setCurrentUserGlobal } from '../../../lib/prisma-commands';
 import type { User } from "@prisma/client";
 import { useRouter } from 'next/navigation';
 import { UserAvatar } from '../profiles/_components/user-avatar';
 import { Button } from '@/components/ui/button';
 import { Check, Loader2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 export default function Home() {
     let router = useRouter();
-
-
 
     function ChooseUser() {
 
@@ -29,11 +28,6 @@ export default function Home() {
                 setIsLoading(false);
             });
         }, [])
-
-
-        useEffect(() => {
-            console.log("logging: ", users);
-        }, [users])
 
 
         if (!isLoading && users?.length === 1 && users[0].pin !== null) {
@@ -64,7 +58,6 @@ export default function Home() {
             })
         }
     }
-
 
     function PinInputReturningUser({ userPin, userId }: { userPin: string, userId: number }) {
 
@@ -100,6 +93,13 @@ export default function Home() {
                 newPins[index - 1] = '';
                 setPins(newPins);
                 (inputRefs[index - 1].current as HTMLInputElement).focus();
+            }
+
+            // if its the last pin and they didnt get it right, pressing backspace will clear them all and focus the first input
+            if (event.key === 'Backspace' && index === 3) {
+                console.log("backspace pressed");
+                setPins(Array(pinLength).fill(''));
+                (inputRefs[0].current as HTMLInputElement).focus();
             }
         };
 
@@ -139,20 +139,24 @@ export default function Home() {
                     {pins.join('') !== userPin ? (
                         <motion.div className="flex h-full w-full flex-col items-center justify-center gap-3"
                             key={"NotSignedIn"}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
+                            initial={{ opacity: 0, y: -50 }}
+                            animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0 }}
-                            transition={{ duration: 0.35, ease: "easeInOut", stiffness: 100, damping: 20 }}
+                            transition={{ duration: 0.5, bounce: 0.5, type: "spring" }}
                         >
                             <h1 className="select-none text-2xl font-bold">
                                 {randomQuotes[Math.floor(Math.random() * randomQuotes.length)]}
                             </h1>
                             {(userId && currentUser) && (
-                                <div >
+                                <div className=''>
                                     <UserAvatar userObject={currentUser} />
                                 </div>
                             )}
-                            <div className="flex space-x-2">
+                            <motion.div className="flex space-x-2"
+                                animate={(pins.join('').length === 4 && pins.join('') !== userPin) ? { x: [0, -10, 0, 10, 0] } : undefined}
+                                transition={{ duration: 0.2 }}
+
+                            >
                                 {pins.map((pin, index) => (
                                     <input
                                         key={index}
@@ -162,14 +166,17 @@ export default function Home() {
                                         value={pin}
                                         onChange={(e) => handleChange(e.target.value, index)}
                                         onKeyDown={(e) => handleBackspace(e, index)}
-                                        className="h-12 w-12 rounded border-2 border-gray-300 text-center text-xl"
+                                        className={cn("h-20 w-20 rounded border-2 border-gray-300 text-center text-xl md:h-32 md:w-32 md:text-4xl shadow-md ",
+                                            (pins.join('').length === 4 && pins.join('') !== userPin) && "border-red-500 focus:outline-none focus:border-red-500",
+
+                                        )}
                                         pattern="[0-9]*" // Ensure only numbers can be inputted
                                     />
                                 ))}
-                            </div>
-                            <h2 className="select-none rounded-sm bg-muted px-1 text-lg">Enter your <b>pin #</b> to get started.</h2>
+                            </motion.div>
+                            <h2 className="select-none rounded-sm bg-muted px-1 text-lg shadow-md">Enter your <b>pin #</b> to get started.</h2>
                             <div className='flex w-full flex-row items-center justify-center gap-2'>
-                                <Button variant="outline" className='cursor-pointer text-blue-500 underline underline-offset-2'
+                                <Button variant="outline" className='cursor-pointer rounded-lg px-2 py-0 text-lg font-bold text-blue-500 underline underline-offset-2 shadow-lg md:px-4 md:py-2 md:text-lg lg:px-5 lg:py-3 lg:text-lg'
                                     onClick={() => {
                                         // create db function for resetting pin
                                     }}

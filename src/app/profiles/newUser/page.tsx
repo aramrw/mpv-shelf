@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { UserPlus } from 'lucide-react';
 import { SettingSchema } from '@/app/settings/page';
 
+
 export default function NewUser() {
 
     const [formData, setFormState] = useState<SettingSchema>({

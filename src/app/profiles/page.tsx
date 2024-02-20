@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'; // Corrected import for useRouter
 import { Grip, GripVertical, Loader2 } from 'lucide-react';
 import { UserAvatar } from './_components/user-avatar';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 export default function Profiles() {
 
@@ -29,14 +30,14 @@ export default function Profiles() {
     }, []);
 
     useEffect(() => {
-        setDragConstraint((allUsers.length * 100) - 100);
+        setDragConstraint((allUsers.length * 100) - 600);
     }, [])
 
 
 
     return (
         <AnimatePresence>
-            <motion.main className="mt-7 flex h-96 w-full flex-col items-center justify-start gap-2 overflow-hidden"
+            <motion.main className="mt-7 flex h-1/2 w-full flex-col items-center justify-center gap-2 overflow-hidden md:h-[88%]"
                 initial={{ opacity: 0, y: -50 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 50 }}
@@ -44,23 +45,28 @@ export default function Profiles() {
             >
                 <h1 className='select-none text-2xl font-bold'>Welcome Back!</h1>
                 <h2 className='select-none font-medium'>Select Your Profile From The Users Below.</h2>
-                <motion.div className={cn('flex h-full w-full  cursor-grab',
-                    isGrabbing && 'cursor-grabbing'
+                <motion.div className={cn('flex flex-col h-full w-full cursor-grab justify-start items-center',
+                    allUsers.length >= 4 && 'items-start',
+                    (allUsers.length >= 4 && isGrabbing) && 'cursor-grabbing',
                 )}
-                    initial={{ x: 35 }}
-                    animate={{ x: 35 }}
-                    exit={{ y: -50 }}
-
-                    drag="x"
-                    dragConstraints={{ left: dragConstraint, right: 40 }}
+                    initial={allUsers.length >= 4 ? { x: 20 } : undefined}
+                    animate={allUsers.length >= 4 ? { x: 20 } : undefined}
+                    exit={allUsers.length >= 4 ? { y: -50 } : undefined}
+                    {...allUsers.length >= 4 && { drag: "x" }}
+                    dragConstraints={{ left: dragConstraint, right: 20 }}
                     onDragStart={() => setIsGrabbing(true)}
                     onDragEnd={() => setIsGrabbing(false)}
-                // Additional drag props if needed
+                    onMouseDown={(e) => {
+                        setIsGrabbing(true);
+                    }}
+                    onMouseUp={(e) => {
+                        setIsGrabbing(false);
+                    }}
                 >
                     <AnimatePresence>
                         {allUsers.length !== 0 && (
-                            <motion.div className={cn('flex gap-4',
-                                // Add a grabbing cursor when dragging
+                            <motion.div className={cn('flex gap-4 justify-center items-center',
+
                             )}
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
@@ -88,7 +94,7 @@ export default function Profiles() {
                                         >
                                             <UserAvatar userObject={user} />
                                         </motion.button>
-                                        <GripVertical className='h-auto w-12 px-0 text-primary' />
+                                        {(index !== allUsers.length - 1 && allUsers.length >= 4) && <GripVertical className='h-auto w-12 px-0 text-primary' />}
                                     </div>
                                 ))}
 
@@ -103,10 +109,16 @@ export default function Profiles() {
                                 <Loader2 className='h-auto w-20 animate-spin text-accent' />
                             </motion.div>
                         )}
+                        {/* <div className='mt-5 flex h-fit w-full flex-row items-center justify-center'>
+                            <Button variant="outline" className='cursor-pointer text-blue-500 underline underline-offset-2'
+                                onClick={() => {
+                                    router.push('/profiles/newUser');
+                                }}
+                            >Add New Profile</Button>
+                        </div> */}
                     </AnimatePresence>
                 </motion.div>
-                {/* Button for adding a new profile */}
             </motion.main>
-        </AnimatePresence>
+        </AnimatePresence >
     );
 }

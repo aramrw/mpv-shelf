@@ -2,7 +2,8 @@ import Database from "tauri-plugin-sql-api"
 import { User, Folder, Video } from "@prisma/client";
 import { SettingSchema } from "@/app/settings/page";
 import { Global } from "@prisma/client";
-import { convertFileSrc } from '@tauri-apps/api/tauri';
+import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
+
 
 
 export async function getUsers() {
@@ -12,13 +13,20 @@ export async function getUsers() {
         `CREATE TABLE IF NOT EXISTS user (
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
             pin TEXT NOT NULL, 
-            imagePath TEXT  
+            imagePath TEXT,
+            color TEXT  
         )`
     )
 
-    let users: User[] = await db.select(
-        "SELECT * from user"
-    )
+    let users: User[] = [];
+
+    try {
+        users = await db.select(
+            "SELECT * from user"
+        )
+    } catch (e) {
+        console.log(e);
+    }
 
     if (users.length !== 0) {
         await db.close();
@@ -31,39 +39,42 @@ export async function getUsers() {
     }
 
 
-
-
 }
 
 export async function createNewUser({
     userPin,
-    formData
+    formData,
 }: {
-    userPin: string
-    formData: SettingSchema
+    userPin: string,
+    formData: SettingSchema,
 }) {
     let db = await Database.load("sqlite:main.db");
 
-    console.log("creating new user", userPin);
-
-    await db.execute(
-        `CREATE TABLE IF NOT EXISTS user (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            pin TEXT NOT NULL, 
-            imagePath TEXT  
-        )`
-    ).catch((e) => {
-        console.log("error", e);
-    })
-
-    await db.execute(
-        "INSERT into user (pin) VALUES ($1)", [userPin]
-    ).catch((e) => {
-        console.log("error", e);
+    // Ensure the table exists before attempting to insert into it
+    await db.execute(`
+        CREATE TABLE IF NOT EXISTS user (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            pin TEXT NOT NULL,
+            imagePath TEXT,
+            color TEXT UNIQUE
+        )
+    `).catch((e) => {
+        console.log("Error creating table:", e);
     });
 
-    updateSettings({ formData, userId: 1 });
 
+    // Attempt to insert a new user with a color if provided
+    // This assumes you want to insert the color only if it doesn't already exist in the table
+    // If the color is not provided or is an empty string, this will skip the attempt to insert the color
+
+    await invoke("generate_random_color").then(async (color) => {
+
+        await db.execute(`
+            INSERT OR IGNORE INTO user (pin, color) VALUES ($1, $2)
+        `, [userPin, color]).catch((e) => {
+            console.log("Error inserting new user with color:", e);
+        });
+    });
 
     await db.close();
 }

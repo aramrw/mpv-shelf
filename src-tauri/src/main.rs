@@ -1,6 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use random_color::color_dictionary::{ColorDictionary, ColorInformation};
+use random_color::{Color, Luminosity, RandomColor};
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 use tauri::generate_handler;
@@ -14,7 +16,11 @@ struct User {
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_sql::Builder::default().build())
-        .invoke_handler(generate_handler![open_video, show_in_folder])
+        .invoke_handler(generate_handler![
+            open_video,
+            show_in_folder,
+            generate_random_color
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
@@ -72,4 +78,16 @@ fn show_in_folder(path: String) {
     {
         Command::new("open").args(["-R", &path]).spawn().unwrap();
     }
+}
+
+#[tauri::command]
+fn generate_random_color() -> String {
+    let color = RandomColor::new()
+        .hue(Color::Monochrome)
+        .luminosity(Luminosity::Light)
+        .alpha(1.0) // Optional
+        .dictionary(ColorDictionary::new())
+        .to_hex(); //
+
+    color.to_string()
 }
