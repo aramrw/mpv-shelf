@@ -169,13 +169,20 @@ export default function Settings() {
 
 
     return (
-        <main className={cn('h-fit pb-2 w-full',
+        <motion.main className={cn('h-fit pb-2 w-full',
             formState?.fontSize === "Medium" && 'text-lg',
             formState?.fontSize === "Large" && 'text-xl',
             formState?.fontSize === "XLarge" && 'text-2xl',
-        )}>
-            <form className='h-fit w-full md:px-16 lg:px-32 xl:px-48' onSubmit={handleSubmit}>
+        )}
 
+            initial={{ opacity: 0, y: -100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, bounce: 1, type: 'spring', damping: 10 }}
+
+
+        >
+            <form className='h-fit w-full md:px-16 lg:px-32 xl:px-48' onSubmit={handleSubmit}>
                 <ul className='flex h-full w-full flex-col gap-2 p-2'>
                     <li className='flex h-fit flex-col justify-center rounded-b-sm bg-muted'>
                         <h1 className='select-none rounded-t-sm bg-accent px-1 font-bold'>User</h1>
@@ -700,7 +707,7 @@ export default function Settings() {
                 </AnimatePresence>
 
             </form>
-        </main>
+        </motion.main >
     )
 }
 

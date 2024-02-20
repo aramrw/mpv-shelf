@@ -132,12 +132,12 @@ export default function Home() {
         }, [userId]);
 
         return (
-            <main className='mt-8 flex h-fit w-full items-center justify-center'>
+            <main className='mt-4 flex h-full w-full items-center justify-center'>
                 <AnimatePresence mode='wait' onExitComplete={() => {
                     router.push('/dashboard');
                 }}>
                     {pins.join('') !== userPin ? (
-                        <motion.div className="mt-16 flex flex-col items-center justify-center gap-3"
+                        <motion.div className="flex h-full w-full flex-col items-center justify-center gap-3"
                             key={"NotSignedIn"}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -192,7 +192,7 @@ export default function Home() {
     }
 
     return (
-        <main className="flex h-1/2 items-center justify-center p-1 px-2">
+        <main className="flex h-fit items-center justify-center p-1 px-2">
             <ChooseUser />
         </main>
     );

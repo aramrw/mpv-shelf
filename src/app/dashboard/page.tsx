@@ -97,13 +97,14 @@ export default function Dashboard() {
 
     function FolderList({ folderPath, asChild }: { folderPath: string, asChild?: boolean | undefined }) {
 
-        let [files, setFiles] = useState<FileEntry[]>([]);
-        let [folders, setFolders] = useState<FileEntry[]>([]);
-        let [expanded, setExpanded] = useState(false);
-        let [subtitleFiles, setSubtitleFiles] = useState<FileEntry[]>([]);
-        let [deleting, setDeleting] = useState(false);
-        let [prismaVideos, setPrismaVideos] = useState<Video[]>([]);
-        let [finishedSettingFiles, setFinishedSettingFiles] = useState(false);
+        const [files, setFiles] = useState<FileEntry[]>([]);
+        const [folders, setFolders] = useState<FileEntry[]>([]);
+        const [expanded, setExpanded] = useState(false);
+        const [subtitleFiles, setSubtitleFiles] = useState<FileEntry[]>([]);
+        const [deleting, setDeleting] = useState(false);
+        const [prismaVideos, setPrismaVideos] = useState<Video[]>([]);
+        const [finishedSettingFiles, setFinishedSettingFiles] = useState(false);
+        const [isInvoking, setIsInvoking] = useState(false);
 
         // get all the files and folders in the folder path on startup
         useEffect(() => {
@@ -185,12 +186,11 @@ export default function Dashboard() {
                                         if (e.button === 0)
                                             setExpanded(!expanded);
                                     }}
-                                    whileHover={(userSettings?.animations === "On" && !asChild) ? { x: 1 } : undefined}
-                                    transition={{ duration: 0.2, damping: 10, stiffness: 100 }}
-                                    initial={userSettings?.animations === "On" ? { opacity: 0 } : undefined}
-                                    animate={userSettings?.animations === "On" ? { opacity: 1 } : undefined}
-                                    exit={userSettings?.animations === "On" ? { opacity: 0 } : undefined}
-
+                                    whileHover={(userSettings?.animations === "On" && !asChild) ? { opacity: 0.9 } : undefined}
+                                    transition={{ duration: 0.2, bounce: 0.5, type: 'spring' }}
+                                    initial={userSettings?.animations === "On" ? { x: 20 } : undefined}
+                                    animate={userSettings?.animations === "On" ? { x: 0 } : undefined}
+                                    exit={userSettings?.animations === "On" ? { y: -1, opacity: 0 } : undefined}
                                 >
 
                                     {/* Displays all the tags for main parent folder. */}
@@ -317,8 +317,12 @@ export default function Dashboard() {
                             <ContextMenuContent>
                                 <ContextMenuItem className='flex cursor-pointer items-center gap-1 font-medium'
                                     onClick={(e) => {
-                                        if (e.button === 0) {
-                                            invoke('show_in_folder', { path: `${folderPath}` });
+                                        if (e.button === 0 && !isInvoking) {
+                                            setIsInvoking(true);
+                                            invoke('show_in_folder', { path: `${folderPath}` }).then((res) => {
+
+                                                setIsInvoking(false);
+                                            });
                                         }
                                     }}
                                 >
@@ -346,9 +350,15 @@ export default function Dashboard() {
                                                         (index === files.length - 1) && 'rounded-b-md border-b-0 border-tertiary',
                                                         userSettings?.animations === "Off" && 'hover:opacity-50',
                                                     )}
-                                                        onClick={() => {
-                                                            // open the file in the default video player
-                                                            invoke('open_video', { path: file.path });
+                                                        onClick={(e) => {
+
+                                                            if (e.button === 0 && !isInvoking) {
+                                                                setIsInvoking(true);
+                                                                invoke('open_video', { path: `${file.path}` }).then((res) => {
+
+                                                                    setIsInvoking(false);
+                                                                });
+                                                            }
 
                                                             // update the video as watched in the db
                                                             updateVideoWatched({ videoPath: file.path }).then(() => {
@@ -374,13 +384,18 @@ export default function Dashboard() {
 
                                                                 />
                                                                 {/* Check if the file's path matches any video's path in prismaVideos */}
-                                                                <AnimatePresence>
+                                                                <AnimatePresence mode='wait'>
                                                                     {prismaVideos.some(video => video.path === file.path && video.watched) ? (
                                                                         <div className='flex flex-row items-center justify-center gap-1 rounded-sm px-0.5 font-bold'>
                                                                             <motion.div
+                                                                                key={file.name}
                                                                                 className={cn('',
                                                                                     userSettings?.animations === "Off" && 'hover:opacity-20'
                                                                                 )}
+                                                                                initial={userSettings?.animations === "On" ? { x: 20 } : undefined}
+                                                                                animate={userSettings?.animations === "On" ? { x: 0 } : undefined}
+                                                                                exit={userSettings?.animations === "On" ? { x: -20, opacity: 0 } : undefined}
+                                                                                transition={{ duration: 0.2, bounce: 0.5, type: 'spring' }}
                                                                                 whileHover={userSettings?.animations === "On" ? { scale: 1.2 } : undefined}
                                                                                 whileTap={userSettings?.animations === "On" ? { scale: 0.9 } : undefined}
                                                                                 onClick={(e) => {
@@ -397,9 +412,8 @@ export default function Dashboard() {
                                                                                     userSettings?.fontSize === "Large" && 'h-auto w-6',
                                                                                     userSettings?.fontSize === "XLarge" && 'h-auto w-7'
                                                                                 )} />
-
-
-                                                                            </motion.div>
+                                                                            </motion.div
+                                                                            >
                                                                             <span className={cn('text-sm',
                                                                                 userSettings?.fontSize === "Medium" && 'text-base',
                                                                                 userSettings?.fontSize === "Large" && 'text-lg',
@@ -409,22 +423,42 @@ export default function Dashboard() {
                                                                             </span>
                                                                         </div>
                                                                     ) : (
-                                                                        <span className={cn('text-sm',
-                                                                            userSettings?.fontSize === "Medium" && 'text-base',
-                                                                            userSettings?.fontSize === "Large" && 'text-lg',
-                                                                            userSettings?.fontSize === "XLarge" && 'text-2xl',
-                                                                        )}>{file.name}</span>
+                                                                        <motion.div
+                                                                            key={file.name + "1111111"}
+                                                                            className={cn('flex flex-row items-center justify-center gap-1 rounded-sm px-0.5 font-bold',
+                                                                            )}
+                                                                            initial={userSettings?.animations === "On" ? { x: 20 } : undefined}
+                                                                            animate={userSettings?.animations === "On" ? { x: 0 } : undefined}
+                                                                            exit={userSettings?.animations === "On" ? { x: 20 } : undefined}
+                                                                            transition={{ duration: 0.2, bounce: 0.5, type: 'spring' }}
+                                                                        >
+                                                                            <span className={cn('text-sm',
+                                                                                userSettings?.fontSize === "Medium" && 'text-base',
+                                                                                userSettings?.fontSize === "Large" && 'text-lg',
+                                                                                userSettings?.fontSize === "XLarge" && 'text-2xl',
+                                                                            )}>{file.name}</span>
+                                                                        </motion.div>
                                                                     )}
                                                                 </AnimatePresence>
                                                             </div>
                                                         }
                                                     </motion.li>
-                                                    <ContextMenuContent>
+                                                    <ContextMenuContent className={cn(``,
+                                                        userSettings?.animations === "Off" && ``
+                                                    )}
+
+
+                                                    >
                                                         <ContextMenuItem className='cursor-pointer gap-1 py-0.5 font-medium'
                                                             onClick={(e) => {
 
-                                                                invoke('show_in_folder', { path: file.path });
+                                                                if (e.button === 0 && !isInvoking) {
+                                                                    setIsInvoking(true);
+                                                                    invoke('show_in_folder', { path: `${file.path}` }).then((res) => {
 
+                                                                        setIsInvoking(false);
+                                                                    });
+                                                                }
                                                             }}
                                                         >
                                                             Open In File Explorer
@@ -553,9 +587,9 @@ export default function Dashboard() {
 
                                                 initial={userSettings?.animations === "On" ? { opacity: 0 } : undefined}
                                                 animate={userSettings?.animations === "On" ? { opacity: 1 } : undefined}
-                                                exit={userSettings?.animations === "On" ? { opacity: 0, scale: 0 } : undefined}
+                                                exit={userSettings?.animations === "On" ? { x: -20, opacity: 0 } : undefined}
                                                 whileHover={userSettings?.animations === "On" ? { x: 1 } : undefined}
-                                                transition={{ duration: 0.2, damping: 10, stiffness: 100 }}
+                                                transition={{ duration: 0.15, damping: 10, stiffness: 100 }}
                                             >
 
                                                 <FolderList folderPath={folder.path} asChild />
@@ -568,7 +602,7 @@ export default function Dashboard() {
                             </AnimatePresence>
                         </ul>
                     </motion.main >
-                </AnimatePresence>
+                </AnimatePresence >
             )
         } else {
             return (

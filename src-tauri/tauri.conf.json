@@ -93,7 +93,7 @@
     },
     "bundle": {
       "active": true,
-      "category": "Wrapper",
+      "category": "Utility",
       "copyright": "",
       "deb": {
         "depends": []
@@ -116,7 +116,7 @@
         "signingIdentity": null
       },
       "resources": [],
-      "shortDescription": "A cross-platform folder wrapper for mpv.",
+      "shortDescription": "",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,
