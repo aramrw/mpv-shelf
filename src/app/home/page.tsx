@@ -166,7 +166,7 @@ export default function Home() {
                                         value={pin}
                                         onChange={(e) => handleChange(e.target.value, index)}
                                         onKeyDown={(e) => handleBackspace(e, index)}
-                                        className={cn("h-20 w-20 rounded border-2 border-gray-300 text-center text-xl md:h-32 md:w-32 md:text-4xl shadow-md ",
+                                        className={cn("h-20 w-20 rounded border-2 border-gray-300 text-center text-xl md:h-28 md:w-28 md:text-4xl shadow-md font-bold",
                                             (pins.join('').length === 4 && pins.join('') !== userPin) && "border-red-500 focus:outline-none focus:border-red-500",
 
                                         )}

@@ -192,7 +192,7 @@ export default function Settings() {
                                     <div className='flex h-fit w-full flex-row items-center justify-between gap-4 rounded-sm bg-monotone p-5'>
                                         {currentUser && (
                                             <>
-                                                <motion.div className='flex w-[60%] cursor-pointer items-center justify-center rounded-sm'
+                                                <motion.div className='flex w-[50%] cursor-pointer items-center justify-center rounded-sm'
                                                     // whileHover={{ scale: 2 }}
                                                     // transition={{ duration: 1 }}
                                                     style={{

@@ -85,8 +85,7 @@ fn generate_random_color() -> String {
     let color = RandomColor::new()
         .hue(Color::Monochrome)
         .luminosity(Luminosity::Light)
-        .alpha(1.0) // Optional
-        .dictionary(ColorDictionary::new())
+        .alpha(2.0)
         .to_hex(); //
 
     color.to_string()

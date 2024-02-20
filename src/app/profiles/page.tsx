@@ -30,7 +30,7 @@ export default function Profiles() {
     }, []);
 
     useEffect(() => {
-        setDragConstraint((allUsers.length * 100) - 600);
+        setDragConstraint((allUsers.length * 100) - 515);
     }, [])
 
 
@@ -43,8 +43,8 @@ export default function Profiles() {
                 exit={{ opacity: 0, y: 50 }}
                 key={"main"}
             >
-                <h1 className='select-none text-2xl font-bold'>Welcome Back!</h1>
-                <h2 className='select-none font-medium'>Select Your Profile From The Users Below.</h2>
+                <h1 className='select-none text-2xl font-bold md:text-3xl lg:text-4xl xl:text-5xl'>Welcome Back!</h1>
+                <h2 className='md:text-1xl select-none text-lg font-medium lg:text-2xl xl:text-3xl'>Select Your Profile From The Users Below.</h2>
                 <motion.div className={cn('flex flex-col h-full w-full cursor-grab justify-start items-center',
                     allUsers.length >= 4 && 'items-start',
                     (allUsers.length >= 4 && isGrabbing) && 'cursor-grabbing',
@@ -60,6 +60,7 @@ export default function Profiles() {
                         setIsGrabbing(true);
                     }}
                     onMouseUp={(e) => {
+                        e.preventDefault();
                         setIsGrabbing(false);
                     }}
                 >
@@ -86,17 +87,41 @@ export default function Profiles() {
                                             whileTap={{ scale: 0.95 }}
                                             onClick={(e) => {
                                                 e.preventDefault();
-                                                if (isGrabbing) return; // Prevent click event when dragging
-                                                setCurrentUserGlobal({ userId: user.id }).then(() => {
-                                                    router.push('/home');
-                                                });
+                                                if (!isGrabbing) {
+                                                    setCurrentUserGlobal({ userId: user.id }).then(() => {
+                                                        router.push('/home');
+                                                    });
+                                                }
                                             }}
                                         >
                                             <UserAvatar userObject={user} />
                                         </motion.button>
-                                        {(index !== allUsers.length - 1 && allUsers.length >= 4) && <GripVertical className='h-auto w-12 px-0 text-primary' />}
+                                        {(index !== allUsers.length && allUsers.length >= 4) && <GripVertical className='h-auto w-12 px-0 text-primary' />}
                                     </div>
                                 ))}
+                                <div className='flex flex-row items-center justify-center'
+                                    key={"add profile"}
+                                >
+                                    <motion.button
+                                        className={cn('flex h-fit w-fit flex-row items-center justify-center',
+                                            isGrabbing && 'cursor-grabbing' // Add a grabbing cursor when dragging
+                                        )}
+                                        key={"add-prfile2"}
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            if (!isGrabbing) {
+                                                setCurrentUserGlobal({ userId: -1 }).then(() => {
+                                                    router.push('/profiles/newUser');
+                                                });
+                                            }
+
+                                        }}
+                                    >
+                                        <UserAvatar userObject={allUsers[99]} />
+                                    </motion.button>
+                                </div>
 
                             </motion.div>
                         )}

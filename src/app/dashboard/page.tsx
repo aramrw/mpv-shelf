@@ -326,7 +326,11 @@ export default function Dashboard() {
                                         }
                                     }}
                                 >
-                                    Open In File Explorer
+                                    <span className={cn("",
+                                        userSettings?.fontSize === "Medium" && 'text-base',
+                                        userSettings?.fontSize === "Large" && 'text-lg',
+                                        userSettings?.fontSize === "XLarge" && 'text-xl',
+                                    )}>Open In Explorer</span>
                                     <FolderInput className={cn('h-auto w-4',
                                         userSettings?.fontSize === "Medium" && 'h-auto w-5',
                                         userSettings?.fontSize === "Large" && 'h-auto w-6',
@@ -461,7 +465,11 @@ export default function Dashboard() {
                                                                 }
                                                             }}
                                                         >
-                                                            Open In File Explorer
+                                                            <span className={cn("",
+                                                                userSettings?.fontSize === "Medium" && 'text-base',
+                                                                userSettings?.fontSize === "Large" && 'text-lg',
+                                                                userSettings?.fontSize === "XLarge" && 'text-xl',
+                                                            )}>Open In Explorer</span>
                                                             <FolderInput className={cn('h-auto w-4',
                                                                 userSettings?.fontSize === "Medium" && 'h-auto w-5',
                                                                 userSettings?.fontSize === "Large" && 'h-auto w-6',
@@ -470,7 +478,12 @@ export default function Dashboard() {
                                                         </ContextMenuItem>
                                                         <ContextMenuSeparator className='my-1 h-[1px] bg-accent' />
                                                         <ContextMenuSub>
-                                                            <ContextMenuSubTrigger className='cursor-pointer gap-1 py-0.5 font-medium' inset>Watch</ContextMenuSubTrigger>
+                                                            <ContextMenuSubTrigger className={cn('cursor-pointer gap-1 py-0.5 font-medium',
+                                                                userSettings?.fontSize === "Medium" && 'text-base',
+                                                                userSettings?.fontSize === "Large" && 'text-lg',
+                                                                userSettings?.fontSize === "XLarge" && 'text-xl',
+                                                            )}
+                                                                inset>Watch</ContextMenuSubTrigger>
                                                             <ContextMenuSubContent className="mx-2 overflow-hidden rounded-md border bg-popover p-1 font-medium text-popover-foreground shadow-md animate-in fade-in-80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
                                                                 {prismaVideos.some(video => video.path === file.path && !video.watched) ? (
                                                                     <ContextMenuItem
@@ -482,7 +495,12 @@ export default function Dashboard() {
 
                                                                         }}
                                                                     >
-                                                                        Set Watched
+                                                                        <span className={cn("",
+                                                                            userSettings?.fontSize === "Medium" && 'text-base',
+                                                                            userSettings?.fontSize === "Large" && 'text-lg',
+                                                                            userSettings?.fontSize === "XLarge" && 'text-xl',
+                                                                        )}>Set Watched</span>
+
                                                                         <Eye className={cn('h-auto w-4 ',
                                                                             userSettings?.fontSize === "Medium" && 'h-auto w-5',
                                                                             userSettings?.fontSize === "Large" && 'h-auto w-6',
@@ -499,7 +517,12 @@ export default function Dashboard() {
 
                                                                         }}
                                                                     >
-                                                                        Unwatch
+                                                                        <span className={cn("",
+                                                                            userSettings?.fontSize === "Medium" && 'text-base',
+                                                                            userSettings?.fontSize === "Large" && 'text-lg',
+                                                                            userSettings?.fontSize === "XLarge" && 'text-xl',
+                                                                        )}>Unwatch</span>
+
                                                                         <EyeOff className={cn('h-auto w-4 ',
                                                                             userSettings?.fontSize === "Medium" && 'h-auto w-5',
                                                                             userSettings?.fontSize === "Large" && 'h-auto w-6',
@@ -520,8 +543,11 @@ export default function Dashboard() {
                                                                     }}
                                                                 >
                                                                     <div className='flex gap-1'>
-                                                                        <span>Cascade As</span>
-
+                                                                        <span className={cn("",
+                                                                            userSettings?.fontSize === "Medium" && 'text-base',
+                                                                            userSettings?.fontSize === "Large" && 'text-lg',
+                                                                            userSettings?.fontSize === "XLarge" && 'text-xl',
+                                                                        )}>Cascade As</span>
                                                                         <div className='flex'>
                                                                             <Eye className={cn('h-auto w-4 ',
                                                                                 userSettings?.fontSize === "Medium" && 'h-auto w-5',
@@ -546,7 +572,11 @@ export default function Dashboard() {
                                                                     }}
                                                                 >
                                                                     <div className='flex gap-1'>
-                                                                        <span>Cascade As</span>
+                                                                        <span className={cn("",
+                                                                            userSettings?.fontSize === "Medium" && 'text-base',
+                                                                            userSettings?.fontSize === "Large" && 'text-lg',
+                                                                            userSettings?.fontSize === "XLarge" && 'text-xl',
+                                                                        )}>Cascade As</span>
                                                                         <div className='flex'>
                                                                             <EyeOff className={cn('h-auto w-4 ',
                                                                                 userSettings?.fontSize === "Medium" && 'h-auto w-5',

@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from 'next/navigation';
 import { UserPlus } from 'lucide-react';
 import { SettingSchema } from '@/app/settings/page';
+import { cn } from '@/lib/utils';
 
 
 export default function NewUser() {
@@ -67,8 +68,10 @@ export default function NewUser() {
                     exit={{ opacity: 0, y: 50 }}
                     key={1}
                 >
-                    <UserPlus className="h-auto w-10" />
-                    <motion.h1 className="text-2xl font-medium">Create New Profile</motion.h1>
+                    <UserPlus className={cn("h-auto w-10 md:w-14 lg:w-16 xl:w-20 text-primary",
+
+                    )} />
+                    <motion.h1 className="text-2xl font-medium md:text-3xl lg:text-4xl xl:text-5xl">Create New Profile</motion.h1>
                     <div className="my-4 flex space-x-2">
                         {pins.map((pin, index) => (
                             <input
@@ -79,7 +82,8 @@ export default function NewUser() {
                                 value={pin}
                                 onChange={(e) => handleChange(e.target.value, index)}
                                 onKeyDown={(e) => handleBackspace(e, index)}
-                                className="h-12 w-12 rounded border-2 border-gray-300 text-center text-xl"
+                                className={cn("h-20 w-20 rounded border-2 border-gray-300 text-center text-xl md:h-28 md:w-28 md:text-4xl shadow-md font-bold",
+                                )}
                                 pattern="[0-9]*" // Ensure only numbers can be inputted
                             />
                         ))}
