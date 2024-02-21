@@ -82,14 +82,14 @@ export default function NewUser() {
                                 value={pin}
                                 onChange={(e) => handleChange(e.target.value, index)}
                                 onKeyDown={(e) => handleBackspace(e, index)}
-                                className={cn("h-20 w-20 rounded border-2 border-gray-300 text-center text-xl md:h-28 md:w-28 md:text-4xl shadow-md font-bold",
+                                className={cn("h-16 w-16 rounded border-2 border-gray-300 text-center text-3xl md:h-20 md:w-20 md:text-3xl lg:h-24 lg:w-24 lg:text-4xl xl:h-32 xl:w-32 xl:text-5xl shadow-md font-bold",
                                 )}
                                 pattern="[0-9]*" // Ensure only numbers can be inputted
                             />
                         ))}
                     </div>
-                    <h2 className="text-lg">Enter a <b>pin #</b> to protect your account.</h2>
-                    <h3 className='rounded-sm bg-accent px-1 font-medium'>
+                    <h2 className="mb-1 text-lg font-medium md:text-xl lg:text-2xl xl:text-3xl">Enter a <b>pin #</b> to protect your account.</h2>
+                    <h3 className='rounded-sm bg-accent px-1 text-sm font-medium md:text-base lg:text-xl xl:text-2xl'>
                         <b>Note:</b> You can change / turn this off later.
                     </h3>
                 </motion.main>

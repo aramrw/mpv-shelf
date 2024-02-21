@@ -84,17 +84,16 @@ export default function Settings() {
         }
 
         //console.log(validationResult.data);
-        //Assuming updateSettings is a function that updates your SQLite config table
         if (currentUser?.id)
-            updateSettings({ formData: validationResult.data, userId: currentUser?.id });
-        if (currentUser?.pin) {
-            if (newPin && newPin !== currentUser?.pin.toString()) {
-                updateUserPin({ userId: currentUser.id, newPin: newPin.toString() });
-            } else if (formState.usePin === "Off") {
-                updateUserPin({ userId: currentUser.id, newPin: "disabled" });
-            }
-        }
-
+            updateSettings({ formData: validationResult.data, userId: currentUser?.id }).then(() => {
+                if (currentUser?.pin) {
+                    if (newPin && newPin !== currentUser?.pin.toString()) {
+                        updateUserPin({ userId: currentUser.id, newPin: newPin.toString() });
+                    } else if (formState.usePin === "Off") {
+                        updateUserPin({ userId: currentUser.id, newPin: "disabled" });
+                    }
+                }
+            });
 
     };
 

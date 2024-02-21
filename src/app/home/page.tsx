@@ -21,13 +21,22 @@ export default function Home() {
         // fetch the user object from db on start
         useEffect(() => {
             getUsers().then((currentUsers) => {
-                if (currentUsers) {
+                if (currentUsers && currentUsers.length > 0) {
                     //console.log("currentUsers: ", currentUsers);
                     setUsers(currentUsers);
+                    setIsLoading(false);
+
+                } else {
+                    setIsLoading(false);
                 }
-                setIsLoading(false);
             });
         }, [])
+
+        useEffect(() => {
+            if (!isLoading && (users?.length === 0 || users === undefined)) {
+                router.push('/profiles/newUser');
+            }
+        }, [users, isLoading])
 
 
         if (!isLoading && users?.length === 1 && users[0].pin !== null) {
@@ -36,10 +45,6 @@ export default function Home() {
                     <PinInputReturningUser userPin={users[0].pin} userId={users[0].id} />
                 </main>
             )
-        }
-
-        if (!isLoading && (users?.length === 0 || users === undefined)) {
-            router.push('/profiles/newUser');
         }
 
         if (!isLoading && users && users?.length > 1) {
@@ -52,7 +57,7 @@ export default function Home() {
                             setUsers([user]);
                         }
                     }
-                } else {
+                } else if (!isLoading) {
                     router.push('/profiles');
                 }
             })
@@ -75,6 +80,7 @@ export default function Home() {
         const [pins, setPins] = useState(Array(pinLength).fill(''));
         const inputRefs = Array(pinLength).fill(0).map(() => createRef());
         const [currentUser, setCurrentUser] = useState<User>();
+        const [isLoading, setIsLoading] = useState(true);
 
 
         const handleChange = (value: any, index: number) => {
@@ -103,6 +109,13 @@ export default function Home() {
             }
         };
 
+        // focus on the first pin input on component mount
+        useEffect(() => {
+            if (inputRefs[0] && inputRefs[0].current) {
+                (inputRefs[0].current as HTMLInputElement).focus();
+            }
+        }, []);
+
         // get the user object to display the avatar
         useEffect(() => {
             getUsers().then((users) => {
@@ -110,6 +123,7 @@ export default function Home() {
                     for (const user of users) {
                         if (user.id === userId) {
                             setCurrentUser(user);
+                            setIsLoading(false);
                         }
                     }
                 }
@@ -118,18 +132,23 @@ export default function Home() {
         }, [userId]);
 
         useEffect(() => {
-            if (pins.join('').length === pinLength) {
+            if (pins.join('').length === pinLength && isLoading === false) {
                 if (pins.join('') === userPin) {
+                    setIsLoading(true);
                     setCurrentUserGlobal({ userId: userId }).then(() => {
+                        setIsLoading(false);
+                        router.push('/dashboard');
                     });
                 }
-            } else if (userPin === "disabled") {
+            } else if (userPin === "disabled" && !isLoading) {
+                setIsLoading(true);
                 setCurrentUserGlobal({ userId: userId }).then(() => {
+                    setIsLoading(false);
                     router.push('/dashboard');
                 });
             }
 
-        }, [pins]);
+        }, [pins, isLoading]);
 
 
 
@@ -146,7 +165,7 @@ export default function Home() {
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.5, bounce: 0.5, type: "spring" }}
                         >
-                            <h1 className="select-none text-2xl font-bold">
+                            <h1 className="select-none text-2xl font-bold drop-shadow-md md:text-3xl lg:text-4xl xl:text-5xl">
                                 {randomQuotes[Math.floor(Math.random() * randomQuotes.length)]}
                             </h1>
                             {(userId && currentUser) && (
@@ -154,7 +173,7 @@ export default function Home() {
                                     <UserAvatar userObject={currentUser} />
                                 </div>
                             )}
-                            <motion.div className="flex space-x-2"
+                            <motion.div className="mt-2 flex space-x-2"
                                 animate={(pins.join('').length === 4 && pins.join('') !== userPin) ? { x: [0, -10, 0, 10, 0] } : undefined}
                                 transition={{ duration: 0.2 }}
 
@@ -168,16 +187,16 @@ export default function Home() {
                                         value={pin}
                                         onChange={(e) => handleChange(e.target.value, index)}
                                         onKeyDown={(e) => handleBackspace(e, index)}
-                                        className={cn("h-20 w-20 rounded border-2 border-gray-300 text-center text-xl md:h-28 md:w-28 md:text-4xl shadow-md font-bold",
+                                        className={cn("h-20 w-20 rounded border-2 border-primary text-center text-xl md:h-28 md:w-28 md:text-4xl shadow-md font-bold",
                                             (pins.join('').length === 4 && pins.join('') !== userPin) && "border-red-500 focus:outline-none focus:border-red-500",
                                         )}
                                         pattern="[0-9]*" // Ensure only numbers can be inputted
                                     />
                                 ))}
                             </motion.div>
-                            <h2 className="select-none rounded-sm bg-muted px-1 text-lg shadow-md">Enter your <b>pin #</b> to get started.</h2>
-                            <div className='flex w-full flex-row items-center justify-center gap-2'>
-                                <Button variant="outline" className='cursor-pointer rounded-lg px-2 py-0 text-lg font-bold text-blue-500 underline underline-offset-2 shadow-lg md:px-4 md:py-2 md:text-lg lg:px-5 lg:py-3 lg:text-lg'
+                            <h2 className="select-none text-lg font-medium drop-shadow-md md:text-xl lg:text-2xl xl:text-3xl">Enter your <b>pin #</b> to get started.</h2>
+                            <div className='flex w-full flex-row items-center justify-center'>
+                                <Button variant="outline" className='cursor-pointer rounded-lg px-2 py-0 text-base font-bold text-blue-500 underline underline-offset-2 shadow-sm md:text-xl lg:text-2xl xl:text-3xl'
                                     onClick={() => {
                                         // create db function for resetting pin
                                     }}
@@ -186,12 +205,12 @@ export default function Home() {
                         </motion.div>
                     ) : (
                         <motion.div key={"SignedIn"} className="mt-3 flex h-full w-full flex-col items-center justify-center rounded-full bg-monotone"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 1, ease: "easeInOut", stiffness: 100, damping: 20 }}
+                            initial={{ y: -50, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: -50, opacity: 0 }}
+                            transition={{ duration: 2, ease: "easeInOut", stiffness: 100, damping: 20 }}
                         >
-                            <Check className='flex h-auto w-40 items-center justify-center text-center text-accent' />
+                            <Check className='flex h-auto w-60 items-center justify-center text-center text-accent' />
                         </motion.div>
                     )}
                 </AnimatePresence>

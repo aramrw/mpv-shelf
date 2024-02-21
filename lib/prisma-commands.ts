@@ -29,7 +29,6 @@ export async function getUsers() {
     }
 
     if (users.length !== 0) {
-        await db.close();
         console.log("confirmed users", users);
         return users;
     } else {
@@ -50,33 +49,73 @@ export async function createNewUser({
 }) {
     let db = await Database.load("sqlite:main.db");
 
-    // Ensure the table exists before attempting to insert into it
-    await db.execute(`
-        CREATE TABLE IF NOT EXISTS user (
+    try {
+        await db.execute(`BEGIN TRANSACTION;`);
+
+        // Ensure the table exists before attempting to insert into it
+        await db.execute(`
+        CREATE TABLE IF NOT EXISTS user 
+        (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             pin TEXT NOT NULL,
             imagePath TEXT,
-            color TEXT UNIQUE
+            color TEXT UNIQUE )`
         )
-    `).catch((e) => {
-        console.log("Error creating table:", e);
-    });
-
-
-    // Attempt to insert a new user with a color if provided
-    // This assumes you want to insert the color only if it doesn't already exist in the table
-    // If the color is not provided or is an empty string, this will skip the attempt to insert the color
-
-    await invoke("generate_random_color").then(async (color) => {
 
         await db.execute(`
-            INSERT OR IGNORE INTO user (pin, color) VALUES ($1, $2)
-        `, [userPin, color]).catch((e) => {
-            console.log("Error inserting new user with color:", e);
+        CREATE TABLE IF NOT EXISTS settings 
+        (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL UNIQUE, 
+            theme TEXT NOT NULL, 
+            fontSize TEXT NOT NULL, 
+            animations TEXT NOT NULL, 
+            autoRename TEXT NOT NULL, 
+            usePin TEXT NOT NULL,
+        FOREIGN KEY (userId) REFERENCES user(id))`
+        )
+
+        // Attempt to insert a new user with a color if provided
+        // This assumes you want to insert the color only if it doesn't already exist in the table
+        // If the color is not provided or is an empty string, this will skip the attempt to insert the color
+
+        await invoke("generate_random_color").then(async (color) => {
+            await db.execute(`INSERT OR IGNORE INTO user (pin, color) VALUES ($1, $2)`, [userPin, color])
         });
+
+        await db.execute("COMMIT;")
+
+    } catch (e) {
+        console.log(e);
+        await db.execute("ROLLBACK;");
+    }
+
+    await db.select("SELECT * from user WHERE pin = $1", [userPin]).then(async (user: any) => {
+
+        if (user.length !== 0) {
+            console.log("Found user from pin", user);
+            await db.execute(`
+        INSERT INTO settings 
+        (
+            userId, theme, fontSize, animations, autoRename, usePin
+        )
+        VALUES ($1, $2, $3, $4, $5, $6)
+        ON CONFLICT(userId) DO UPDATE SET
+            theme = excluded.theme,
+            fontSize = excluded.fontSize,
+            animations = excluded.animations,
+            autoRename = excluded.autoRename,
+            usePin = excluded.usePin`,
+                [user[0].id, formData.theme, formData.fontSize, formData.animations, formData.autoRename, formData.usePin]).catch((e) => {
+                    console.log("error", e);
+                });
+        }
+    }).catch((e) => {
+        console.log(e);
     });
 
-    await db.close();
+
+    db.close();
+
 }
 
 export async function addFolder({
@@ -110,10 +149,10 @@ export async function getFolders({
         let folders: Folder[] = await db.select("SELECT * from folder WHERE userId = $1", [userId]);
         //console.log("folders", folders);
         if (folders.length === 0) {
-            await db.close();
+
             return folders;
         } else {
-            await db.close();
+
             return folders;
         }
 
@@ -296,7 +335,6 @@ export async function getUserSettings({
         //console.log("settings", settings[0]);
 
         if (settings.length === 0) {
-            await db.close();
             return null;
         } else {
             await db.close();
@@ -329,23 +367,30 @@ export async function setCurrentUserGlobal({ userId }: { userId: number }) {
     // Use a constant ID since there will only ever be one record in this table.
     const GLOBAL_ID = 'GID99844589388427';
 
-    // Ensure the global table exists
-    await db.execute(`
-        CREATE TABLE IF NOT EXISTS global (
-            id TEXT PRIMARY KEY, 
-            userId INTEGER NOT NULL
-        )
-    `);
+    try {
+        // Ensure the global table exists
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS global (
+                id TEXT PRIMARY KEY, 
+                userId INTEGER NOT NULL
+            )
+        `);
 
-    // Set the current user. The ON CONFLICT clause is used to upsert the userId for the constant ID.
-    await db.execute(`
-        INSERT INTO global (id, userId) 
-        VALUES ($1, $2)
-        ON CONFLICT(id) DO UPDATE SET 
-        userId = excluded.userId
-    `, [GLOBAL_ID, userId]);
+        // Set the current user. The ON CONFLICT clause is used to upsert the userId for the constant ID.
+        await db.execute(`
+            INSERT INTO global (id, userId) 
+            VALUES ($1, $2)
+            ON CONFLICT(id) DO UPDATE SET 
+            userId = excluded.userId
+        `, [GLOBAL_ID, userId]);
 
-    await db.close();
+        await db.close();
+
+    } catch (e) {
+        console.log(e);
+        await db.close();
+    }
+
 }
 
 export async function getCurrentUserGlobal() {
@@ -355,7 +400,6 @@ export async function getCurrentUserGlobal() {
 
 
     try {
-
         // Ensure the global table exists
         await db.execute(`
         CREATE TABLE IF NOT EXISTS global (
@@ -370,7 +414,7 @@ export async function getCurrentUserGlobal() {
             return GLOBAL_USER[0];
         }
 
-        await db.close();
+
         return null;
     } catch (e) {
         console.log(e);

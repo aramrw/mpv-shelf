@@ -1,11 +1,15 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+#[allow(unused_imports)]
 use random_color::color_dictionary::{ColorDictionary, ColorInformation};
+#[allow(unused_imports)]
 use random_color::{Color, Luminosity, RandomColor};
 use serde::{Deserialize, Serialize};
 use std::process::Command;
 use tauri::generate_handler;
+#[allow(unused_imports)]
+use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem};
 
 #[derive(Serialize, Deserialize)]
 struct User {
@@ -14,7 +18,17 @@ struct User {
 }
 
 fn main() {
+    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
+    let hide = CustomMenuItem::new("hide".to_string(), "Hide");
+    let tray_menu = SystemTrayMenu::new()
+        .add_item(quit)
+        .add_native_item(SystemTrayMenuItem::Separator)
+        .add_item(hide);
+
+    let tray = SystemTray::new().with_menu(tray_menu);
+
     tauri::Builder::default()
+        .system_tray(tray)
         .plugin(tauri_plugin_sql::Builder::default().build())
         .invoke_handler(generate_handler![
             open_video,
@@ -83,10 +97,10 @@ fn show_in_folder(path: String) {
 #[tauri::command]
 fn generate_random_color() -> String {
     let color = RandomColor::new()
-        .hue(Color::Monochrome)
-        .luminosity(Luminosity::Light)
-        .alpha(2.0)
-        .to_hex(); //
+        .luminosity(Luminosity::Light) // Ensuring the color is light, for a pastel-like effect
+        .alpha(8.0) // Fully opaque
+        .to_hex()
+        .to_string(); // Output as an HSL string for finer control over the appearance
 
-    color.to_string()
+    color
 }

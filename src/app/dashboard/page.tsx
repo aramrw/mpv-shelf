@@ -14,17 +14,18 @@ import {
     ContextMenu,
     ContextMenuContent,
     ContextMenuItem,
-    ContextMenuShortcut,
     ContextMenuSubTrigger,
     ContextMenuTrigger,
 } from "@/components/ui/context-menu"
 import { SettingSchema } from '../settings/page';
 import { ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent } from '@radix-ui/react-context-menu';
+import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
     let [folderPaths, setFolderPaths] = useState<string[]>([]);
     let [currentUser, setCurrentUser] = useState<User>();
     let [userSettings, setUserSettings] = useState<SettingSchema>();
+    const router = useRouter();
 
     // fetch the user object from db on start and set the current user
     useEffect(() => {
@@ -163,11 +164,11 @@ export default function Dashboard() {
             return (
                 <AnimatePresence>
                     <motion.main className='h-full w-full overflow-hidden'
-                        initial={userSettings?.animations === "On" ? { opacity: 0, y: -50 } : undefined}
-                        animate={userSettings?.animations === "On" ? { opacity: 1, y: 0 } : undefined}
-                        exit={userSettings?.animations === "On" ? { opacity: 0, y: 50 } : undefined}
-
+                        initial={userSettings?.animations === "On" ? { y: -1 } : undefined}
+                        animate={userSettings?.animations === "On" ? { y: 0 } : undefined}
+                        exit={userSettings?.animations === "On" ? { y: -30 } : undefined}
                         key={"folder"}
+
                     >
                         <ContextMenu>
                             <ContextMenuTrigger>
@@ -305,6 +306,7 @@ export default function Dashboard() {
                                                 setDeleting(true);
                                                 // trigger the delete folder db command
                                                 deleteFolder({ folderPath }).then(() => {
+                                                    router.prefetch('/dashboard');
                                                     window.location.reload();
                                                 });
                                             }} />
@@ -485,7 +487,7 @@ export default function Dashboard() {
                                                             )}
                                                                 inset>Watch</ContextMenuSubTrigger>
                                                             <ContextMenuSubContent className="mx-2 overflow-hidden rounded-md border bg-popover p-1 font-medium text-popover-foreground shadow-md animate-in fade-in-80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
-                                                                {prismaVideos.some(video => video.path === file.path && !video.watched) ? (
+                                                                {prismaVideos.some(video => (video.path !== null && video.path !== undefined && video.path === file.path && !video.watched)) ? (
                                                                     <ContextMenuItem
                                                                         className='flex cursor-pointer gap-1'
                                                                         onClick={(e) => {
@@ -606,8 +608,7 @@ export default function Dashboard() {
                                 {
                                     expanded && folders.map((folder, index) => {
                                         return (
-
-                                            <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 p-0.5 px-2 cursor-pointer overflow-hidden',
+                                            <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 p-0.5 px-2 cursor-pointer overflow-hidden select-none',
                                                 (index === files.length - 1 && !asChild) && 'rounded-b-md border-b-4 border-tertiary',
                                                 (index === folders.length - 1 && !asChild) && 'rounded-b-md border-b-4 border-tertiary',
                                                 asChild && 'px-3.5 border-none my-1',
@@ -617,7 +618,7 @@ export default function Dashboard() {
 
                                                 initial={userSettings?.animations === "On" ? { opacity: 0 } : undefined}
                                                 animate={userSettings?.animations === "On" ? { opacity: 1 } : undefined}
-                                                exit={userSettings?.animations === "On" ? { x: -20, opacity: 0 } : undefined}
+                                                exit={(userSettings?.animations === "On") ? { y: -20, opacity: 0 } : undefined}
                                                 whileHover={userSettings?.animations === "On" ? { x: 1 } : undefined}
                                                 transition={{ duration: 0.15, damping: 10, stiffness: 100 }}
                                             >

@@ -1,10 +1,11 @@
 "use client"
 
-import { ArrowBigLeft, HelpCircle, MoveLeft, Settings, Sliders } from 'lucide-react'
+import { ArrowBigLeft, HelpCircle, MessageCircleQuestion, MoveLeft, Settings, Sliders } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 
 export function Navbar() {
@@ -24,7 +25,9 @@ export function Navbar() {
     };
 
     return (
-        <motion.div className="flex h-8 w-full flex-row items-center justify-between border-b-2 bg-accent p-1 shadow-sm md:h-9 lg:h-10"
+        <motion.div className={cn("flex h-8 w-full flex-row items-center justify-between border-b-2 bg-accent p-1 shadow-sm md:h-9 lg:h-10",
+            pathname === "/profiles" && "bg-transparent border-none text-background px-2.5 pt-2 shadow-md py-0.5"
+        )}
             drag="y" // Enable vertical dragging
             dragConstraints={{ top: 0, bottom: 0 }} // Limit dragging to vertical movement within the component's height
             onDragEnd={handleDragEnd} // Handle the drag end event
@@ -44,7 +47,7 @@ export function Navbar() {
                                 router.back();
                             }}
                         >
-                            <MoveLeft className={`h-auto md:w-7 lg:w-8`} />
+                            <MoveLeft className={`h-auto drop-shadow-sm md:w-7 lg:w-8`} />
                         </motion.div>
                     )}
                 <motion.div
@@ -52,7 +55,9 @@ export function Navbar() {
                     whileTap={{ scale: 0.9 }}
                     whileHover={{ scale: 1.1 }}
                 >
-                    <HelpCircle className={`h-auto md:w-7 lg:w-8`} />
+                    <MessageCircleQuestion className={cn(`h-auto md:w-7 lg:w-8 drop-shadow-sm`,
+                        pathname === "/profiles" && "text-primary"
+                    )} />
                 </motion.div>
 
 
