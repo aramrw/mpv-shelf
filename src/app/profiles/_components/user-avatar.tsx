@@ -33,7 +33,7 @@ export function UserAvatar({
                 backgroundSize: "cover",
             }} />
 
-            <AvatarFallback className={cn(`h-40 w-40 text-xl font-medium rounded select-none flex justify-center items-center`,
+            <AvatarFallback className={cn(`h-36 w-36 text-xl font-medium rounded select-none flex justify-center items-center`,
                 asChild && "w-full text-lg font-medium",
                 !asChild &&
                 `md:w-52

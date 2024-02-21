@@ -96,12 +96,26 @@ export default function Home() {
             }
 
             // if its the last pin and they didnt get it right, pressing backspace will clear them all and focus the first input
-            if (event.key === 'Backspace' && index === 3) {
+            if (event.key === 'Backspace' && index === 3 && pins[index]) {
                 console.log("backspace pressed");
                 setPins(Array(pinLength).fill(''));
                 (inputRefs[0].current as HTMLInputElement).focus();
             }
         };
+
+        // get the user object to display the avatar
+        useEffect(() => {
+            getUsers().then((users) => {
+                if (users) {
+                    for (const user of users) {
+                        if (user.id === userId) {
+                            setCurrentUser(user);
+                        }
+                    }
+                }
+            });
+
+        }, [userId]);
 
         useEffect(() => {
             if (pins.join('').length === pinLength) {
@@ -117,19 +131,7 @@ export default function Home() {
 
         }, [pins]);
 
-        // get the user object to display the avatar
-        useEffect(() => {
-            getUsers().then((users) => {
-                if (users) {
-                    for (const user of users) {
-                        if (user.id === userId) {
-                            setCurrentUser(user);
-                        }
-                    }
-                }
-            });
 
-        }, [userId]);
 
         return (
             <main className='mt-4 flex h-full w-full items-center justify-center'>
@@ -168,7 +170,6 @@ export default function Home() {
                                         onKeyDown={(e) => handleBackspace(e, index)}
                                         className={cn("h-20 w-20 rounded border-2 border-gray-300 text-center text-xl md:h-28 md:w-28 md:text-4xl shadow-md font-bold",
                                             (pins.join('').length === 4 && pins.join('') !== userPin) && "border-red-500 focus:outline-none focus:border-red-500",
-
                                         )}
                                         pattern="[0-9]*" // Ensure only numbers can be inputted
                                     />

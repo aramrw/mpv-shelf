@@ -13,7 +13,6 @@ export function Navbar() {
 
     let [isHidden, setIsHidden] = useState(false);
 
-
     // Function to handle the end of a drag event
     const handleDragEnd = (event: any, info: any) => {
         // Determine if the drag was upwards significantly
@@ -25,7 +24,7 @@ export function Navbar() {
     };
 
     return (
-        <motion.div className="flex h-8 w-full flex-row items-center justify-between border-b-2 bg-accent p-1 shadow-sm"
+        <motion.div className="flex h-8 w-full flex-row items-center justify-between border-b-2 bg-accent p-1 shadow-sm md:h-9 lg:h-10"
             drag="y" // Enable vertical dragging
             dragConstraints={{ top: 0, bottom: 0 }} // Limit dragging to vertical movement within the component's height
             onDragEnd={handleDragEnd} // Handle the drag end event
@@ -45,7 +44,7 @@ export function Navbar() {
                                 router.back();
                             }}
                         >
-                            <MoveLeft />
+                            <MoveLeft className={`h-auto md:w-7 lg:w-8`} />
                         </motion.div>
                     )}
                 <motion.div
@@ -53,25 +52,23 @@ export function Navbar() {
                     whileTap={{ scale: 0.9 }}
                     whileHover={{ scale: 1.1 }}
                 >
-                    <HelpCircle />
+                    <HelpCircle className={`h-auto md:w-7 lg:w-8`} />
                 </motion.div>
 
 
 
             </div>
 
-            {(pathname !== "/settings" && !pathname.includes("/profile") && pathname !== "/home") && (
+            {(pathname !== "/settings" && !pathname.includes("/profile") && pathname !== "/home" && pathname !== "/") && (
                 <motion.div
                     whileTap={{ scale: 0.9 }}
                     whileHover={{ scale: 1.1 }}
                 >
                     <Link href="/settings">
-                        <Sliders className="h-full w-fit cursor-pointer" />
+                        <Sliders className="h-auto cursor-pointer md:w-7 lg:w-8" />
                     </Link>
                 </motion.div>
             )}
-
-
         </motion.div>
     );
 }
