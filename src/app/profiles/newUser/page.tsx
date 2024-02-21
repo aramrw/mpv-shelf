@@ -13,7 +13,7 @@ export default function NewUser() {
 
     const [formData, setFormState] = useState<SettingSchema>({
         theme: 'Light',
-        fontSize: 'Small',
+        fontSize: 'Large',
         animations: 'On',
         autoRename: 'Off',
         usePin: 'On'
@@ -52,7 +52,7 @@ export default function NewUser() {
         useEffect(() => {
             console.log(pins.join(''));
             if (pins.join('').length === pinLength) {
-                createNewUser({ userPin: pins.join(''), formData: formData }).then(() => {
+                createNewUser({ userPin: pins.join(''), formData: formData }).then((res) => {
                     router.push('/profiles');
                 });
             }

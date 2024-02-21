@@ -27,6 +27,7 @@ export function UserAvatar({
             (asChild && userObject?.imagePath) && "md:w-3/4 rounded-none",
             (asChild && userObject?.imagePath) && "h-40 md:w-40 rounded-sm",
             (asChild && !userObject?.imagePath) && "outline drop-shadow-md",
+            pathname === "/settings" && "outline-primary"
         )}>
             <AvatarImage src={userObject?.imagePath ? userObject?.imagePath : ""} alt={userObject?.id.toString()} className={cn("object-cover",
                 asChild && "w-5/6 lg:w-[60%]",
@@ -46,17 +47,19 @@ export function UserAvatar({
             )}>
                 <div className="flex h-full w-full flex-col items-center justify-center" style={{ backgroundColor: `${userObject?.color}` }}>
                     <span className={cn(
-                        `flex mt-5 outline pt-1.5  
+                        `flex outline outline-2 text-center  
                         md:text-2xl 
-                        lg:text-3xl 
-                        shadow-lg rounded-lg px-2 font-bold text-3xl
+                        lg:text-4xl
+                        lg:pt-1
+                        xl:text-5xl 
+                        shadow-lg rounded-sm px-2 font-bold text-lg
                         `,
                         !userObject?.id && "outline-none shadow-none",
                     )}>{userObject?.id}</span>
                     {userObject?.id ? (
-                        <UserIcon className="h-auto w-1/2" strokeWidth={1.5} />
+                        <UserIcon className="h-auto w-1/2" strokeWidth={1.3} />
                     ) : (
-                        <UserPlus className="h-auto w-1/2 text-tertiary" strokeWidth={1.5} />
+                        <UserPlus className="h-auto w-1/2 text-tertiary" strokeWidth={1.3} />
                     )}
                 </div>
             </AvatarFallback>

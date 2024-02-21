@@ -32,7 +32,6 @@ export async function getUsers() {
         console.log("confirmed users", users);
         return users;
     } else {
-        await db.close();
         //console.log("users", users);
         return null;
     }
@@ -131,7 +130,7 @@ export async function addFolder({
 
     await db.execute("INSERT into folder (userId, path) VALUES ($1, $2)", [userId, folderPath])
 
-    await db.close();
+        ;
 }
 
 export async function getFolders({
@@ -148,18 +147,17 @@ export async function getFolders({
         // Directly return the result of the query
         let folders: Folder[] = await db.select("SELECT * from folder WHERE userId = $1", [userId]);
         //console.log("folders", folders);
-        if (folders.length === 0) {
-
+        if (folders.length !== 0) {
+            console.log("folders", folders);
             return folders;
         } else {
-
             return folders;
         }
 
     } catch (e) {
         console.log(e);
         // Return an empty array or handle the error as needed
-        await db.close();
+        ;
         return [];
     }
 
@@ -175,7 +173,7 @@ export async function deleteFolder({
 
     await db.execute("DELETE from folder WHERE path = $1", [folderPath])
 
-    await db.close();
+        ;
 }
 
 export async function updateVideoWatched({
@@ -212,7 +210,7 @@ export async function updateVideoWatched({
 
     }
 
-    await db.close();
+    ;
 
 }
 
@@ -229,11 +227,12 @@ export async function getVideo({
         await db.execute("CREATE TABLE IF NOT EXISTS video (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT NOT NULL UNIQUE, watched BOOLEAN NOT NULL DEFAULT 0)")
 
         video = await db.select("SELECT * from video WHERE path = ($1)", [videoPath])
+
+        //;
     } catch (e) {
         console.log(e);
 
     }
-
 
     if (video && video.length !== 0) {
         //console.log("video", video);
@@ -254,9 +253,12 @@ export async function unwatchVideo({
 
     console.log("videoPath", videoPath);
 
-    await db.execute("UPDATE video SET watched = 0 WHERE path = ($1)", [videoPath])
+    await db.execute("UPDATE video SET watched = 0 WHERE path = ($1)", [videoPath]).catch((e) => {
+        console.log("error", e);
+    });
 
-    await db.close();
+
+    return true;
 }
 
 export async function updateSettings({
@@ -294,7 +296,7 @@ export async function updateSettings({
         console.log("error", e);
     });
 
-    await db.close();
+    await db.close();;
 }
 
 export async function updateUserPin({
@@ -337,12 +339,12 @@ export async function getUserSettings({
         if (settings.length === 0) {
             return null;
         } else {
-            await db.close();
+            ;
             return settings[0];
         }
     } catch (e) {
         console.log(e);
-        await db.close();
+        ;
         return null;
     }
 
@@ -368,6 +370,9 @@ export async function setCurrentUserGlobal({ userId }: { userId: number }) {
     const GLOBAL_ID = 'GID99844589388427';
 
     try {
+
+        await db.execute("BEGIN TRANSACTION;")
+
         // Ensure the global table exists
         await db.execute(`
             CREATE TABLE IF NOT EXISTS global (
@@ -384,11 +389,14 @@ export async function setCurrentUserGlobal({ userId }: { userId: number }) {
             userId = excluded.userId
         `, [GLOBAL_ID, userId]);
 
-        await db.close();
+        await db.execute("COMMIT;")
+
+            ;
 
     } catch (e) {
         console.log(e);
-        await db.close();
+        await db.execute("ROLLBACK;");
+        ;
     }
 
 }
@@ -414,11 +422,11 @@ export async function getCurrentUserGlobal() {
             return GLOBAL_USER[0];
         }
 
-
+        await db.close();
         return null;
     } catch (e) {
-        console.log(e);
         await db.close();
+        console.log(e);
         return null;
     }
 
@@ -453,12 +461,12 @@ export async function getProfilePicture({
         const image: string = await db.select("SELECT imagePath from user WHERE id = $1", [userId])
 
         if (image) {
-            await db.close();
+            ;
             return image;
         }
     } catch (e) {
         console.log(e);
-        await db.close();
+        ;
         return null;
     }
 

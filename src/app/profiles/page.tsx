@@ -127,12 +127,11 @@ export default function Profiles() {
                     className='w-full'
                 >
                     <div className={cn("mt-7 h-full w-full flex flex-col justify-center items-center",
-                        allUsers.length >= 3 && 'w-fit flex flex-col justify-center items-center',
                     )}>
                         <h1 className='animate-gradient-x select-none bg-[linear-gradient(to_right,theme(colors.zinc.300),theme(colors.gray.100),theme(colors.zinc.400),theme(colors.stone.200),theme(colors.stone.300),theme(colors.white))] bg-[length:200%_auto] bg-clip-text text-center text-3xl font-extrabold text-transparent drop-shadow-lg md:text-5xl lg:text-6xl xl:text-6xl 2xl:text-7xl'>
                             Welcome Back!
                         </h1>
-                        <h2 className='text-xl font-extrabold text-background drop-shadow-md md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-4xl'>
+                        <h2 className={`bg-[linear-gradient(to_right,theme(colors.zinc.300), theme(colors.gray.100), theme(colors.zinc.400), theme(colors.stone.200), theme(colors.stone.300), theme(colors.white))] animate-gradient-x select-none bg-[length:200%_auto] bg-clip-text text-center text-xl font-extrabold text-background drop-shadow-md md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-4xl`}>
                             Select Your Profile From The Users Below
                         </h2>
                     </div>

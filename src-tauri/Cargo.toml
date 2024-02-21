@@ -29,6 +29,7 @@ tauri = { version = "1.6.0", features = [
 ] }
 open = { version = "5.0.1" }
 random_color = { version = "0.8.0" }
+sysinfo = "0.30.5"
 
 [dependencies.tauri-plugin-sql]
 git = "https://github.com/tauri-apps/plugins-workspace"

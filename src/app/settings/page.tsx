@@ -41,7 +41,7 @@ export default function Settings() {
 
     const [formState, setFormState] = useState({
         theme: 'Light',
-        fontSize: 'Small',
+        fontSize: 'Large',
         animations: 'On',
         autoRename: 'Off',
         usePin: 'On'

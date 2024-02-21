@@ -35,6 +35,20 @@ export default function Home() {
         useEffect(() => {
             if (!isLoading && (users?.length === 0 || users === undefined)) {
                 router.push('/profiles/newUser');
+            } else if (!isLoading && users && users?.length > 1) {
+                console.log("multiple users found");
+                getCurrentUserGlobal().then((GLOBAL_USER) => {
+                    if (GLOBAL_USER && GLOBAL_USER?.userId !== -1 && users) {
+                        for (const user of users) {
+                            if (user.id === GLOBAL_USER.userId) {
+                                setUsers([]);
+                                setUsers([user]);
+                            }
+                        }
+                    } else if (!isLoading) {
+                        router.push('/profiles');
+                    }
+                })
             }
         }, [users, isLoading])
 
@@ -47,31 +61,39 @@ export default function Home() {
             )
         }
 
-        if (!isLoading && users && users?.length > 1) {
-            console.log("multiple users found");
-            getCurrentUserGlobal().then((GLOBAL_USER) => {
-                if (GLOBAL_USER && GLOBAL_USER?.userId !== -1 && users) {
-                    for (const user of users) {
-                        if (user.id === GLOBAL_USER.userId) {
-                            setUsers([]);
-                            setUsers([user]);
-                        }
-                    }
-                } else if (!isLoading) {
-                    router.push('/profiles');
-                }
-            })
-        }
+
     }
 
     function PinInputReturningUser({ userPin, userId }: { userPin: string, userId: number }) {
 
         let randomQuotes = [
+            "Just a Second!",
+            "Wait a Moment!",
+            "Hold On!",
+        ]
+
+        let finalQuotes = [
+            "Final Step!",
+            "The Last One!",
+            "Just One More!",
+            "Any Second Now!",
             "One More Step!",
-            "Almost There!",
-            "For Your Eyes Only!",
-            "Just A Moment!",
-            "Not So Fast!",
+        ]
+
+        let failedQuotes = [
+            "Try Again!",
+            "Incorrect!",
+            "One More Time!",
+            "Not Quite!",
+            "Close!",
+            "Missed It!"
+        ]
+
+        let welcomeQuotes = [
+            "Welcome Back!",
+            "Good To See You!",
+            "You're Back!",
+            "You're In!",
         ]
 
         let router = useRouter();
@@ -82,35 +104,9 @@ export default function Home() {
         const [currentUser, setCurrentUser] = useState<User>();
         const [isLoading, setIsLoading] = useState(true);
 
-
-        const handleChange = (value: any, index: number) => {
-            const newPins = [...pins];
-            newPins[index] = value;
-            setPins(newPins);
-
-            if (inputRefs && value.length === 1 && index < pinLength - 1) {
-                (inputRefs[index + 1].current as HTMLInputElement).focus();
-            }
-        };
-
-        const handleBackspace = (event: any, index: number) => {
-            if (event.key === 'Backspace' && !pins[index] && index > 0) {
-                const newPins = [...pins];
-                newPins[index - 1] = '';
-                setPins(newPins);
-                (inputRefs[index - 1].current as HTMLInputElement).focus();
-            }
-
-            // if its the last pin and they didnt get it right, pressing backspace will clear them all and focus the first input
-            if (event.key === 'Backspace' && index === 3 && pins[index]) {
-                console.log("backspace pressed");
-                setPins(Array(pinLength).fill(''));
-                (inputRefs[0].current as HTMLInputElement).focus();
-            }
-        };
-
         // focus on the first pin input on component mount
         useEffect(() => {
+            router.prefetch('/dashboard');
             if (inputRefs[0] && inputRefs[0].current) {
                 (inputRefs[0].current as HTMLInputElement).focus();
             }
@@ -150,6 +146,32 @@ export default function Home() {
 
         }, [pins, isLoading]);
 
+        const handleChange = (value: any, index: number) => {
+            const newPins = [...pins];
+            newPins[index] = value;
+            setPins(newPins);
+
+            if (inputRefs && value.length === 1 && index < pinLength - 1) {
+                (inputRefs[index + 1].current as HTMLInputElement).focus();
+            }
+        };
+
+        const handleBackspace = (event: any, index: number) => {
+            if (event.key === 'Backspace' && !pins[index] && index > 0) {
+                const newPins = [...pins];
+                newPins[index - 1] = '';
+                setPins(newPins);
+                (inputRefs[index - 1].current as HTMLInputElement).focus();
+            }
+
+            // if its the last pin and they didnt get it right, pressing backspace will clear them all and focus the first input
+            if (event.key === 'Backspace' && index === 3 && pins[index]) {
+                console.log("backspace pressed");
+                setPins(Array(pinLength).fill(''));
+                (inputRefs[0].current as HTMLInputElement).focus();
+            }
+        };
+
 
 
         return (
@@ -165,8 +187,32 @@ export default function Home() {
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.5, bounce: 0.5, type: "spring" }}
                         >
-                            <h1 className="select-none text-2xl font-bold drop-shadow-md md:text-3xl lg:text-4xl xl:text-5xl">
-                                {randomQuotes[Math.floor(Math.random() * randomQuotes.length)]}
+                            <h1 className="w=full h-full select-none py-4 text-center text-2xl font-bold drop-shadow-md md:text-3xl lg:text-4xl xl:text-5xl">
+                                {
+                                    pins.join("").length === 3 && (
+                                        finalQuotes[Math.floor(Math.random() * finalQuotes.length)]
+                                    )
+                                }
+
+                                {
+                                    pins.join("").length < 3 && (
+                                        randomQuotes[Math.floor(Math.random() * randomQuotes.length)]
+                                    )
+                                }
+
+                                <AnimatePresence>
+                                    <motion.div key={"failed-text"}
+                                        animate={(pins.join('').length === 4 && pins.join('') !== userPin) ? { x: [0, -10, 0, 10, 0] } : undefined}
+                                        transition={{ duration: 0.2 }}
+                                        className='text-destructive drop-shadow-md md:text-4xl lg:text-5xl xl:text-6xl'
+                                    >
+                                        {
+                                            pins.join("").length === 4 && pins.join("") !== userPin && (
+                                                failedQuotes[Math.floor(Math.random() * randomQuotes.length)]
+                                            )
+                                        }
+                                    </motion.div>
+                                </AnimatePresence>
                             </h1>
                             {(userId && currentUser) && (
                                 <div className=''>
@@ -187,10 +233,10 @@ export default function Home() {
                                         value={pin}
                                         onChange={(e) => handleChange(e.target.value, index)}
                                         onKeyDown={(e) => handleBackspace(e, index)}
-                                        className={cn("h-20 w-20 rounded border-2 border-primary text-center text-xl md:h-28 md:w-28 md:text-4xl shadow-md font-bold",
+                                        className={cn("h-20 w-20 rounded border-2 border-secondary text-center text-4xl md:h-28 md:w-28 md:text-5xl shadow-md font-bold lg:text-6xl",
                                             (pins.join('').length === 4 && pins.join('') !== userPin) && "border-red-500 focus:outline-none focus:border-red-500",
                                         )}
-                                        pattern="[0-9]*" // Ensure only numbers can be inputted
+                                        pattern="\d{4,4}"
                                     />
                                 ))}
                             </motion.div>
@@ -208,7 +254,7 @@ export default function Home() {
                             initial={{ y: -50, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: -50, opacity: 0 }}
-                            transition={{ duration: 2, ease: "easeInOut", stiffness: 100, damping: 20 }}
+                            transition={{ duration: 0.5, ease: "easeInOut", stiffness: 100, damping: 20 }}
                         >
                             <Check className='flex h-auto w-60 items-center justify-center text-center text-accent' />
                         </motion.div>

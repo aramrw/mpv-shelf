@@ -7,7 +7,9 @@ use random_color::color_dictionary::{ColorDictionary, ColorInformation};
 use random_color::{Color, Luminosity, RandomColor};
 use serde::{Deserialize, Serialize};
 use std::process::Command;
-use tauri::generate_handler;
+use std::vec;
+use sysinfo::System;
+use tauri::{generate_handler, Manager};
 #[allow(unused_imports)]
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem};
 
@@ -29,22 +31,79 @@ fn main() {
 
     tauri::Builder::default()
         .system_tray(tray)
+        .on_system_tray_event(|app, event| match event {
+            SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
+                "quit" => {
+                    std::process::exit(0);
+                }
+                "hide" => {
+                    let window = app.get_window("main").unwrap();
+                    window.hide().unwrap();
+                }
+                _ => {}
+            },
+            _ => {}
+        })
         .plugin(tauri_plugin_sql::Builder::default().build())
         .invoke_handler(generate_handler![
             open_video,
             show_in_folder,
             generate_random_color
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|_app_handle, event| match event {
+            tauri::RunEvent::ExitRequested { api, .. } => {
+                api.prevent_exit();
+            }
+            _ => {}
+        });
 }
 
 #[tauri::command]
-fn open_video(path: &str) {
+fn open_video(path: &str) -> String {
+    // Please note that we use "new_all" to ensure that all list of
+    // components, network interfaces, disks and users are already
+    // filled!
+    let mut sys = System::new_all();
+
+    // First we update all information of our `System` struct.
+    sys.refresh_all();
+
+    #[allow(unused_variables)]
+    for (pid, process) in sys.processes() {
+        if process.name().to_lowercase().contains("mpv.exe") {
+            process.kill();
+        }
+    }
+
     match open::that(path) {
         Ok(_) => "Video opened successfully",
         Err(_) => "Failed to open video",
     };
+
+    // Loop indefinitely until mpv.exe is not found.
+    loop {
+        sys.refresh_processes(); // Refresh the list of processes.
+
+        let mut mpv_running = false; // Flag to check if mpv is running.
+
+        // Check all processes to see if mpv.exe is running.
+        for (_pid, process) in sys.processes() {
+            if process.name().to_lowercase() == "mpv.exe" {
+                mpv_running = true; // mpv is still running.
+                break; // No need to check further processes.
+            }
+        }
+
+        if !mpv_running {
+            // If mpv.exe is not running, break the loop and return.
+            return "closed".to_string();
+        }
+
+        // Sleep for a bit before checking again to reduce CPU usage.
+        std::thread::sleep(std::time::Duration::from_secs(1));
+    }
 }
 
 #[tauri::command]
@@ -98,7 +157,7 @@ fn show_in_folder(path: String) {
 fn generate_random_color() -> String {
     let color = RandomColor::new()
         .luminosity(Luminosity::Light) // Ensuring the color is light, for a pastel-like effect
-        .alpha(8.0) // Fully opaque
+        .alpha(0.2)
         .to_hex()
         .to_string(); // Output as an HSL string for finer control over the appearance
 
