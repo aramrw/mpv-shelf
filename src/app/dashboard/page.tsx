@@ -209,7 +209,7 @@ export default function Dashboard() {
 
             // Now, call the backend API to update the database
             const updateFunc = isWatched ? updateVideoWatched : unwatchVideo;
-            updateFunc({ videoPath: file.path })
+            updateVideoWatched({ videoPath: file.path })
                 .catch(() => {
                     // If there's an error, revert to the original state
                     alert('Failed to update video status. Please try again.');
@@ -396,6 +396,7 @@ export default function Dashboard() {
                                             setDeleting(true);
                                             // trigger the delete folder db command
                                             deleteFolder({ folderPath }).then(() => {
+                                                setDeleting(false);
                                                 router.prefetch('/dashboard');
                                                 window.location.reload();
                                             });
@@ -571,7 +572,6 @@ export default function Dashboard() {
                                                             if (e.button === 0 && !isInvoking) {
                                                                 setIsInvoking(true);
                                                                 invoke('show_in_folder', { path: `${file.path}` }).then((res) => {
-
                                                                     setIsInvoking(false);
                                                                 });
                                                             }
@@ -601,13 +601,7 @@ export default function Dashboard() {
                                                             {!watchedVideos.some((wVideo) => wVideo?.watched || watchedVideos.some((wVideo) => wVideo?.path !== file.path)) ? (
                                                                 <ContextMenuItem
                                                                     className='flex cursor-pointer gap-1'
-                                                                    onClick={(e) => {
-                                                                        setFinishedSettingFiles(false);
-                                                                        updateVideoWatched({ videoPath: file.path }).then(() => {
-                                                                            setFinishedSettingFiles(true);
-                                                                        });
-
-                                                                    }}
+                                                                    onClick={() => handleWatchedToggle(file)}
                                                                 >
                                                                     <span className={cn("",
                                                                         userSettings?.fontSize === "Medium" && 'text-base',
