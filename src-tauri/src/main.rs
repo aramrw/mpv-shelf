@@ -7,7 +7,6 @@ use random_color::color_dictionary::{ColorDictionary, ColorInformation};
 use random_color::{Color, Luminosity, RandomColor};
 use serde::{Deserialize, Serialize};
 
-use std::env::args;
 use std::io::{stdout, Write};
 use std::process::Command;
 use std::vec;
@@ -143,7 +142,7 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
                 "new".to_string(),
                 tauri::WindowUrl::App("/dashboard".into()),
             )
-            .transparent(1.0)
+            .transparent(true)
             .build()
             .unwrap();
 
