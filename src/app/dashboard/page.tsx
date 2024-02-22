@@ -433,6 +433,7 @@ export default function Dashboard() {
                                                             setFinishedSettingFiles(false);
                                                             updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).then(() => {
                                                                 setFinishedSettingFiles(true);
+                                                                setIsInvoking(false);
                                                             });
 
                                                             setFinishedSettingFiles(false);
@@ -578,7 +579,14 @@ export default function Dashboard() {
                                                             {handleCheckWatched(file) ? (
                                                                 <ContextMenuItem
                                                                     className='flex cursor-pointer gap-1'
-                                                                    onClick={() => handleWatchedToggle(file)}
+                                                                    onClick={() => {
+                                                                        setIsInvoking(true);
+                                                                        setFinishedSettingFiles(false);
+                                                                        updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).then(() => {
+                                                                            setFinishedSettingFiles(true);
+                                                                            setIsInvoking(false);
+                                                                        });
+                                                                    }}
                                                                 >
                                                                     <span className={cn("",
                                                                         userSettings?.fontSize === "Medium" && 'text-base',
@@ -619,13 +627,17 @@ export default function Dashboard() {
                                                             <ContextMenuItem className='cursor-pointer'
                                                                 onClick={(e) => {
                                                                     setFinishedSettingFiles(false);
-                                                                    files.slice(0, index + 1).map((file) => {
-                                                                        updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).then(() => {
-                                                                            setFinishedSettingFiles(true);
+                                                                    if (currentUser) {
+                                                                        files.slice(0, index + 1).reverse().map((file) => {
+                                                                            updateVideoWatched({ videoPath: file.path, user: currentUser, watched: true }).then((res) => {
+                                                                                if (res) {
+                                                                                    setFinishedSettingFiles(true);
+                                                                                }
+                                                                            });
                                                                         });
-                                                                    })
-
-                                                                }}
+                                                                    }
+                                                                }
+                                                                }
                                                             >
                                                                 <div className='flex gap-1'>
                                                                     <span className={cn("",

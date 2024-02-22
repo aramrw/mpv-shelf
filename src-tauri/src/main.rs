@@ -50,20 +50,34 @@ fn main() {
                 SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
                     "open" => match app.get_window("main") {
                         Some(window) => {
-                            window.show().unwrap();
-                            window.set_focus().unwrap();
+                            if window.is_visible().unwrap() {
+                                window.set_focus().unwrap();
+                            } else if !window.is_visible().unwrap() {
+                                window.show().unwrap();
+                                window.set_focus().unwrap();
+                            }
                         }
-                        None => {
-                            tauri::WindowBuilder::new(
-                                app,
-                                "new".to_string(),
-                                tauri::WindowUrl::App("/dashboard".into()),
-                            )
-                            .transparent(true)
-                            .inner_size(700.0, 600.0)
-                            .build()
-                            .unwrap();
-                        }
+                        None => match app.get_window("new") {
+                            Some(window) => {
+                                if window.is_visible().unwrap() {
+                                    window.set_focus().unwrap();
+                                } else if !window.is_visible().unwrap() {
+                                    window.show().unwrap();
+                                    window.set_focus().unwrap();
+                                }
+                            }
+                            None => {
+                                tauri::WindowBuilder::new(
+                                    app,
+                                    "new".to_string(),
+                                    tauri::WindowUrl::App("/dashboard".into()),
+                                )
+                                .transparent(true)
+                                .inner_size(700.0, 600.0)
+                                .build()
+                                .unwrap();
+                            }
+                        },
                     },
                     "hide" => match app.get_window("main") {
                         Some(window) => {

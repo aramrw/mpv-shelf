@@ -192,7 +192,6 @@ export async function updateVideoWatched({
     let db = await Database.load("sqlite:main.db");
 
     try {
-        await db.execute("BEGIN TRANSACTION;")
 
         // Ensure the video table exists with the correct schema including the userId field
         await db.execute(`
@@ -216,16 +215,13 @@ export async function updateVideoWatched({
             await db.execute("UPDATE video SET watched = $2 WHERE path = $1", [videoPath, watched ? 1 : 0]);
         }
 
-        // Commit the transaction upon success
-        await db.execute("COMMIT;");
     } catch (e) {
-        // Rollback the transaction in case of an error
-        await db.execute("ROLLBACK;");
         console.error(e); // Better error handling could be implemented here
-    } finally {
-        // Ensure the database is closed properly
-        await db.close();
+        return false
     }
+
+    await db.close();
+    return true;
 }
 
 
