@@ -229,10 +229,7 @@ export default function Dashboard() {
                                 }}
                                 whileHover={(userSettings?.animations === "On" && !asChild) ? { padding: "10px" } : undefined}
                                 transition={{ duration: 0.2, damping: 10, stiffness: 100 }}
-                                initial={userSettings?.animations === "On" ? { x: 20 } : undefined}
-                                animate={userSettings?.animations === "On" ? { x: 0 } : undefined}
-                                exit={userSettings?.animations === "On" ? { y: -1, opacity: 0 } : undefined}
-
+                                exit={userSettings?.animations === "On" ? { y: -50, opacity: 0 } : undefined}
                             >
 
                                 {/* Displays all the tags for main parent folder. */}
@@ -242,8 +239,8 @@ export default function Dashboard() {
                                     <AnimatePresence mode='wait'>
                                         <motion.div className='flex items-start justify-center text-center'
                                             key={folderPath + "not expanded" + (Math.random() * 10) + ""}
-                                            initial={userSettings?.animations === "On" ? { opacity: 0.7 } : undefined}
-                                            animate={userSettings?.animations === "On" ? { rotate: 0, opacity: 1 } : undefined}
+                                            initial={userSettings?.animations === "On" ? { opacity: 1 } : undefined}
+                                            animate={userSettings?.animations === "On" ? { opacity: 1 } : undefined}
                                             exit={userSettings?.animations === "On" ? { opacity: 0.7 } : undefined}
                                             transition={{ duration: 0.1, damping: 300, stiffness: 5, }}
                                         >
@@ -432,21 +429,16 @@ export default function Dashboard() {
                                                             setIsInvoking(true);
                                                             setFinishedSettingFiles(false);
                                                             updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).then(() => {
+                                                                invoke('open_video', { path: file.path, userId: string });
                                                                 setFinishedSettingFiles(true);
-                                                                setIsInvoking(false);
+                                                                setIsInvoking(true);
                                                             });
 
-                                                            setFinishedSettingFiles(false);
-                                                            invoke('open_video', { path: file.path, userId: string }).then((res) => {
-                                                                if ((res as string) === "closed") {
-                                                                    setFinishedSettingFiles(true);
-                                                                    setIsInvoking(false);
-                                                                }
-                                                            });
+
+
                                                         }
                                                     }}
                                                     key={file.name}
-
                                                     initial={userSettings?.animations === "On" ? { opacity: 0 } : undefined}
                                                     animate={userSettings?.animations === "On" ? { opacity: 1 } : undefined}
                                                     exit={userSettings?.animations === "On" ? { opacity: 0, x: -100 } : undefined}

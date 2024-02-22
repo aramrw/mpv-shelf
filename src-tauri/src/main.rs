@@ -201,12 +201,6 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
 
             sys.refresh_all();
 
-            // for (pid, process) in sys.processes() {
-            //     if process.name().to_lowercase().contains("mpv.exe") {
-            //         process.kill();
-            //     }
-            // }
-
             return "closed".to_string();
         }
 
