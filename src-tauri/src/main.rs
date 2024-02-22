@@ -189,17 +189,24 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
             stdout().flush().unwrap();
 
             // open a new window and close the first exe (not a window anymore) in the system tray
-            tauri::WindowBuilder::new(
-                &handle,
-                "new".to_string(),
-                tauri::WindowUrl::App("/dashboard".into()),
-            )
-            .transparent(true)
-            .inner_size(700.0, 600.0)
-            .build()
-            .unwrap();
 
-            sys.refresh_all();
+            match handle.get_window("new") {
+                Some(window) => {
+                    window.show().unwrap();
+                    window.set_focus().unwrap();
+                }
+                None => {
+                    tauri::WindowBuilder::new(
+                        &handle,
+                        "new".to_string(),
+                        tauri::WindowUrl::App("/dashboard".into()),
+                    )
+                    .transparent(true)
+                    .inner_size(700.0, 600.0)
+                    .build()
+                    .unwrap();
+                }
+            }
 
             return "closed".to_string();
         }
