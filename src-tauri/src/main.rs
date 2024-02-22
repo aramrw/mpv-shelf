@@ -1,30 +1,204 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+#[allow(unused_imports)]
+use random_color::color_dictionary::{ColorDictionary, ColorInformation};
+#[allow(unused_imports)]
+use random_color::{Color, Luminosity, RandomColor};
 use serde::{Deserialize, Serialize};
+
+use std::io::{stdout, Write};
 use std::process::Command;
-use tauri::generate_handler;
+use std::vec;
+use sysinfo::System;
+use tauri::{generate_handler, Manager, Window};
+#[allow(unused_imports)]
+use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem};
 
 #[derive(Serialize, Deserialize)]
 struct User {
     id: i64,
-    pin: Option<String>,
+    pin: i64,
+}
+
+#[derive(Serialize, Deserialize)]
+struct Global {
+    id: String,
+    user_id: i64,
 }
 
 fn main() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_sql::Builder::default().build())
-        .invoke_handler(generate_handler![open_video, show_in_folder, current_dir,])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+    let open = CustomMenuItem::new("open".to_string(), "Open");
+    let hide = CustomMenuItem::new("hide".to_string(), "Hide");
+    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
+
+    let tray_menu = SystemTrayMenu::new()
+        .add_item(open)
+        .add_native_item(SystemTrayMenuItem::Separator)
+        .add_item(hide)
+        .add_native_item(SystemTrayMenuItem::Separator)
+        .add_item(quit);
+    let tray = SystemTray::new().with_menu(tray_menu).clone();
+    fn hack_builder(tray: SystemTray) {
+        tauri::Builder::default()
+            // .setup(|app| {
+            //     tray::setup(app.handle());
+            //     Ok(())
+            // })
+            .system_tray(tray.clone())
+            .on_system_tray_event(move |app, event| match event {
+                SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
+                    "open" => match app.get_window("main") {
+                        Some(window) => {
+                            window.show().unwrap();
+                            window.set_focus().unwrap();
+                        }
+                        None => {
+                            tauri::WindowBuilder::new(
+                                app,
+                                "new".to_string(),
+                                tauri::WindowUrl::App("/dashboard".into()),
+                            )
+                            .transparent(true)
+                            .inner_size(700.0, 600.0)
+                            .build()
+                            .unwrap();
+                        }
+                    },
+                    "hide" => match app.get_window("main") {
+                        Some(window) => {
+                            if window.is_visible().unwrap() {
+                                window.hide().unwrap();
+                            } else if !window.is_visible().unwrap() {
+                                window.show().unwrap();
+                                window.set_focus().unwrap();
+                            }
+                        }
+                        None => match app.get_window("new") {
+                            Some(window) => {
+                                if window.is_visible().unwrap() {
+                                    window.hide().unwrap();
+                                } else if !window.is_visible().unwrap() {
+                                    window.show().unwrap();
+                                    window.set_focus().unwrap();
+                                }
+                            }
+                            None => {
+                                tauri::WindowBuilder::new(
+                                    app,
+                                    "new".to_string(),
+                                    tauri::WindowUrl::App("/dashboard".into()),
+                                )
+                                .transparent(true)
+                                .inner_size(700.0, 600.0)
+                                .build()
+                                .unwrap();
+                            }
+                        },
+                    },
+                    "quit" => {
+                        app.exit(1);
+                    }
+                    _ => {}
+                },
+                _ => {}
+            })
+            .plugin(tauri_plugin_sql::Builder::default().build())
+            .invoke_handler(generate_handler![
+                open_video,
+                show_in_folder,
+                generate_random_color
+            ])
+            .build(tauri::generate_context!())
+            .expect("error while building tauri application")
+            .run(|_app_handle, event| match event {
+                tauri::RunEvent::ExitRequested { api, .. } => {
+                    api.prevent_exit();
+                    // _app_handle.get_window("main").unwrap().hide().unwrap();
+                }
+                _ => {}
+            });
+    }
+
+    hack_builder(tray);
 }
 
 #[tauri::command]
-fn open_video(path: &str) {
+async fn open_video(path: String, handle: tauri::AppHandle) -> String {
+    let window: Window = handle
+        .clone()
+        .get_window("main")
+        .or_else(|| handle.clone().get_window("new"))
+        .expect("failed to get any windows!");
+
+    window.close().expect("failed to close main window");
+
+    let mut sys = System::new_all();
+
+    // First we update all information of our `System` struct.
+    sys.refresh_all();
+
+    #[allow(unused_variables)]
+    for (pid, process) in sys.processes() {
+        if process.name().to_lowercase().contains("mpv.exe") {
+            process.kill();
+        }
+    }
+
     match open::that(path) {
         Ok(_) => "Video opened successfully",
         Err(_) => "Failed to open video",
     };
+
+    let instant = std::time::Instant::now();
+
+    // Loop indefinitely until mpv.exe is not found.
+    loop {
+        sys.refresh_processes(); // Refresh the list of processes.
+
+        let mut mpv_running = false; // Flag to check if mpv is running.
+
+        // Check all processes to see if mpv.exe is running.
+        for (_pid, process) in sys.processes() {
+            if process.name().to_lowercase() == "mpv.exe" {
+                sys.refresh_all();
+                mpv_running = true; // mpv is still running.
+                break; // No need to check further processes.
+            }
+        }
+
+        if !mpv_running {
+            println!(
+                "mpv-shelf was running for {:.2} seconds in the background",
+                &instant.elapsed().as_secs_f32()
+            );
+            stdout().flush().unwrap();
+
+            // open a new window and close the first exe (not a window anymore) in the system tray
+            tauri::WindowBuilder::new(
+                &handle,
+                "new".to_string(),
+                tauri::WindowUrl::App("/dashboard".into()),
+            )
+            .transparent(true)
+            .inner_size(700.0, 600.0)
+            .build()
+            .unwrap();
+
+            sys.refresh_all();
+
+            // for (pid, process) in sys.processes() {
+            //     if process.name().to_lowercase().contains("mpv.exe") {
+            //         process.kill();
+            //     }
+            // }
+
+            return "closed".to_string();
+        }
+
+        // Sleep for a bit before checking again to reduce CPU usage.
+        std::thread::sleep(std::time::Duration::from_millis(500));
+    }
 }
 
 #[tauri::command]
@@ -75,13 +249,12 @@ fn show_in_folder(path: String) {
 }
 
 #[tauri::command]
-fn current_dir() {
-    println!("Current directory: {:?}", std::env::current_dir());
+fn generate_random_color() -> String {
+    let color = RandomColor::new()
+        .luminosity(Luminosity::Light) // Ensuring the color is light, for a pastel-like effect
+        .alpha(0.2)
+        .to_hex()
+        .to_string(); // Output as an HSL string for finer control over the appearance
+
+    color
 }
-
-// #[tauri::command]
-// fn base_dir() {
-//     let base_dir = tauri::api::path::BaseDirectory::AppData;
-
-//     println!("Base directory: {:?}", base_dir);
-// }

@@ -56,6 +56,10 @@ const config = {
           DEFAULT: "hsl(var(--tertiary))",
           foreground: "hsl(var(--tertiary-foreground))",
         },
+        monotone: {
+          DEFAULT: "hsl(var(--monotone))",
+          foreground: "hsl(var(--monotone-foreground))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -71,11 +75,19 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        'gradient-x': {
+          to: { 'background-position': '200% center' },
+        },
+        'gradient-y': {
+          to: { 'background-position': 'center 200%' },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "spotlight": "spotlight 0.5s ease-in-out",
+        "gradient-x": 'gradient-x 15s linear infinite',
+        "gradient-y": 'gradient-y 12s linear infinite',
       },
     },
   },

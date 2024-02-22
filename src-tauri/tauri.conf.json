@@ -11,18 +11,23 @@
     "version": "0.1.0"
   },
   "tauri": {
+    "systemTray": {
+      "iconAsTemplate": true,
+      "iconPath": "icons/icon.png",
+      "title": "mpv-shelf"
+    },
     "allowlist": {
       "all": false,
       "dialog": {
         "all": true,
         "ask": false,
-        "confirm": false,
-        "message": false,
+        "confirm": true,
+        "message": true,
         "open": true,
         "save": false
       },
       "fs": {
-        "all": false,
+        "all": true,
         "copyFile": false,
         "createDir": true,
         "exists": true,
@@ -39,15 +44,64 @@
         "execute": true,
         "open": false,
         "scope": [],
-        "sidecar": true
+        "sidecar": false
       },
       "path": {
+        "all": true
+      },
+      "clipboard": {
+        "all": false,
+        "readText": false,
+        "writeText": true
+      },
+      "window": {
+        "all": true,
+        "center": false,
+        "close": true,
+        "create": false,
+        "hide": false,
+        "maximize": false,
+        "minimize": false,
+        "print": false,
+        "requestUserAttention": false,
+        "setAlwaysOnTop": false,
+        "setClosable": false,
+        "setContentProtected": false,
+        "setCursorGrab": false,
+        "setCursorIcon": false,
+        "setCursorPosition": false,
+        "setCursorVisible": false,
+        "setDecorations": false,
+        "setFocus": false,
+        "setFullscreen": false,
+        "setIcon": false,
+        "setIgnoreCursorEvents": false,
+        "setMaxSize": false,
+        "setMaximizable": false,
+        "setMinSize": false,
+        "setMinimizable": false,
+        "setPosition": false,
+        "setResizable": false,
+        "setSize": false,
+        "setSkipTaskbar": false,
+        "setTitle": false,
+        "show": false,
+        "startDragging": false,
+        "unmaximize": false,
+        "unminimize": false
+      },
+      "protocol": {
+        "all": true,
+        "asset": true,
+        "assetScope": ["**"]
+      },
+      "globalShortcut": {
         "all": true
       }
     },
     "bundle": {
       "active": true,
-      "category": "DeveloperTool",
+      "category": "Utility",
       "copyright": "",
       "deb": {
         "depends": []
@@ -60,7 +114,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.mpvshelf.dev",
+      "identifier": "com.mpvshelf.app",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
