@@ -74,17 +74,27 @@ fn main() {
                                 window.set_focus().unwrap();
                             }
                         }
-                        None => {
-                            tauri::WindowBuilder::new(
-                                app,
-                                "new".to_string(),
-                                tauri::WindowUrl::App("/dashboard".into()),
-                            )
-                            .transparent(true)
-                            .inner_size(700.0, 600.0)
-                            .build()
-                            .unwrap();
-                        }
+                        None => match app.get_window("new") {
+                            Some(window) => {
+                                if window.is_visible().unwrap() {
+                                    window.hide().unwrap();
+                                } else if !window.is_visible().unwrap() {
+                                    window.show().unwrap();
+                                    window.set_focus().unwrap();
+                                }
+                            }
+                            None => {
+                                tauri::WindowBuilder::new(
+                                    app,
+                                    "new".to_string(),
+                                    tauri::WindowUrl::App("/dashboard".into()),
+                                )
+                                .transparent(true)
+                                .inner_size(700.0, 600.0)
+                                .build()
+                                .unwrap();
+                            }
+                        },
                     },
                     "quit" => {
                         app.exit(1);
@@ -115,7 +125,11 @@ fn main() {
 
 #[tauri::command]
 async fn open_video(path: String, handle: tauri::AppHandle) -> String {
-    let window: Window = handle.clone().get_window("main").expect("no main window");
+    let window: Window = handle
+        .clone()
+        .get_window("main")
+        .or_else(|| handle.clone().get_window("new"))
+        .expect("failed to get any windows!");
 
     window.close().expect("failed to close main window");
 
