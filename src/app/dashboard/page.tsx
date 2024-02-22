@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react'
 import { open } from '@tauri-apps/api/dialog';
 import { addFolder, deleteFolder, getCurrentUserGlobal, getFolders, getUserSettings, getUsers, getVideo, unwatchVideo, updateVideoWatched } from '../../../lib/prisma-commands';
 import type { User, Video } from "@prisma/client";
-import { ArrowDownWideNarrow, Captions, ChevronDown, ChevronUp, CornerLeftDown, CornerUpRight, Eye, EyeOff, Film, Folder, FolderInput, Folders, Loader2, Trash2, VideoIcon, } from 'lucide-react';
+import { Captions, ChevronDown, ChevronUp, CornerUpRight, Eye, EyeOff, Film, Folder, FolderInput, Folders, Loader2, Trash2, VideoIcon, } from 'lucide-react';
 import { FileEntry, readDir } from '@tauri-apps/api/fs'
 import { cn } from '@/lib/utils';
 import { invoke } from '@tauri-apps/api/tauri';
@@ -21,10 +21,8 @@ import { SettingSchema } from '../settings/page';
 import { ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent } from '@radix-ui/react-context-menu';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
-import { any } from 'zod';
-import { finished } from 'stream';
-import { WindowManager } from '@tauri-apps/api/window';
-import { stdout } from 'process';
+
+
 
 export default function Dashboard() {
     const [folderPaths, setFolderPaths] = useState<string[]>([]);
@@ -216,6 +214,17 @@ export default function Dashboard() {
                     setPrismaVideos(prismaVideos); // Revert to the original state if the API call fails
                 });
         };
+
+        const handleCheckWatched = (file: FileEntry) => {
+            for (const video of prismaVideos) {
+                if (video?.path === file?.path && !video?.watched) {
+                    return true;
+                } else if (video?.path === file?.path && video?.watched) {
+                    return false;
+                }
+            }
+
+        }
 
         return (
             <AnimatePresence>
@@ -598,7 +607,7 @@ export default function Dashboard() {
                                                             inset>Watch</ContextMenuSubTrigger>
                                                         <ContextMenuSubContent className="mx-2 overflow-hidden rounded-md border bg-popover p-1 font-medium text-popover-foreground shadow-md animate-in fade-in-80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
                                                             {/* Renders the watched context menu sub */}
-                                                            {!watchedVideos.some((wVideo) => wVideo?.watched || watchedVideos.some((wVideo) => wVideo?.path !== file.path)) ? (
+                                                            {handleCheckWatched(file) ? (
                                                                 <ContextMenuItem
                                                                     className='flex cursor-pointer gap-1'
                                                                     onClick={() => handleWatchedToggle(file)}

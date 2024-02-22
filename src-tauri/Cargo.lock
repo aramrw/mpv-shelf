@@ -89,6 +89,7 @@ dependencies = [
  "random_color",
  "serde",
  "serde_json",
+ "sqlx",
  "sysinfo",
  "tauri",
  "tauri-build",

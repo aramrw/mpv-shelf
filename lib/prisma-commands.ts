@@ -296,7 +296,7 @@ export async function updateSettings({
         console.log("error", e);
     });
 
-    await db.close();;
+    await db.close();
 }
 
 export async function updateUserPin({
@@ -371,8 +371,6 @@ export async function setCurrentUserGlobal({ userId }: { userId: number }) {
 
     try {
 
-        await db.execute("BEGIN TRANSACTION;")
-
         // Ensure the global table exists
         await db.execute(`
             CREATE TABLE IF NOT EXISTS global (
@@ -389,14 +387,10 @@ export async function setCurrentUserGlobal({ userId }: { userId: number }) {
             userId = excluded.userId
         `, [GLOBAL_ID, userId]);
 
-        await db.execute("COMMIT;")
-
-            ;
-
     } catch (e) {
+        await db.close();
         console.log(e);
-        await db.execute("ROLLBACK;");
-        ;
+
     }
 
 }
@@ -418,11 +412,10 @@ export async function getCurrentUserGlobal() {
         const GLOBAL_USER: Global[] = await db.select("SELECT * from global WHERE id = $1", [GLOBAL_ID])
 
         if (GLOBAL_USER) {
-            await db.close();
+            //await db.close();
             return GLOBAL_USER[0];
         }
 
-        await db.close();
         return null;
     } catch (e) {
         await db.close();

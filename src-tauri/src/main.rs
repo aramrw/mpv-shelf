@@ -6,6 +6,7 @@ use random_color::color_dictionary::{ColorDictionary, ColorInformation};
 #[allow(unused_imports)]
 use random_color::{Color, Luminosity, RandomColor};
 use serde::{Deserialize, Serialize};
+use sqlx::{migrate::MigrateDatabase, Sqlite};
 use std::process::Command;
 use std::vec;
 use sysinfo::System;
@@ -20,48 +21,87 @@ struct User {
 }
 
 fn main() {
-    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
+    let open = CustomMenuItem::new("open".to_string(), "Open");
     let hide = CustomMenuItem::new("hide".to_string(), "Hide");
+    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
+
     let tray_menu = SystemTrayMenu::new()
-        .add_item(quit)
+        .add_item(open)
         .add_native_item(SystemTrayMenuItem::Separator)
-        .add_item(hide);
+        .add_item(hide)
+        .add_native_item(SystemTrayMenuItem::Separator)
+        .add_item(quit);
+    let tray = SystemTray::new().with_menu(tray_menu).clone();
 
-    let tray = SystemTray::new().with_menu(tray_menu);
+    fn hack_builder(tray: SystemTray) {
+        tauri::Builder::default()
+            .system_tray(tray.clone())
+            .on_system_tray_event(move |app, event| match event {
+                SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
+                    "open" => {
+                        match app.get_window("main") {
+                            Some(window) => {
+                                window.show().unwrap();
+                                window.set_focus().unwrap();
+                            }
+                            None => {
+                                hack_builder(tray.clone());
+                                std::process::exit(0);
+                                // Trigger the hack builder again
+                            }
+                        }
+                    }
+                    "hide" => {
+                        let window = app.get_window("main").unwrap();
+                        window.hide().unwrap();
+                    }
+                    "quit" => {
+                        let db_url: String = app
+                            .path_resolver()
+                            .app_data_dir()
+                            .expect("failed to get app data dir")
+                            .as_path()
+                            .to_str()
+                            .unwrap()
+                            .to_string()
+                            + "\\main.db";
 
-    tauri::Builder::default()
-        .system_tray(tray)
-        .on_system_tray_event(|app, event| match event {
-            SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
-                "quit" => {
-                    std::process::exit(0);
-                }
-                "hide" => {
-                    let window = app.get_window("main").unwrap();
-                    window.hide().unwrap();
+                        tauri::async_runtime::spawn(async move {
+                            if Sqlite::database_exists(&db_url).await.unwrap_or(false) {
+                                println!("Database exists, dropping");
+                                Sqlite::drop_database(&db_url).await.unwrap();
+                            } else {
+                                println!("YOU DONE FUCKED UP. SHIT AINT WORKIN NIGGA");
+                            }
+                        });
+
+                        std::process::exit(0);
+                    }
+                    _ => {}
+                },
+                _ => {}
+            })
+            .plugin(tauri_plugin_sql::Builder::default().build())
+            .invoke_handler(generate_handler![
+                open_video,
+                show_in_folder,
+                generate_random_color
+            ])
+            .build(tauri::generate_context!())
+            .expect("error while building tauri application")
+            .run(|_app_handle, event| match event {
+                tauri::RunEvent::ExitRequested { api, .. } => {
+                    api.prevent_exit();
                 }
                 _ => {}
-            },
-            _ => {}
-        })
-        .plugin(tauri_plugin_sql::Builder::default().build())
-        .invoke_handler(generate_handler![
-            open_video,
-            show_in_folder,
-            generate_random_color
-        ])
-        .build(tauri::generate_context!())
-        .expect("error while building tauri application")
-        .run(|_app_handle, event| match event {
-            tauri::RunEvent::ExitRequested { api, .. } => {
-                api.prevent_exit();
-            }
-            _ => {}
-        });
+            });
+    }
+
+    hack_builder(tray);
 }
 
 #[tauri::command]
-fn open_video(path: &str) -> String {
+async fn open_video(path: String, handle: tauri::AppHandle) -> String {
     // Please note that we use "new_all" to ensure that all list of
     // components, network interfaces, disks and users are already
     // filled!
@@ -69,6 +109,11 @@ fn open_video(path: &str) -> String {
 
     // First we update all information of our `System` struct.
     sys.refresh_all();
+
+    //hide the main window, causing the app to minimize to the system tray
+    let window = handle.clone().get_window("main").expect("no main window");
+
+    window.hide().expect("failed to close main window");
 
     #[allow(unused_variables)]
     for (pid, process) in sys.processes() {
@@ -82,8 +127,11 @@ fn open_video(path: &str) -> String {
         Err(_) => "Failed to open video",
     };
 
+    let instant = std::time::Instant::now();
+
     // Loop indefinitely until mpv.exe is not found.
     loop {
+        print!("\r{:.2}", &instant.elapsed().as_secs_f32());
         sys.refresh_processes(); // Refresh the list of processes.
 
         let mut mpv_running = false; // Flag to check if mpv is running.
@@ -97,7 +145,11 @@ fn open_video(path: &str) -> String {
         }
 
         if !mpv_running {
-            // If mpv.exe is not running, break the loop and return.
+            window.show().expect("failed to show main window");
+            println!(
+                "mpv-shelf was running for {:.2} seconds in the background",
+                &instant.elapsed().as_secs_f32()
+            );
             return "closed".to_string();
         }
 
