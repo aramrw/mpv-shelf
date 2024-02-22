@@ -11,7 +11,7 @@ use std::io::{stdout, Write};
 use std::process::Command;
 use std::vec;
 use sysinfo::System;
-use tauri::{generate_handler, Manager, Window, WindowBuilder};
+use tauri::{generate_handler, Manager, Window};
 #[allow(unused_imports)]
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem};
 
@@ -39,29 +39,53 @@ fn main() {
         .add_native_item(SystemTrayMenuItem::Separator)
         .add_item(quit);
     let tray = SystemTray::new().with_menu(tray_menu).clone();
-
     fn hack_builder(tray: SystemTray) {
         tauri::Builder::default()
-            // .setup(|app| {})
+            // .setup(|app| {
+            //     tray::setup(app.handle());
+            //     Ok(())
+            // })
             .system_tray(tray.clone())
             .on_system_tray_event(move |app, event| match event {
                 SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
-                    "open" => {
-                        match app.get_window("main") {
-                            Some(window) => {
+                    "open" => match app.get_window("main") {
+                        Some(window) => {
+                            window.show().unwrap();
+                            window.set_focus().unwrap();
+                        }
+                        None => {
+                            tauri::WindowBuilder::new(
+                                app,
+                                "new".to_string(),
+                                tauri::WindowUrl::App("/dashboard".into()),
+                            )
+                            .transparent(true)
+                            .inner_size(700.0, 600.0)
+                            .build()
+                            .unwrap();
+                        }
+                    },
+                    "hide" => match app.get_window("main") {
+                        Some(window) => {
+                            if window.is_visible().unwrap() {
+                                window.hide().unwrap();
+                            } else if !window.is_visible().unwrap() {
                                 window.show().unwrap();
                                 window.set_focus().unwrap();
                             }
-                            None => {
-                                //hack_builder(tray.clone());
-                                // Trigger the hack builder again
-                            }
                         }
-                    }
-                    "hide" => {
-                        let window = app.get_window("main").unwrap();
-                        window.hide().unwrap();
-                    }
+                        None => {
+                            tauri::WindowBuilder::new(
+                                app,
+                                "new".to_string(),
+                                tauri::WindowUrl::App("/dashboard".into()),
+                            )
+                            .transparent(true)
+                            .inner_size(700.0, 600.0)
+                            .build()
+                            .unwrap();
+                        }
+                    },
                     "quit" => {
                         app.exit(1);
                     }
@@ -80,7 +104,7 @@ fn main() {
             .run(|_app_handle, event| match event {
                 tauri::RunEvent::ExitRequested { api, .. } => {
                     api.prevent_exit();
-                    _app_handle.get_window("main").unwrap().hide().unwrap();
+                    // _app_handle.get_window("main").unwrap().hide().unwrap();
                 }
                 _ => {}
             });
@@ -137,22 +161,23 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
             stdout().flush().unwrap();
 
             // open a new window and close the first exe (not a window anymore) in the system tray
-            let new_window = tauri::WindowBuilder::new(
+            tauri::WindowBuilder::new(
                 &handle,
                 "new".to_string(),
                 tauri::WindowUrl::App("/dashboard".into()),
             )
             .transparent(true)
+            .inner_size(700.0, 600.0)
             .build()
             .unwrap();
 
             sys.refresh_all();
 
-            for (pid, process) in sys.processes() {
-                if process.name().to_lowercase().contains("mpv.exe") {
-                    process.kill();
-                }
-            }
+            // for (pid, process) in sys.processes() {
+            //     if process.name().to_lowercase().contains("mpv.exe") {
+            //         process.kill();
+            //     }
+            // }
 
             return "closed".to_string();
         }

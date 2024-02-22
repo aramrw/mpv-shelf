@@ -25,7 +25,6 @@ export default function Home() {
                     //console.log("currentUsers: ", currentUsers);
                     setUsers(currentUsers);
                     setIsLoading(false);
-
                 } else {
                     setIsLoading(false);
                 }

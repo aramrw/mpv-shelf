@@ -74,6 +74,7 @@ export async function createNewUser({
         FOREIGN KEY (userId) REFERENCES user(id))`
         )
 
+
         // Attempt to insert a new user with a color if provided
         // This assumes you want to insert the color only if it doesn't already exist in the table
         // If the color is not provided or is an empty string, this will skip the attempt to insert the color
@@ -243,8 +244,9 @@ export async function getVideo({
             id INTEGER PRIMARY KEY AUTOINCREMENT, 
             path TEXT NOT NULL UNIQUE, 
             watched BOOLEAN NOT NULL DEFAULT 0,
+            userId INTEGER, 
             FOREIGN KEY (userId) REFERENCES user(id)
-            )`
+        )`
         )
 
         video = await db.select("SELECT * from video WHERE path = ($1)", [videoPath])

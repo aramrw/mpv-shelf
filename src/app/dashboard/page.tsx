@@ -34,16 +34,24 @@ export default function Dashboard() {
     // fetch the user object from db on start and set the current user
     useEffect(() => {
         getUsers().then((users) => {
-            if (users) {
+            if (users?.length !== 0 && users) {
                 getCurrentUserGlobal().then((GLOBAL_USER) => {
-                    for (const user of users) {
-                        if (user.id === Number(GLOBAL_USER?.userId)) {
-                            setCurrentUser(user);
-                            break;
+                    if (GLOBAL_USER && GLOBAL_USER?.userId !== -1) {
+                        for (const user of users) {
+                            if (user.id === Number(GLOBAL_USER?.userId)) {
+                                setCurrentUser(user);
+                                break;
+                            }
                         }
+                    } else {
+                        router.push('/');
                     }
                 });
+            } else {
+
+                router.push('/profiles/createUser');
             }
+
         })
 
     }, [])
@@ -62,9 +70,7 @@ export default function Dashboard() {
 
     // fetch the settings object from db on start
     useEffect(() => {
-
         console.log(folderPaths);
-
         if (currentUser?.id) {
             getUserSettings({ userId: currentUser?.id }).then((settings) => {
                 if (settings) {
@@ -131,16 +137,17 @@ export default function Dashboard() {
 
         // Reading directory contents
         useEffect(() => {
+            console.log(folderPath);
             setFinishedSettingFiles(false);
             readDir(folderPath).then((res) => {
                 if (res) {
                     const videoFiles = res.filter(file => supportedVideoFormats.includes(file.path.replace(/^.*\./, '')) && !file.children);
                     const subtitleFiles = res.filter(file => file.path.split('.').pop() === 'srt');
-                    const folders = res.filter(file => file.children).map(file => ({ name: file.name }));
+                    const folders = res.filter(file => file.children);
 
                     setFiles(videoFiles);
                     setFolders(folders as FileEntry[]);
-                    setSubtitleFiles(subtitleFiles);
+                    setSubtitleFiles(subtitleFiles as FileEntry[]);
                     setFinishedSettingFiles(true);
                 }
             });
