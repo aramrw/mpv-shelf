@@ -15,6 +15,7 @@ model User {
   pin       String?  @unique
   imagePath String?
   folders   Folder[] @relation("UserFolders")
+  videos    Video[]
   color     String?
 }
 
@@ -29,6 +30,8 @@ model Video {
   id      Int     @id @default(autoincrement())
   path    String  @unique
   watched Boolean @default(false)
+  user    User    @relation(fields: [userId], references: [id])
+  userId  Int
 }
 
 model Global {

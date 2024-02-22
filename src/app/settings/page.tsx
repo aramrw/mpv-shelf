@@ -166,6 +166,13 @@ export default function Settings() {
         })
     }
 
+    const handleUserGlobal = (userId: { userId: number }) => {
+
+        setCurrentUserGlobal({ userId: -1 }).then(() => {
+            router.push('/');
+        })
+
+    }
 
     return (
         <motion.main className={cn('h-fit pb-2 w-full',
@@ -210,12 +217,7 @@ export default function Settings() {
                                                                     formState?.fontSize === "Medium" && 'text-lg',
                                                                     formState?.fontSize === "Large" && 'text-xl',
                                                                     formState?.fontSize === "XLarge" && 'text-2xl',
-                                                                )} onClick={() => {
-                                                                    setCurrentUserGlobal({ userId: -1 }).then(() => {
-                                                                        router.push('/');
-                                                                    })
-
-                                                                }}>
+                                                                )} onClick={() => { handleUserGlobal({ userId: currentUser.id }) }}>
                                                                     Sign Out
                                                                     <UserMinus className={cn('h-auto w-4 cursor-pointer',
                                                                         formState?.fontSize === "Medium" && 'h-auto w-5',

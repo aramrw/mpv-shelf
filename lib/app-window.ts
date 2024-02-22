@@ -1,4 +1,5 @@
 import { confirm } from '@tauri-apps/api/dialog'
+import { WebviewWindow } from '@tauri-apps/api/window'
 import { title } from 'process'
 
 export async function setupAppWindow() {
@@ -25,4 +26,17 @@ export async function settingsOnCloseListener() {
     });
 
     return unlisten
+}
+
+export async function createNewWindow() {
+
+    const webview = new WebviewWindow('main', {
+        url: '/home'
+    });
+    webview.once('tauri://created', function () {
+        console.log('webview window created');
+    });
+    webview.once('tauri://error', function (e) {
+        console.log(e);
+    });
 }

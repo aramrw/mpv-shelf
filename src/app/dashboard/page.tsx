@@ -21,13 +21,14 @@ import { SettingSchema } from '../settings/page';
 import { ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent } from '@radix-ui/react-context-menu';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
-
-
+import { set, string } from 'zod';
+// import { WebviewWindow, appWindow } from "@tauri-apps/api/window"
 
 export default function Dashboard() {
     const [folderPaths, setFolderPaths] = useState<string[]>([]);
     const [currentUser, setCurrentUser] = useState<User>();
     const [userSettings, setUserSettings] = useState<SettingSchema>();
+
     const router = useRouter();
 
     // fetch the user object from db on start and set the current user
@@ -128,103 +129,65 @@ export default function Dashboard() {
         const [isInvoking, setIsInvoking] = useState(false);
         const [watchedVideos, setWatchedVideos] = useState<Video[]>([]);
 
-
-        // get all the files and folders in the folder path on startup
+        // Reading directory contents
         useEffect(() => {
             setFinishedSettingFiles(false);
             readDir(folderPath).then((res) => {
                 if (res) {
-                    let videoFiles = res.filter(file => {
-                        let ext = file.path.split('.').pop();
-                        if (ext) {
-                            return supportedVideoFormats.includes(ext);
-                        }
-                        return false;
-                    })
-
-                    let subtitleFiles = res.filter(file => {
-                        let ext = file.path.split('.').pop();
-                        if (ext) {
-                            return ext === 'srt';
-                        }
-                        return false;
-                    })
-
-                    let folders = res.filter(file => {
-                        if (file.children) {
-                            return file.name;
-                        }
-                    });
-                    //console.log("folders:", folders);
+                    const videoFiles = res.filter(file => supportedVideoFormats.includes(file.path.replace(/^.*\./, '')) && !file.children);
+                    const subtitleFiles = res.filter(file => file.path.split('.').pop() === 'srt');
+                    const folders = res.filter(file => file.children).map(file => ({ name: file.name }));
 
                     setFiles(videoFiles);
-                    setFolders(folders);
+                    setFolders(folders as FileEntry[]);
                     setSubtitleFiles(subtitleFiles);
                     setFinishedSettingFiles(true);
                 }
+            });
+        }, [folderPath]); // Added folderPath as a dependency
 
-            })
-        }, [])
-
-        // get all the videos from the db on startup
+        // Fetching videos information
         useEffect(() => {
-            setPrismaVideos([]);
-            if (currentUser && files.length > 0 && finishedSettingFiles == true) {
-                setPrismaVideos([]);
+            if (currentUser && files.length > 0 && finishedSettingFiles) {
                 setIsInvoking(true);
-                for (const file of files) {
-                    getVideo({ videoPath: file.path }).then((video: Video) => {
-                        if (video) {
-                            //console.log("\rvideo", video);
-                            setPrismaVideos(prevVideos => [...prevVideos, video]);
-                        }
-                    }).finally(() => {
-                        setIsInvoking(false);
-                    });
-                }
+                Promise.all(files.map(file => getVideo({ videoPath: file.path })))
+                    .then(videos => {
+                        setPrismaVideos(videos.filter(video => video)); // Filter out undefined or null results
+                    })
+                    .finally(() => setIsInvoking(false));
             }
-        }, [finishedSettingFiles])
+        }, [currentUser, files, finishedSettingFiles]);
 
+        // Filtering watched videos
         useEffect(() => {
-            // Assuming prismaVideos is the state that contains all video details
-            const updatedWatchedVideos = prismaVideos.filter(video => video.watched);
-            setWatchedVideos(updatedWatchedVideos);
-        }, [prismaVideos]); // Add prismaVideos as a dependency to this useEffect
+            setWatchedVideos(prismaVideos.filter(video => video.watched));
+        }, [prismaVideos]);
 
-        // Now, modify the event handlers for setting a video as watched or unwatched
+        // Toggle watched status
         const handleWatchedToggle = (file: FileEntry) => {
-            // Determine the new watched status
-            const isWatched = !prismaVideos.find(video => video.path === file.path)?.watched;
-
-            // Optimistically update local state for immediate UI response
             const updatedVideos = prismaVideos.map(video => {
                 if (video.path === file.path) {
-                    return { ...video, watched: isWatched };
+                    const newWatchedStatus = !video.watched; // Toggle the status
+                    // Call the backend API to update the database
+                    const updateFunction = newWatchedStatus ? updateVideoWatched : unwatchVideo;
+                    if (currentUser) {
+                        updateFunction({ videoPath: file.path, user: currentUser, watched: newWatchedStatus }).then(() => {
+                            console.log(`Video ${newWatchedStatus ? 'watched' : 'unwatched'}`);
+                        });
+                    }
+                    return { ...video, watched: newWatchedStatus };
                 }
                 return video;
             });
-            setPrismaVideos(updatedVideos); // Update the prismaVideos state
 
-            // Now, call the backend API to update the database
-            const updateFunc = isWatched ? updateVideoWatched : unwatchVideo;
-            updateVideoWatched({ videoPath: file.path })
-                .catch(() => {
-                    // If there's an error, revert to the original state
-                    alert('Failed to update video status. Please try again.');
-                    setPrismaVideos(prismaVideos); // Revert to the original state if the API call fails
-                });
+            setPrismaVideos(updatedVideos);
         };
 
+        // Check if video is watched
         const handleCheckWatched = (file: FileEntry) => {
-            for (const video of prismaVideos) {
-                if (video?.path === file?.path && !video?.watched) {
-                    return true;
-                } else if (video?.path === file?.path && video?.watched) {
-                    return false;
-                }
-            }
-
-        }
+            const video = prismaVideos.find(v => v.path === file.path);
+            return video ? !video.watched : true; // Return true if video is not found or not watched
+        };
 
         return (
             <AnimatePresence>
@@ -422,7 +385,6 @@ export default function Dashboard() {
                                     if (e.button === 0 && !isInvoking) {
                                         setIsInvoking(true);
                                         invoke('show_in_folder', { path: `${folderPath}` }).then((res) => {
-
                                             setIsInvoking(false);
                                         });
                                     }
@@ -462,17 +424,16 @@ export default function Dashboard() {
                                                         if (e.button === 0 && !isInvoking && finishedSettingFiles) {
                                                             setIsInvoking(true);
                                                             setFinishedSettingFiles(false);
-                                                            invoke('open_video', { path: `${file.path}` }).then((res) => {
+                                                            updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).then(() => {
+                                                                setFinishedSettingFiles(true);
+                                                            });
+
+                                                            setFinishedSettingFiles(false);
+                                                            invoke('open_video', { path: file.path, userId: string }).then((res) => {
                                                                 if ((res as string) === "closed") {
-                                                                    console.log("closed");
-                                                                    // update the video as watched in the db
-                                                                    updateVideoWatched({ videoPath: file.path }).then((res: any) => {
-                                                                        setIsInvoking(false);
-                                                                        setFinishedSettingFiles(true);
-
-                                                                    });
+                                                                    setFinishedSettingFiles(true);
+                                                                    setIsInvoking(false);
                                                                 }
-
                                                             });
                                                         }
                                                     }}
@@ -652,7 +613,7 @@ export default function Dashboard() {
                                                                 onClick={(e) => {
                                                                     setFinishedSettingFiles(false);
                                                                     files.slice(0, index + 1).map((file) => {
-                                                                        updateVideoWatched({ videoPath: file.path }).then(() => {
+                                                                        updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).then(() => {
                                                                             setFinishedSettingFiles(true);
                                                                         });
                                                                     })

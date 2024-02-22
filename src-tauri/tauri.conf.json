@@ -55,7 +55,7 @@
         "writeText": true
       },
       "window": {
-        "all": false,
+        "all": true,
         "center": false,
         "close": true,
         "create": false,

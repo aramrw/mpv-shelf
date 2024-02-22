@@ -3,8 +3,7 @@ import { User, Folder, Video } from "@prisma/client";
 import { SettingSchema } from "@/app/settings/page";
 import { Global } from "@prisma/client";
 import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
-
-
+// import { WebviewWindow } from "@tauri-apps/api/window";
 
 export async function getUsers() {
     const db = await Database.load("sqlite:main.db");
@@ -47,6 +46,8 @@ export async function createNewUser({
     formData: SettingSchema,
 }) {
     let db = await Database.load("sqlite:main.db");
+
+    console.log("Creating User With Pin", userPin);
 
     try {
         await db.execute(`BEGIN TRANSACTION;`);
@@ -178,41 +179,54 @@ export async function deleteFolder({
 
 export async function updateVideoWatched({
     videoPath,
+    user,
+    watched
 }: {
     videoPath: string,
+    user: User,
+    watched: boolean
 }) {
-
     console.log("Updating: ", videoPath);
-
-    // first check if the video exists, if not make it.
-    // ps: videos ONLY get created HERE. 
-
-    //console.log("videoPath", videoPath);
 
     let db = await Database.load("sqlite:main.db");
 
-
-
     try {
+        await db.execute("BEGIN TRANSACTION;")
 
-        await db.execute("CREATE TABLE IF NOT EXISTS video (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT NOT NULL UNIQUE, watched BOOLEAN NOT NULL DEFAULT 0)")
+        // Ensure the video table exists with the correct schema including the userId field
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS video (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                path TEXT NOT NULL UNIQUE, 
+                watched BOOLEAN NOT NULL DEFAULT 0,
+                userId INTEGER,
+                FOREIGN KEY (userId) REFERENCES user(id)
+            )
+        `);
 
-        await db.select("SELECT * from video WHERE path = ($1)", [videoPath]).then(async (res: any) => {
-            if (res.length === 0) {
-                await db.execute("INSERT into video (path, watched) VALUES ($1, $2)", [videoPath, 1])
-            } else {
-                await db.execute("UPDATE video SET watched = 1 WHERE path = ($1)", [videoPath])
-            }
-        })
+        // Check if the video already exists in the database
+        const videos: Video[] = await db.select("SELECT * FROM video WHERE path = $1", [videoPath]);
+
+        if (videos.length === 0) {
+            // Insert new video record if it does not exist
+            await db.execute("INSERT INTO video (path, watched, userId) VALUES ($1, $2, $3)", [videoPath, watched ? 1 : 0, user.id]);
+        } else {
+            // Update existing video record
+            await db.execute("UPDATE video SET watched = $2 WHERE path = $1", [videoPath, watched ? 1 : 0]);
+        }
+
+        // Commit the transaction upon success
+        await db.execute("COMMIT;");
     } catch (e) {
-        console.log(e);
-        // if this error gets thrown it means the Video table hasnt been created yet
-
+        // Rollback the transaction in case of an error
+        await db.execute("ROLLBACK;");
+        console.error(e); // Better error handling could be implemented here
+    } finally {
+        // Ensure the database is closed properly
+        await db.close();
     }
-
-    ;
-
 }
+
 
 export async function getVideo({
     videoPath,
@@ -224,7 +238,14 @@ export async function getVideo({
     let video: any;
 
     try {
-        await db.execute("CREATE TABLE IF NOT EXISTS video (id INTEGER PRIMARY KEY AUTOINCREMENT, path TEXT NOT NULL UNIQUE, watched BOOLEAN NOT NULL DEFAULT 0)")
+        await db.execute(`
+        CREATE TABLE IF NOT EXISTS video (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, 
+            path TEXT NOT NULL UNIQUE, 
+            watched BOOLEAN NOT NULL DEFAULT 0,
+            FOREIGN KEY (userId) REFERENCES user(id)
+            )`
+        )
 
         video = await db.select("SELECT * from video WHERE path = ($1)", [videoPath])
 
@@ -400,7 +421,6 @@ export async function getCurrentUserGlobal() {
 
     const GLOBAL_ID = 'GID99844589388427';
 
-
     try {
         // Ensure the global table exists
         await db.execute(`
@@ -496,3 +516,15 @@ export async function deleteProfile({
         await db.close();
     }
 }
+
+// export async function createNewWindow({ }) {
+//     const webview = new WebviewWindow('my-main', {
+//         url: '/dashboard'
+//     });
+//     webview.once('tauri://created', function () {
+//         console.log("created");
+//     });
+//     webview.once('tauri://error', function (e) {
+//         console.error(e);
+//     });
+// }

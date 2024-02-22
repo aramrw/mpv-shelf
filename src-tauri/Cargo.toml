@@ -15,11 +15,12 @@ rust-version = "1.60"
 tauri-build = { version = "1.5.1", features = [] }
 
 [dependencies]
+sqlx = { version = "0.7.3", features = ["runtime-tokio", "tls-native-tls"] }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "1.6.0", features = [
+    "window-all",
     "global-shortcut-all",
-    "window-close",
     "fs-all",
     "protocol-all",
     "clipboard-write-text",
@@ -30,13 +31,16 @@ tauri = { version = "1.6.0", features = [
 ] }
 open = { version = "5.0.1" }
 random_color = { version = "0.8.0" }
-sysinfo = "0.30.5"
-sqlx = "0.7.3"
+sysinfo = { version = "0.30.5" }
+tokio = { version = "1.36.0" }
 
 [dependencies.tauri-plugin-sql]
 git = "https://github.com/tauri-apps/plugins-workspace"
 branch = "v1"
 features = ["sqlite"]
+
+[profile.dev.package.sqlx-macros]
+opt-level = 3
 
 
 [features]

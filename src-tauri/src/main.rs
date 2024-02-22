@@ -6,18 +6,26 @@ use random_color::color_dictionary::{ColorDictionary, ColorInformation};
 #[allow(unused_imports)]
 use random_color::{Color, Luminosity, RandomColor};
 use serde::{Deserialize, Serialize};
-use sqlx::{migrate::MigrateDatabase, Sqlite};
+
+use std::env::args;
+use std::io::{stdout, Write};
 use std::process::Command;
 use std::vec;
 use sysinfo::System;
-use tauri::{generate_handler, Manager};
+use tauri::{generate_handler, Manager, Window, WindowBuilder};
 #[allow(unused_imports)]
 use tauri::{CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem};
 
 #[derive(Serialize, Deserialize)]
 struct User {
     id: i64,
-    pin: Option<String>,
+    pin: i64,
+}
+
+#[derive(Serialize, Deserialize)]
+struct Global {
+    id: String,
+    user_id: i64,
 }
 
 fn main() {
@@ -35,6 +43,7 @@ fn main() {
 
     fn hack_builder(tray: SystemTray) {
         tauri::Builder::default()
+            // .setup(|app| {})
             .system_tray(tray.clone())
             .on_system_tray_event(move |app, event| match event {
                 SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
@@ -45,8 +54,7 @@ fn main() {
                                 window.set_focus().unwrap();
                             }
                             None => {
-                                hack_builder(tray.clone());
-                                std::process::exit(0);
+                                //hack_builder(tray.clone());
                                 // Trigger the hack builder again
                             }
                         }
@@ -56,26 +64,7 @@ fn main() {
                         window.hide().unwrap();
                     }
                     "quit" => {
-                        let db_url: String = app
-                            .path_resolver()
-                            .app_data_dir()
-                            .expect("failed to get app data dir")
-                            .as_path()
-                            .to_str()
-                            .unwrap()
-                            .to_string()
-                            + "\\main.db";
-
-                        tauri::async_runtime::spawn(async move {
-                            if Sqlite::database_exists(&db_url).await.unwrap_or(false) {
-                                println!("Database exists, dropping");
-                                Sqlite::drop_database(&db_url).await.unwrap();
-                            } else {
-                                println!("YOU DONE FUCKED UP. SHIT AINT WORKIN NIGGA");
-                            }
-                        });
-
-                        std::process::exit(0);
+                        app.exit(1);
                     }
                     _ => {}
                 },
@@ -92,6 +81,7 @@ fn main() {
             .run(|_app_handle, event| match event {
                 tauri::RunEvent::ExitRequested { api, .. } => {
                     api.prevent_exit();
+                    _app_handle.get_window("main").unwrap().hide().unwrap();
                 }
                 _ => {}
             });
@@ -102,18 +92,14 @@ fn main() {
 
 #[tauri::command]
 async fn open_video(path: String, handle: tauri::AppHandle) -> String {
-    // Please note that we use "new_all" to ensure that all list of
-    // components, network interfaces, disks and users are already
-    // filled!
+    let window: Window = handle.clone().get_window("main").expect("no main window");
+
+    window.close().expect("failed to close main window");
+
     let mut sys = System::new_all();
 
     // First we update all information of our `System` struct.
     sys.refresh_all();
-
-    //hide the main window, causing the app to minimize to the system tray
-    let window = handle.clone().get_window("main").expect("no main window");
-
-    window.hide().expect("failed to close main window");
 
     #[allow(unused_variables)]
     for (pid, process) in sys.processes() {
@@ -131,7 +117,6 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
 
     // Loop indefinitely until mpv.exe is not found.
     loop {
-        print!("\r{:.2}", &instant.elapsed().as_secs_f32());
         sys.refresh_processes(); // Refresh the list of processes.
 
         let mut mpv_running = false; // Flag to check if mpv is running.
@@ -139,22 +124,42 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
         // Check all processes to see if mpv.exe is running.
         for (_pid, process) in sys.processes() {
             if process.name().to_lowercase() == "mpv.exe" {
+                sys.refresh_all();
                 mpv_running = true; // mpv is still running.
                 break; // No need to check further processes.
             }
         }
 
         if !mpv_running {
-            window.show().expect("failed to show main window");
             println!(
                 "mpv-shelf was running for {:.2} seconds in the background",
                 &instant.elapsed().as_secs_f32()
             );
+            stdout().flush().unwrap();
+
+            // open a new window and close the first exe (not a window anymore) in the system tray
+            let new_window = tauri::WindowBuilder::new(
+                &handle,
+                "new".to_string(),
+                tauri::WindowUrl::App("/dashboard".into()),
+            )
+            .transparent(1.0)
+            .build()
+            .unwrap();
+
+            sys.refresh_all();
+
+            for (pid, process) in sys.processes() {
+                if process.name().to_lowercase().contains("mpv.exe") {
+                    process.kill();
+                }
+            }
+
             return "closed".to_string();
         }
 
         // Sleep for a bit before checking again to reduce CPU usage.
-        std::thread::sleep(std::time::Duration::from_secs(1));
+        std::thread::sleep(std::time::Duration::from_millis(500));
     }
 }
 
