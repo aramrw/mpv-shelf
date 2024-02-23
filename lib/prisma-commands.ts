@@ -3,6 +3,7 @@ import { User, Folder, Video } from "@prisma/client";
 import { SettingSchema } from "@/app/settings/page";
 import { Global } from "@prisma/client";
 import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
+import * as NextCache from "next/cache";
 // import { WebviewWindow } from "@tauri-apps/api/window";
 
 export async function getUsers() {
@@ -34,7 +35,6 @@ export async function getUsers() {
         //console.log("users", users);
         return null;
     }
-
 
 }
 
@@ -95,18 +95,22 @@ export async function createNewUser({
 
 export async function addFolder({
     userId,
-    folderPath
+    folderPath,
+    expanded
 }: {
     userId: number,
     folderPath: string
+    expanded: boolean
 }) {
     let db = await Database.load("sqlite:main.db");
 
-    await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, FOREIGN KEY (userId) REFERENCES user(id))")
+    if (expanded) {
+        console.log(`setting expanded to true for ${folderPath.split("\\").pop()}`);
+    }
 
-    await db.execute("INSERT into folder (userId, path) VALUES ($1, $2)", [userId, folderPath])
+    await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded NOT NULL DEFAULT 0, FOREIGN KEY (userId) REFERENCES user(id))")
 
-        ;
+    await db.execute("INSERT into folder (userId, path, expanded) VALUES ($1, $2, $3)", [userId, folderPath, expanded ? 1 : 0]);
 }
 
 export async function getFolders({
@@ -119,12 +123,12 @@ export async function getFolders({
     console.log("userId", userId);
 
     try {
-        await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, FOREIGN KEY (userId) REFERENCES user(id))")
+        await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0 , FOREIGN KEY (userId) REFERENCES user(id))")
         // Directly return the result of the query
         let folders: Folder[] = await db.select("SELECT * from folder WHERE userId = $1", [userId]);
         //console.log("folders", folders);
         if (folders.length !== 0) {
-            console.log("folders", folders);
+            //  console.log("retrived", folders.path.split("\\").pop(), "as", video[0].watched, "for user", video[0].userId);
             return folders;
         } else {
             return folders;
@@ -137,6 +141,112 @@ export async function getFolders({
         return [];
     }
 
+}
+
+export async function updateFolderExpanded({
+    userId,
+    folderPath,
+    expanded,
+}: {
+    userId: number,
+    folderPath: string,
+    expanded: boolean
+}) {
+    let db = await Database.load("sqlite:main.db");
+
+    console.log("Updating expanded:", folderPath.split("\\").pop(), "as", expanded, "for user", userId);
+
+    await db.execute("UPDATE folder SET expanded = $1 WHERE path = $2 AND userId = $3", [expanded ? 1 : 0, folderPath, userId]).catch(async (e) => {
+        await db.close()
+        console.log(e)
+        return false;
+    });
+
+    //await db.close();
+    return true;
+}
+
+export async function updateVideoWatched({
+    videoPath,
+    user,
+    watched,
+}: {
+    videoPath: string,
+    user: User,
+    watched: boolean
+}) {
+    console.log("Updating watched: ", videoPath.split("\\").pop(), "as", watched, "for user", user.id);
+
+    let db = await Database.load("sqlite:main.db");
+
+    try {
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS video (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                path TEXT NOT NULL, 
+                userId INTEGER,
+                watched BOOLEAN NOT NULL DEFAULT 0,
+                FOREIGN KEY (userId) REFERENCES user(id)
+            )
+        `);
+
+        // Check if the video already exists in the database
+        const videos: Video[] = await db.select("SELECT * from video WHERE path = $1 AND userId = $2", [videoPath, user.id])
+
+        if (videos.length === 0) {
+            // Insert new video record if it does not exist
+            await db.execute("INSERT INTO video (path, watched, userId) VALUES ($1, $2, $3)", [videoPath, watched ? 1 : 0, user.id]);
+        } else {
+            // Update existing video record
+            await db.execute("UPDATE video SET watched = $3 WHERE path = $1 AND userId = $2", [videoPath, user.id, watched ? 1 : 0]);
+        }
+    } catch (e) {
+        console.error(e);
+        return false
+    }
+
+    return true;
+}
+
+export async function getVideo({
+    videoPath,
+    userId
+}: {
+    videoPath: string,
+    userId: number
+}) {
+
+
+    let db = await Database.load("sqlite:main.db");
+
+    let video: Video[] = [];
+
+    try {
+        // Ensure the video table exists with the correct schema including the userId field
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS video (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                path TEXT NOT NULL, 
+                userId INTEGER,
+                watched BOOLEAN NOT NULL DEFAULT 0,
+                FOREIGN KEY (userId) REFERENCES user(id)
+            )
+        `);
+
+        video = await db.select("SELECT * from video WHERE path = $1 AND userId = $2", [videoPath, userId])
+        // console.log("retrived", video[0].path.split("\\").pop(), "as", video[0].watched, "for user", video[0].userId);
+        return video[0];
+    } catch (e) {
+        console.log(e);
+
+    }
+
+    if (video && video.length !== 0) {
+        //console.log("video", video);
+        return video[0];
+    } else {
+        return null
+    }
 }
 
 export async function deleteFolder({
@@ -152,53 +262,7 @@ export async function deleteFolder({
         ;
 }
 
-export async function updateVideoWatched({
-    videoPath,
-    user,
-    watched
-}: {
-    videoPath: string,
-    user: User,
-    watched: boolean
-}) {
-    console.log("Updating: ", videoPath);
-
-    let db = await Database.load("sqlite:main.db");
-
-    try {
-        // Ensure the video table exists with the correct schema including the userId field
-        await db.execute(`
-            CREATE TABLE IF NOT EXISTS video (
-                id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                path TEXT NOT NULL, 
-                watched BOOLEAN NOT NULL DEFAULT 0,
-                userId INTEGER,
-                FOREIGN KEY (userId) REFERENCES user(id)
-            )
-        `);
-
-        // Check if the video already exists in the database
-        const videos: Video[] = await db.select("SELECT * from video WHERE path = $1 AND userId = $2", [videoPath, user.id])
-
-        if (videos.length === 0) {
-            // Insert new video record if it does not exist
-            await db.execute("INSERT INTO video (path, watched, userId) VALUES ($1, $2, $3)", [videoPath, watched ? 1 : 0, user.id]);
-        } else {
-            // Update existing video record
-            await db.execute("UPDATE video SET watched = $2 WHERE path = $1 AND userId = $2", [videoPath, user.id, watched ? 1 : 0]);
-        }
-
-    } catch (e) {
-        console.error(e);
-        return false
-    }
-
-    await db.close();
-    return true;
-}
-
-
-export async function getVideo({
+export async function unwatchVideo({
     videoPath,
     userId
 }: {
@@ -207,49 +271,11 @@ export async function getVideo({
 }) {
     let db = await Database.load("sqlite:main.db");
 
-    let video: any;
-
-    try {
-        // Ensure the video table exists with the correct schema including the userId field
-        await db.execute(`
-            CREATE TABLE IF NOT EXISTS video (
-                id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                path TEXT NOT NULL, 
-                watched BOOLEAN NOT NULL DEFAULT 0,
-                userId INTEGER,
-                FOREIGN KEY (userId) REFERENCES user(id)
-            )
-        `);
-
-        video = await db.select("SELECT * from video WHERE path = $1 AND userId = $2", [videoPath, userId])
-
-        //;
-    } catch (e) {
-        console.log(e);
-
-    }
-
-    if (video && video.length !== 0) {
-        //console.log("video", video);
-        return video[0];
-    } else {
-        return null
-    }
-}
-
-export async function unwatchVideo({
-    videoPath,
-}: {
-    videoPath: string,
-}) {
-    let db = await Database.load("sqlite:main.db");
-
     console.log("videoPath", videoPath);
 
-    await db.execute("UPDATE video SET watched = 0 WHERE path = ($1)", [videoPath]).catch((e) => {
+    await db.execute("UPDATE video SET watched = 0 WHERE path = $1 AND userId = $2", [videoPath, userId]).catch((e) => {
         console.log("error", e);
     });
-
 
     return true;
 }
@@ -489,14 +515,4 @@ export async function deleteProfile({
     }
 }
 
-// export async function createNewWindow({ }) {
-//     const webview = new WebviewWindow('my-main', {
-//         url: '/dashboard'
-//     });
-//     webview.once('tauri://created', function () {
-//         console.log("created");
-//     });
-//     webview.once('tauri://error', function (e) {
-//         console.error(e);
-//     });
-// }
+

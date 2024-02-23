@@ -11,30 +11,43 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  pin       String?  @unique
+  id        Int        @id @default(autoincrement())
+  pin       String
   imagePath String?
-  folders   Folder[] @relation("UserFolders")
+  folders   Folder[]   @relation("UserFolders")
   videos    Video[]
   color     String?
+  Settings  Settings[]
 }
 
 model Folder {
-  id     Int    @id @default(autoincrement())
-  path   String @unique
-  userId Int
-  user   User   @relation(fields: [userId], references: [id], name: "UserFolders")
+  id       Int     @id @default(autoincrement())
+  userId   Int
+  path     String  @unique
+  expanded Boolean @default(false)
+  user     User    @relation(fields: [userId], references: [id], name: "UserFolders")
 }
 
 model Video {
   id      Int     @id @default(autoincrement())
-  path    String  @unique
+  path    String
   watched Boolean @default(false)
   user    User    @relation(fields: [userId], references: [id])
   userId  Int
 }
 
+model Settings {
+  id         Int    @id @default(autoincrement())
+  theme      String
+  fontSize   String
+  animations String
+  autoRename String
+  usePin     String
+  userId     Int
+  user       User   @relation(fields: [userId], references: [id])
+}
+
 model Global {
-  id     String @id @default("GID99844589388427")
+  id     String @id @unique @default("GID99844589388427")
   userId Int
 }

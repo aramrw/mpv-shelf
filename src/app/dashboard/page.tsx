@@ -1,10 +1,11 @@
 "use client"
 
 import { Button } from '@/components/ui/button'
+import { z } from "zod"
 import React, { useEffect, useState } from 'react'
 import { open } from '@tauri-apps/api/dialog';
-import { addFolder, deleteFolder, getCurrentUserGlobal, getFolders, getUserSettings, getUsers, getVideo, unwatchVideo, updateVideoWatched } from '../../../lib/prisma-commands';
-import type { User, Video } from "@prisma/client";
+import { addFolder, deleteFolder, getCurrentUserGlobal, getFolders, getUserSettings, getUsers, getVideo, unwatchVideo, updateFolderExpanded, updateVideoWatched } from '../../../lib/prisma-commands';
+import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
 import { Captions, ChevronDown, ChevronUp, CornerLeftDown, Eye, EyeOff, Film, Folder, FolderInput, Folders, Loader2, Trash2, VideoIcon, } from 'lucide-react';
 import { FileEntry, readDir } from '@tauri-apps/api/fs'
 import { cn } from '@/lib/utils';
@@ -22,6 +23,7 @@ import { ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent } from '@ra
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
 import { set, string } from 'zod';
+import { finished } from 'stream';
 // import { WebviewWindow, appWindow } from "@tauri-apps/api/window"
 
 export default function Dashboard() {
@@ -83,78 +85,71 @@ export default function Dashboard() {
     }, [folderPaths])
 
 
-    function AddFolderButton(
-    ) {
-        return (
-
-            <Button variant="outline"
-                className={cn('select-none',
-                    userSettings?.fontSize === "Medium" && 'text-lg mx-0',
-                    userSettings?.fontSize === "Large" && 'text-xl mx-0',
-                    userSettings?.fontSize === "XLarge" && 'text-2xl mx-0',
-                )}
-                onClick={() => {
-                    open({
-                        directory: true
-                    }).then((res): void => {
-                        if (res && currentUser) {
-                            for (const path of folderPaths) {
-                                if (path === res?.toString()) {
-                                    let pathName = res.toString().replaceAll("\\", " ").split(" ").pop();
-                                    toast({
-                                        title: `${pathName} already exists!`,
-                                        description: `You already have a folder with the name ${pathName} in your library.`,
-                                        duration: 2000,
-                                    })
-                                    return;
-                                }
-                            }
-
-                            addFolder({ userId: currentUser?.id, folderPath: res.toString() }).then(() => {
-                                setFolderPaths(prevPaths => [...prevPaths, res] as string[]);
-                            });
-
-                        }
-                    })
-                }}
-            >
-                Add Folder
-            </Button>
-
-        )
-    }
-
     function FolderList({ folderPath, asChild, }: { folderPath: string, asChild?: boolean | undefined }) {
 
         const [files, setFiles] = useState<FileEntry[]>([]);
         const [folders, setFolders] = useState<FileEntry[]>([]);
         const [expanded, setExpanded] = useState(false);
         const [subtitleFiles, setSubtitleFiles] = useState<FileEntry[]>([]);
-        const [deleting, setDeleting] = useState(false);
         const [prismaVideos, setPrismaVideos] = useState<Video[]>([]);
-        const [watchedVideos, setWatchedVideos] = useState<Video[]>([]);
         const [finishedSettingFiles, setFinishedSettingFiles] = useState(false);
         const [isInvoking, setIsInvoking] = useState(false);
+        //const [deleting, setDeleting] = useState(false);
+        //const [watchedVideos, setWatchedVideos] = useState<Video[]>([]);
+
 
 
         // Reading directory contents
         useEffect(() => {
-            console.log(folderPath);
+            console.log("CurrentFolderPath = ", folderPath);
             setFinishedSettingFiles(false);
             readDir(folderPath).then((res) => {
                 if (res) {
+                    console.log("res:", res);
                     const videoFiles = res.filter(file => supportedVideoFormats.includes(file.path.replace(/^.*\./, '')) && !file.children);
+                    let filtered = videoFiles.filter(video => video !== null && video !== undefined) as Video[];
                     const subtitleFiles = res.filter(file => file.path.split('.').pop() === 'srt');
                     const folders = res.filter(file => file.children);
 
-                    setFiles(videoFiles);
+                    console.log("video files:", filtered);
+                    //console.log(subtitleFiles);
+                    console.log("child folders:", folders);
+
+                    // set is the folder is expanded
+
+
+                    setFiles(filtered as FileEntry[]);
                     setFolders(folders as FileEntry[]);
                     setSubtitleFiles(subtitleFiles as FileEntry[]);
+
                     setFinishedSettingFiles(true);
 
                 }
             });
         }, [folderPath]); // Added folderPath as a dependency
+
+        // check if folders are expanded on startup
+        useEffect(() => {
+            if (currentUser) {
+                setIsInvoking(true);
+                getFolders({ userId: currentUser.id }).then((folders: PrismaFolder[]) => {
+                    if (folders && folders.length > 0) {
+                        for (const folder of folders) {
+                            if (folder.path === folderPath && folder.expanded) {
+                                console.log("setting expanded to true from useEffect on startup => ", folderPath);
+                                setExpanded(true);
+                                break;
+                            } else if (folder.path === folderPath && !folder.expanded) {
+                                console.log("setting expanded to false from useEffect on startup => ", folderPath);
+                                setExpanded(false);
+                                break;
+                            }
+                        }
+                    }
+                }).finally(() => setIsInvoking(false));
+            }
+
+        }, [currentUser]);
 
         // Fetching videos information
         useEffect(() => {
@@ -162,22 +157,34 @@ export default function Dashboard() {
                 setIsInvoking(true);
                 Promise.all(files.map(file => getVideo({ videoPath: file.path, userId: currentUser.id })))
                     .then(videos => {
-                        setPrismaVideos(videos.filter(video => video)); // Filter out undefined or null results
-                    })
-                    .finally(() => setIsInvoking(false));
+                        setPrismaVideos(videos.filter(video => video !== null && video !== undefined) as Video[]);
+                        console.log("set prismaVideos => ", videos);
+                    }).finally(() => {
+                        setIsInvoking(false);
+                    });
+
             }
         }, [currentUser, files, finishedSettingFiles]);
 
-        // Filtering watched videos
-        useEffect(() => {
-            setWatchedVideos(prismaVideos.filter(video => video.watched));
-        }, [prismaVideos]);
 
+
+        useEffect(() => {
+            if (currentUser && finishedSettingFiles) {
+                updateFolderExpanded({ folderPath: folderPath, expanded: expanded, userId: currentUser?.id })
+            }
+
+        }, [expanded, isInvoking]);
+
+        // Filtering watched videos
+        // useEffect(() => {
+        //     // setWatchedVideos(prismaVideos.filter(video => video.watched));
+        //     console.log("use effect prisma videos => ", prismaVideos);
+        // }, [prismaVideos]);
 
 
         // Check if video is watched
         const handleCheckWatched = (file: FileEntry) => {
-            const video = prismaVideos.find(v => v.path === file.path);
+            const video = prismaVideos.find(v => v.path === file.path && v.watched);
             return video ? !video.watched : true; // Return true if video is not found or not watched
         };
 
@@ -192,10 +199,9 @@ export default function Dashboard() {
                                 initial={userSettings?.animations === "On" ? { y: -50 } : undefined}
                                 animate={userSettings?.animations === "On" ? { y: 0 } : undefined}
                                 exit={userSettings?.animations === "On" ? { y: -50 } : undefined}
-                                transition={{ duration: 0.5, bounce: 0.3, type: 'spring' }}
+                                transition={{ duration: 0.5, bounce: 0.5, type: 'spring' }}
                                 key={"main-parent-folder+folder"}
-
-                                style={expanded && !asChild ? { padding: "10px" } : {}}
+                                style={expanded && !asChild ? { padding: "10px", paddingBottom: "15px" } : {}}
                                 className={cn(
                                     'flex cursor-pointer flex-row items-center justify-between rounded-md bg-accent p-1',
                                     (expanded && files.length > 0 && !asChild) && 'rounded-b-none border-b-4 border-tertiary',
@@ -206,13 +212,15 @@ export default function Dashboard() {
                                     (!asChild && expanded) && 'border-none',
                                     (asChild) && 'flex flex-col rounded-t-none',
                                     userSettings?.animations === "Off" && 'hover:opacity-80',
+                                    !asChild && 'pb-2',
 
                                 )}
                                 onClick={(e) => {
                                     if (files.length > 0 || folders.length > 0)
                                         setExpanded(!expanded);
                                 }}
-                                whileHover={(userSettings?.animations === "On" && !asChild) ? { padding: "10px", transition: { duration: 0.1 } } : undefined}
+
+                                whileHover={(userSettings?.animations === "On" && !asChild) ? { padding: "10px", paddingBottom: "15px" } : undefined}
 
                             >
                                 {/* Displays all the tags for main parent folder. */}
@@ -348,10 +356,8 @@ export default function Dashboard() {
                                             userSettings?.fontSize === "XLarge" && 'h-auto w-9'
                                         )} onClick={(e) => {
                                             e.stopPropagation();
-                                            setDeleting(true);
                                             // trigger the delete folder db command
                                             deleteFolder({ folderPath }).then(() => {
-                                                setDeleting(false);
                                                 //router.prefetch('/dashboard');
                                                 window.location.reload();
                                             });
@@ -410,7 +416,7 @@ export default function Dashboard() {
                                                         updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).then(() => {
                                                             invoke('open_video', { path: file.path, userId: string });
                                                             setFinishedSettingFiles(true);
-                                                            setIsInvoking(true);
+                                                            setIsInvoking(false);
                                                         });
                                                     }
                                                 }}
@@ -462,11 +468,10 @@ export default function Dashboard() {
                                                                     onClick={(e) => {
                                                                         // set the video as unwatched when the user clicks on the eye icon
                                                                         e.stopPropagation();
-                                                                        setFinishedSettingFiles(false);
-                                                                        unwatchVideo({ videoPath: file.path }).then(() => {
-                                                                            setFinishedSettingFiles(true);
-
-                                                                        });
+                                                                        if (currentUser) {
+                                                                            setFinishedSettingFiles(false);
+                                                                            unwatchVideo({ videoPath: file.path, userId: currentUser?.id }).finally(() => setFinishedSettingFiles(true));
+                                                                        }
                                                                     }}
                                                                 >
 
@@ -550,7 +555,7 @@ export default function Dashboard() {
                                                                 onClick={() => {
                                                                     setIsInvoking(true);
                                                                     setFinishedSettingFiles(false);
-                                                                    updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).then(() => {
+                                                                    updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).finally(() => {
                                                                         setFinishedSettingFiles(true);
                                                                         setIsInvoking(false);
                                                                     });
@@ -572,10 +577,13 @@ export default function Dashboard() {
                                                         ) : (
                                                             <ContextMenuItem className='flex cursor-pointer gap-1'
                                                                 onClick={(e) => {
-                                                                    setFinishedSettingFiles(false);
-                                                                    unwatchVideo({ videoPath: file.path }).then(() => {
-                                                                        setFinishedSettingFiles(true);
-                                                                    });
+
+                                                                    if (currentUser) {
+                                                                        setFinishedSettingFiles(false);
+                                                                        unwatchVideo({ videoPath: file.path, userId: currentUser?.id }).finally(() => setFinishedSettingFiles(true));
+                                                                    }
+
+
                                                                 }}
                                                             >
                                                                 <span className={cn("",
@@ -594,16 +602,19 @@ export default function Dashboard() {
 
                                                         <ContextMenuItem className='cursor-pointer'
                                                             onClick={(e) => {
+                                                                e.stopPropagation();
                                                                 setFinishedSettingFiles(false);
+                                                                setIsInvoking(true);
                                                                 if (currentUser) {
                                                                     files.slice(0, index + 1).reverse().map((file) => {
-                                                                        updateVideoWatched({ videoPath: file.path, user: currentUser, watched: true }).then((res) => {
-                                                                            if (res) {
-                                                                                setFinishedSettingFiles(true);
-                                                                            }
-                                                                        });
+                                                                        updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).then(() => {
+
+                                                                        }).finally(() => setFinishedSettingFiles(true));
                                                                     });
+
+
                                                                 }
+
                                                             }
                                                             }
                                                         >
@@ -630,12 +641,13 @@ export default function Dashboard() {
                                                         <ContextMenuItem className='cursor-pointer'
                                                             onClick={(e) => {
                                                                 setFinishedSettingFiles(false);
-                                                                files.slice(index, files.length).map((file) => {
-                                                                    unwatchVideo({ videoPath: file.path }).then((res) => {
-                                                                        if (res)
-                                                                            setFinishedSettingFiles(true);
-                                                                    });
-                                                                })
+                                                                if (currentUser) {
+                                                                    files.slice(index, files.length).map((file) => {
+                                                                        setFinishedSettingFiles(false);
+                                                                        unwatchVideo({ videoPath: file.path, userId: currentUser?.id }).finally(() => setFinishedSettingFiles(true));
+
+                                                                    })
+                                                                }
                                                             }}
                                                         >
                                                             <div className='flex gap-1'>
@@ -698,8 +710,9 @@ export default function Dashboard() {
                             }
                         </AnimatePresence>
                     </ul>
-
                 </motion.main >
+
+
             </AnimatePresence >
         )
     }
@@ -707,21 +720,56 @@ export default function Dashboard() {
     return (
         <AnimatePresence>
             <main className='pl-3 lg:px-16 xl:px-36 2xl:px-48'>
-                <div className='flex h-fit w-full flex-col items-center justify-center gap-2 overflow-auto py-2'>
+                <div className='flex h-fit w-full flex-col items-center justify-center gap-1.5 overflow-auto py-2 drop-shadow-sm'>
                     {folderPaths.map((folder, index) => {
-                        return <FolderList folderPath={folder} key={index} />
+                        return (
+                            <FolderList folderPath={folder} key={index} />
+                        )
                     })}
-                </div>
-                <motion.div className='flex h-fit w-full flex-col items-start justify-center overflow-auto'
-                    initial={{ opacity: 0, x: -50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -50 }}
-                    transition={{ duration: 0.2, bounce: 0.5, type: 'spring' }}
-                    key={"folder"}
-                >
 
-                    <AddFolderButton />
-                </motion.div>
+                    <motion.div className='flex h-fit w-full flex-col items-start justify-center overflow-auto'
+                        initial={{ opacity: 0, y: -50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -50 }}
+                        transition={{ duration: 0.2, bounce: 0.5, type: 'spring' }}
+                        key={"folder"}
+                    >
+                        <Button variant="outline"
+                            className={cn('select-none',
+                                userSettings?.fontSize === "Medium" && 'text-lg mx-0',
+                                userSettings?.fontSize === "Large" && 'text-xl mx-0',
+                                userSettings?.fontSize === "XLarge" && 'text-2xl mx-0',
+                            )}
+                            onClick={() => {
+                                open({
+                                    directory: true
+                                }).then((res): void => {
+                                    if (res && currentUser) {
+                                        for (const path of folderPaths) {
+                                            if (path === res?.toString()) {
+                                                let pathName = res.toString().replaceAll("\\", " ").split(" ").pop();
+                                                toast({
+                                                    title: `${pathName} already exists!`,
+                                                    description: `You already have a folder with the name ${pathName} in your library.`,
+                                                    duration: 2000,
+                                                })
+                                                return;
+                                            }
+                                        }
+
+                                        addFolder({ userId: currentUser?.id, folderPath: res.toString(), expanded: false }).then(() => {
+                                            setFolderPaths(prevPaths => [...prevPaths, res] as string[]);
+                                        });
+
+                                    }
+                                })
+                            }}
+                        >
+                            Add Folder
+                        </Button>
+
+                    </motion.div>
+                </div>
 
                 {!currentUser && !userSettings && (
                     <motion.div className='h-fit w-full overflow-hidden'
