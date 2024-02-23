@@ -218,7 +218,7 @@ export default function Settings() {
                                                     <TooltipProvider>
                                                         <Tooltip delayDuration={1000}>
                                                             <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-center text-base'>
-                                                                <Button variant="outline" className={cn('select-none h-full w-3/4 p-0 flex gap-1',
+                                                                <Button variant="outline" className={cn('select-none h-full w-3/4 p-0 flex gap-1 pb-1',
                                                                     formState?.fontSize === "Medium" && 'text-lg',
                                                                     formState?.fontSize === "Large" && 'text-xl',
                                                                     formState?.fontSize === "XLarge" && 'text-2xl',
@@ -249,7 +249,7 @@ export default function Settings() {
                                                     <TooltipProvider>
                                                         <Tooltip delayDuration={1000}>
                                                             <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-center text-base'>
-                                                                <Button variant="outline" className={cn('select-none  h-full w-3/4 p-0 flex gap-1',
+                                                                <Button variant="outline" className={cn('select-none  h-full w-3/4 p-0 flex gap-1 pb-1',
                                                                     formState?.fontSize === "Medium" && 'text-lg',
                                                                     formState?.fontSize === "Large" && 'text-xl',
                                                                     formState?.fontSize === "XLarge" && 'text-2xl',
@@ -304,7 +304,7 @@ export default function Settings() {
                                                         <TooltipProvider>
                                                             <Tooltip delayDuration={500}>
                                                                 <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-center text-base'>
-                                                                    <Button variant="destructive" className={cn('select-none w-3/4 py-[1px] h-fit  flex flex-row justify-center items-center rounded-sm gap-1',
+                                                                    <Button variant="destructive" className={cn('select-none w-3/4 py-[1px] h-fit  flex flex-row justify-center items-center rounded-sm gap-1 pb-1',
                                                                         formState?.fontSize === "Medium" && 'text-lg',
                                                                         formState?.fontSize === "Large" && 'text-xl',
                                                                         formState?.fontSize === "XLarge" && 'text-2xl',

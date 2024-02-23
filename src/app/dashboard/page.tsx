@@ -183,9 +183,7 @@ export default function Dashboard() {
 
         return (
             <AnimatePresence >
-                <motion.main className='h-full w-full overflow-hidden'
-
-
+                <motion.main className='my-1 h-full w-full overflow-hidden'
                 >
                     <ContextMenu>
                         <ContextMenuTrigger>
@@ -709,12 +707,12 @@ export default function Dashboard() {
     return (
         <AnimatePresence>
             <main className='lg:px-16 xl:px-36 2xl:px-48'>
-                <div className='flex h-fit w-full flex-col items-center justify-center gap-2 overflow-auto p-3'>
+                <div className='flex h-fit w-full flex-col items-center justify-center gap-2 overflow-auto py-2'>
                     {folderPaths.map((folder, index) => {
                         return <FolderList folderPath={folder} key={index} />
                     })}
                 </div>
-                <motion.div className='flex h-fit w-full flex-col items-start justify-center overflow-auto px-3'
+                <motion.div className='flex h-fit w-full flex-col items-start justify-center overflow-auto'
                     initial={{ opacity: 0, x: -50 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -50 }}

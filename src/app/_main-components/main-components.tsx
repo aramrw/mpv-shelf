@@ -1,6 +1,6 @@
 "use client"
 
-import { BadgeHelp, HelpCircle, HelpingHand, MessageCircleQuestion, MessageCircleQuestionIcon, MoveLeft, Sliders } from 'lucide-react'
+import { BadgeHelp, HelpCircle, MoveLeft, Sliders } from 'lucide-react'
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link';
@@ -48,7 +48,7 @@ export function Navbar() {
                                 router.back();
                             }}
                         >
-                            <MoveLeft className={`h-auto drop-shadow-sm md:w-7 lg:w-8`} />
+                            <MoveLeft className={`h-auto drop-shadow-md md:w-7 lg:w-8`} />
                         </motion.div>
                     )}
                 <motion.div
@@ -56,7 +56,7 @@ export function Navbar() {
                     whileTap={{ scale: 0.9 }}
                     whileHover={{ scale: 1.1 }}
                 >
-                    <HelpCircle className={cn(`h-auto md:w-7 lg:w-8 drop-shadow-sm`,
+                    <HelpCircle className={cn(`h-auto md:w-7 lg:w-8  text-transparent `,
                         pathname === "/profiles" && "text-primary",
                         pathname === "/dashboard" && 'w-7'
                     )} />
@@ -72,7 +72,7 @@ export function Navbar() {
                     whileHover={{ scale: 1.1 }}
                 >
                     <Link href="/settings">
-                        <Sliders className={cn("h-auto cursor-pointer w-6 md:w-8 lg:w-9",
+                        <Sliders className={cn("h-auto cursor-pointer w-6 md:w-8 lg:w-9 drop-shadow-md",
                             pathname === "/dashboard" && 'w-7'
                         )} />
                     </Link>

@@ -27,11 +27,10 @@ export function UserAvatar({
             (asChild && userObject?.imagePath) && "md:w-3/4 rounded-none",
             (asChild && userObject?.imagePath) && "h-40 md:w-40 rounded-sm",
             (asChild && !userObject?.imagePath) && "outline drop-shadow-md",
-            pathname === "/settings" && "outline-primary"
+            asChild && userObject.imagePath && "w-full outline-none",
         )}>
-            <AvatarImage src={userObject?.imagePath ? userObject?.imagePath : ""} alt={userObject?.id.toString()} className={cn("object-cover",
+            <AvatarImage src={userObject?.imagePath ? userObject?.imagePath : ""} alt={userObject?.id.toString()} className={cn("object-cover drop-shadow-md scale-125",
                 asChild && "w-5/6 lg:w-[60%]",
-
             )} />
 
             <AvatarFallback className={cn(`h-40 w-40 text-xl font-medium rounded-md select-none flex justify-center items-center`,
@@ -49,17 +48,20 @@ export function UserAvatar({
                     <span className={cn(
                         `flex outline outline-2 text-center  
                         md:text-2xl 
+                        md:pb-0.5
                         lg:text-4xl
-                        lg:pt-1
+                        lg:mt-3
+                        xl:pb-1.5
                         xl:text-5xl 
-                        shadow-lg rounded-sm px-2 font-bold text-lg
-                        `,
+                        rounded-sm px-2 font-bold text-lg
+                        drop-shadow-md`,
                         !userObject?.id && "outline-none shadow-none",
+                        asChild && "text-lg md:text-xl lg:text-2xl xl:text-3xl",
                     )}>{userObject?.id}</span>
                     {userObject?.id ? (
-                        <UserIcon className="h-auto w-1/2" strokeWidth={1.3} />
+                        <UserIcon className="h-auto w-1/2 drop-shadow-md" strokeWidth={1.3} />
                     ) : (
-                        <UserPlus className="h-auto w-1/2 text-tertiary" strokeWidth={1.3} />
+                        <UserPlus className="h-auto w-1/2 text-tertiary drop-shadow-md" strokeWidth={1.3} />
                     )}
                 </div>
             </AvatarFallback>
