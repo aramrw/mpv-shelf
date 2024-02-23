@@ -1,7 +1,7 @@
 "use client"
 
-import { ArrowBigLeft, HelpCircle, MessageCircleQuestion, MoveLeft, Settings, Sliders } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import { BadgeHelp, HelpCircle, MoveLeft, Sliders } from 'lucide-react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -26,7 +26,8 @@ export function Navbar() {
 
     return (
         <motion.div className={cn("flex h-8 w-full flex-row items-center justify-between border-b-2 bg-accent p-1 shadow-sm md:h-9 lg:h-10",
-            pathname === "/profiles" && "bg-transparent border-none text-background px-2.5 pt-2 shadow-md py-0.5"
+            pathname === "/profiles" && "bg-transparent border-none text-background px-2.5 pt-2 shadow-md py-0.5",
+            pathname === "/dashboard" && "pl-2.5 drop-shadow-sm",
         )}
             drag="y" // Enable vertical dragging
             dragConstraints={{ top: 0, bottom: 0 }} // Limit dragging to vertical movement within the component's height
@@ -47,7 +48,7 @@ export function Navbar() {
                                 router.back();
                             }}
                         >
-                            <MoveLeft className={`h-auto drop-shadow-sm md:w-7 lg:w-8`} />
+                            <MoveLeft className={`h-auto drop-shadow-md md:w-7 lg:w-8`} />
                         </motion.div>
                     )}
                 <motion.div
@@ -55,8 +56,9 @@ export function Navbar() {
                     whileTap={{ scale: 0.9 }}
                     whileHover={{ scale: 1.1 }}
                 >
-                    <MessageCircleQuestion className={cn(`h-auto md:w-7 lg:w-8 drop-shadow-sm`,
-                        pathname === "/profiles" && "text-primary"
+                    <HelpCircle className={cn(`h-auto md:w-7 lg:w-8  text-transparent `,
+                        pathname === "/profiles" && "text-primary",
+                        pathname === "/dashboard" && 'w-7'
                     )} />
                 </motion.div>
 
@@ -69,8 +71,10 @@ export function Navbar() {
                     whileTap={{ scale: 0.9 }}
                     whileHover={{ scale: 1.1 }}
                 >
-                    <Link href="/settings">
-                        <Sliders className="h-auto cursor-pointer md:w-7 lg:w-8" />
+                    <Link href="/settings" >
+                        <Sliders className={cn("h-auto cursor-pointer w-6 md:w-8 lg:w-9 drop-shadow-md",
+                            pathname === "/dashboard" && 'w-7'
+                        )} />
                     </Link>
                 </motion.div>
             )}

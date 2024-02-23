@@ -6,7 +6,7 @@ import type { User } from "@prisma/client";
 import { useRouter } from 'next/navigation';
 import { UserAvatar } from '../profiles/_components/user-avatar';
 import { Button } from '@/components/ui/button';
-import { Check, Loader2 } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -35,6 +35,7 @@ export default function Home() {
             if (!isLoading && (users?.length === 0 || users === undefined)) {
                 router.push('/profiles/newUser');
             } else if (!isLoading && users && users?.length > 1) {
+
                 console.log("multiple users found");
                 getCurrentUserGlobal().then((GLOBAL_USER) => {
                     if (GLOBAL_USER && GLOBAL_USER?.userId !== -1 && users) {
@@ -105,7 +106,7 @@ export default function Home() {
 
         // focus on the first pin input on component mount
         useEffect(() => {
-            router.prefetch('/dashboard');
+
             if (inputRefs[0] && inputRefs[0].current) {
                 (inputRefs[0].current as HTMLInputElement).focus();
             }
@@ -129,17 +130,24 @@ export default function Home() {
         useEffect(() => {
             if (pins.join('').length === pinLength && isLoading === false) {
                 if (pins.join('') === userPin) {
+                    //router.prefetch('/dashboard');
                     setIsLoading(true);
-                    setCurrentUserGlobal({ userId: userId }).then(() => {
-                        setIsLoading(false);
-                        router.push('/dashboard');
+                    setCurrentUserGlobal({ userId: userId }).then((res) => {
+                        if (res == true) {
+                            setIsLoading(false);
+                            router.push('/dashboard');
+                        }
+
                     });
                 }
             } else if (userPin === "disabled" && !isLoading) {
+                //router.prefetch('/dashboard');
                 setIsLoading(true);
-                setCurrentUserGlobal({ userId: userId }).then(() => {
-                    setIsLoading(false);
-                    router.push('/dashboard');
+                setCurrentUserGlobal({ userId: userId }).then((res) => {
+                    if (res == true) {
+                        setIsLoading(false);
+                        router.push('/dashboard');
+                    }
                 });
             }
 
@@ -176,7 +184,7 @@ export default function Home() {
         return (
             <main className='mt-4 flex h-full w-full items-center justify-center'>
                 <AnimatePresence mode='wait' onExitComplete={() => {
-                    router.push('/dashboard');
+                    //router.prefetch('/dashboard');
                 }}>
                     {pins.join('') !== userPin ? (
                         <motion.div className="flex h-full w-full flex-col items-center justify-center gap-3"

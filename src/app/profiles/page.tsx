@@ -128,14 +128,15 @@ export default function Profiles() {
                 >
                     <div className={cn("mt-7 h-full w-full flex flex-col justify-center items-center",
                     )}>
-                        <h1 className='animate-gradient-x select-none bg-[linear-gradient(to_right,theme(colors.zinc.300),theme(colors.gray.100),theme(colors.zinc.400),theme(colors.stone.200),theme(colors.stone.300),theme(colors.white))] bg-[length:200%_auto] bg-clip-text text-center text-3xl font-extrabold text-transparent drop-shadow-lg md:text-5xl lg:text-6xl xl:text-6xl 2xl:text-7xl'>
+                        <h1 className='animate-gradient-x select-none bg-[linear-gradient(to_right,theme(colors.zinc.600),theme(colors.gray.400),theme(colors.zinc.700),theme(colors.stone.700),theme(colors.stone.300),theme(colors.zinc.300),#333)] bg-[length:200%_auto] bg-clip-text text-center text-4xl font-extrabold text-transparent drop-shadow-lg md:text-5xl lg:text-6xl xl:text-6xl 2xl:text-7xl'>
                             Welcome Back!
                         </h1>
-                        <h2 className={`bg-[linear-gradient(to_right,theme(colors.zinc.300), theme(colors.gray.100), theme(colors.zinc.400), theme(colors.stone.200), theme(colors.stone.300), theme(colors.white))] animate-gradient-x select-none bg-[length:200%_auto] bg-clip-text text-center text-xl font-extrabold text-background drop-shadow-md md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-4xl`}>
+
+                        <h2 className='animate-gradient-xr select-none bg-[linear-gradient(to_right,theme(colors.zinc.300),theme(colors.gray.100),theme(colors.zinc.400),theme(colors.stone.200),theme(colors.stone.300),theme(colors.white))] bg-[length:200%_auto] bg-clip-text text-center text-2xl font-extrabold text-transparent drop-shadow-lg md:text-2xl lg:text-3xl xl:text-4xl 2xl:text-4xl'>
                             Select Your Profile From The Users Below
                         </h2>
                     </div>
-                    <motion.div className={cn('relative flex flex-col h-full w-full justify-start items-center py-5 rounded-sm pb-8 bg-transparent drop-shadow-md px-4',
+                    <motion.div className={cn('relative flex flex-col h-full w-full justify-start items-center py-5 brow rounded-sm pb-8 bg-transparent drop-shadow-md px-4',
                         allUsers.length >= 3 && 'items-start cursor-grab w-fit',
                         (allUsers.length >= 3 && isGrabbing) && 'cursor-grabbing',
                     )}
@@ -177,6 +178,7 @@ export default function Profiles() {
                                                 onClick={(e) => {
                                                     e.preventDefault();
                                                     if (!isGrabbing) {
+                                                        router.prefetch('/home');
                                                         setCurrentUserGlobal({ userId: user.id }).then(() => {
                                                             router.push('/home');
                                                         });
@@ -202,6 +204,7 @@ export default function Profiles() {
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 if (!isGrabbing) {
+                                                    router.prefetch('/profiles/newUser');
                                                     setCurrentUserGlobal({ userId: -1 }).then(() => {
                                                         router.push('/profiles/newUser');
                                                     });
