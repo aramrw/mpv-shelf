@@ -44,6 +44,7 @@ export default function Dashboard() {
                             }
                         }
                     } else {
+                        router.prefetch('/');
                         router.push('/');
                     }
                 });

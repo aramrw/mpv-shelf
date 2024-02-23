@@ -105,7 +105,7 @@ export default function Home() {
 
         // focus on the first pin input on component mount
         useEffect(() => {
-            router.prefetch('/dashboard');
+
             if (inputRefs[0] && inputRefs[0].current) {
                 (inputRefs[0].current as HTMLInputElement).focus();
             }
@@ -129,6 +129,7 @@ export default function Home() {
         useEffect(() => {
             if (pins.join('').length === pinLength && isLoading === false) {
                 if (pins.join('') === userPin) {
+                    //router.prefetch('/dashboard');
                     setIsLoading(true);
                     setCurrentUserGlobal({ userId: userId }).then(() => {
                         setIsLoading(false);
@@ -136,6 +137,7 @@ export default function Home() {
                     });
                 }
             } else if (userPin === "disabled" && !isLoading) {
+                //router.prefetch('/dashboard');
                 setIsLoading(true);
                 setCurrentUserGlobal({ userId: userId }).then(() => {
                     setIsLoading(false);
@@ -176,6 +178,7 @@ export default function Home() {
         return (
             <main className='mt-4 flex h-full w-full items-center justify-center'>
                 <AnimatePresence mode='wait' onExitComplete={() => {
+                    //router.prefetch('/dashboard');
                     router.push('/dashboard');
                 }}>
                     {pins.join('') !== userPin ? (

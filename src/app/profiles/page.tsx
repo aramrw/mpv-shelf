@@ -177,6 +177,7 @@ export default function Profiles() {
                                                 onClick={(e) => {
                                                     e.preventDefault();
                                                     if (!isGrabbing) {
+                                                        router.prefetch('/home');
                                                         setCurrentUserGlobal({ userId: user.id }).then(() => {
                                                             router.push('/home');
                                                         });
@@ -202,6 +203,7 @@ export default function Profiles() {
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 if (!isGrabbing) {
+                                                    router.prefetch('/profiles/newUser');
                                                     setCurrentUserGlobal({ userId: -1 }).then(() => {
                                                         router.push('/profiles/newUser');
                                                     });

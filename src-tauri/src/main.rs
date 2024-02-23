@@ -45,10 +45,17 @@ fn main() {
     let tray = SystemTray::new().with_menu(tray_menu).clone();
     fn hack_builder(tray: SystemTray) {
         tauri::Builder::default()
-            // .setup(|app| {
-            //     tray::setup(app.handle());
-            //     Ok(())
-            // })
+            .setup(|app| {
+                match app.get_window("main") {
+                    Some(window) => {
+                        window.center().unwrap();
+                        window.set_focus().unwrap();
+                    }
+                    None => return Ok(()),
+                };
+
+                Ok(())
+            })
             .system_tray(tray.clone())
             .on_system_tray_event(move |app, event| match event {
                 SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
@@ -76,7 +83,9 @@ fn main() {
                                     "new".to_string(),
                                     tauri::WindowUrl::App("/dashboard".into()),
                                 )
+                                .center()
                                 .transparent(true)
+                                .title("mpv-shelf")
                                 .inner_size(700.0, 600.0)
                                 .build()
                                 .unwrap();
@@ -109,13 +118,15 @@ fn main() {
                                 //     tauri::WindowUrl::App("/dashboard".into()),
                                 // )
                                 // .transparent(true)
-                                // .inner_size(700.0, 600.0)
+                                // .title("mpv-shelf")
+                                //.inner_size(700.0, 600.0)
                                 // .build()
                                 // .unwrap();
                             }
                         },
                     },
                     "restart" => {
+                        // TODO : Reset the global table in the database with sqlx
                         app.restart();
                     }
                     "quit" => {
@@ -209,7 +220,9 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
                         "new".to_string(),
                         tauri::WindowUrl::App("/dashboard".into()),
                     )
+                    .center()
                     .transparent(true)
+                    .title("mpv-shelf")
                     .inner_size(700.0, 600.0)
                     .build()
                     .unwrap();
