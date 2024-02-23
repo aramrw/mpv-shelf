@@ -32,12 +32,3 @@ npm i
 ```
 npm run tauri dev
 ```
-
-- // _or to see front-end only_
-
-```
-npm run dev
-```
-
-- Open **[http://localhost:3000](http://localhost:3000)**.
-- _You can start editing the page by modifying the files in the `app` folder. The page auto-updates as you edit the file._
