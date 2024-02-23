@@ -167,7 +167,7 @@ export default function Settings() {
     }
 
     const handleUserGlobal = (userId: { userId: number }) => {
-        router.prefetch('/');
+        //router.prefetch('/');
         setCurrentUserGlobal({ userId: -1 }).then(() => {
             router.push('/');
         })
@@ -307,7 +307,7 @@ export default function Settings() {
                                                                         ConfirmDeleteProfile().then((res) => {
                                                                             if (res) {
                                                                                 if (currentUser?.id) {
-                                                                                    router.prefetch('/');
+                                                                                    //router.prefetch('/');
                                                                                     deleteProfile({ userId: currentUser.id }).then(() => {
                                                                                         setCurrentUserGlobal({ userId: -1 }).then(() => {
                                                                                             router.push('/');
@@ -364,7 +364,7 @@ export default function Settings() {
                                         formState?.fontSize === "Large" && 'text-xl',
                                         formState?.fontSize === "XLarge" && 'text-2xl',
                                     )} onClick={() => {
-                                        router.prefetch('/');
+                                        //router.prefetch('/');
                                         router.push("/profiles/newUser")
                                     }}>
                                         Add New Profile

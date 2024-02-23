@@ -109,13 +109,17 @@ export async function createNewUser({
                 [user[0].id, formData.theme, formData.fontSize, formData.animations, formData.autoRename, formData.usePin]).catch((e) => {
                     console.log("error", e);
                 });
+
+            await db.close();
+            return user[0].id;
         }
     }).catch((e) => {
         console.log(e);
+        return false
     });
 
 
-    db.close();
+
 
 }
 
@@ -409,9 +413,10 @@ export async function setCurrentUserGlobal({ userId }: { userId: number }) {
     } catch (e) {
         await db.close();
         console.log(e);
-
+        return false
     }
 
+    return true
 }
 
 export async function getCurrentUserGlobal() {

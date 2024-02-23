@@ -35,6 +35,7 @@ export default function Home() {
             if (!isLoading && (users?.length === 0 || users === undefined)) {
                 router.push('/profiles/newUser');
             } else if (!isLoading && users && users?.length > 1) {
+
                 console.log("multiple users found");
                 getCurrentUserGlobal().then((GLOBAL_USER) => {
                     if (GLOBAL_USER && GLOBAL_USER?.userId !== -1 && users) {
@@ -131,17 +132,22 @@ export default function Home() {
                 if (pins.join('') === userPin) {
                     //router.prefetch('/dashboard');
                     setIsLoading(true);
-                    setCurrentUserGlobal({ userId: userId }).then(() => {
-                        setIsLoading(false);
-                        router.push('/dashboard');
+                    setCurrentUserGlobal({ userId: userId }).then((res) => {
+                        if (res == true) {
+                            setIsLoading(false);
+                            router.push('/dashboard');
+                        }
+
                     });
                 }
             } else if (userPin === "disabled" && !isLoading) {
                 //router.prefetch('/dashboard');
                 setIsLoading(true);
-                setCurrentUserGlobal({ userId: userId }).then(() => {
-                    setIsLoading(false);
-                    router.push('/dashboard');
+                setCurrentUserGlobal({ userId: userId }).then((res) => {
+                    if (res == true) {
+                        setIsLoading(false);
+                        router.push('/dashboard');
+                    }
                 });
             }
 
@@ -179,7 +185,6 @@ export default function Home() {
             <main className='mt-4 flex h-full w-full items-center justify-center'>
                 <AnimatePresence mode='wait' onExitComplete={() => {
                     //router.prefetch('/dashboard');
-                    router.push('/dashboard');
                 }}>
                     {pins.join('') !== userPin ? (
                         <motion.div className="flex h-full w-full flex-col items-center justify-center gap-3"

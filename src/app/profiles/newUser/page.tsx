@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createRef, useEffect, useState } from 'react'
-import { createNewUser } from '../../../../lib/prisma-commands';
+import { createNewUser, updateSettings } from '../../../../lib/prisma-commands';
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from 'next/navigation';
 import { UserPlus } from 'lucide-react';
@@ -52,7 +52,7 @@ export default function NewUser() {
         useEffect(() => {
             console.log(pins.join(''));
             if (pins.join('').length === pinLength) {
-                createNewUser({ userPin: pins.join(''), formData: formData }).then((res) => {
+                createNewUser({ userPin: pins.join(''), formData: formData }).then((res: any) => {
                     router.push('/profiles');
                 });
             }
