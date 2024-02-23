@@ -166,12 +166,11 @@ export async function updateVideoWatched({
     let db = await Database.load("sqlite:main.db");
 
     try {
-
         // Ensure the video table exists with the correct schema including the userId field
         await db.execute(`
             CREATE TABLE IF NOT EXISTS video (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                path TEXT NOT NULL UNIQUE, 
+                path TEXT NOT NULL, 
                 watched BOOLEAN NOT NULL DEFAULT 0,
                 userId INTEGER,
                 FOREIGN KEY (userId) REFERENCES user(id)
@@ -179,18 +178,18 @@ export async function updateVideoWatched({
         `);
 
         // Check if the video already exists in the database
-        const videos: Video[] = await db.select("SELECT * FROM video WHERE path = $1", [videoPath]);
+        const videos: Video[] = await db.select("SELECT * from video WHERE path = $1 AND userId = $2", [videoPath, user.id])
 
         if (videos.length === 0) {
             // Insert new video record if it does not exist
             await db.execute("INSERT INTO video (path, watched, userId) VALUES ($1, $2, $3)", [videoPath, watched ? 1 : 0, user.id]);
         } else {
             // Update existing video record
-            await db.execute("UPDATE video SET watched = $2 WHERE path = $1", [videoPath, watched ? 1 : 0]);
+            await db.execute("UPDATE video SET watched = $2 WHERE path = $1 AND userId = $2", [videoPath, user.id, watched ? 1 : 0]);
         }
 
     } catch (e) {
-        console.error(e); // Better error handling could be implemented here
+        console.error(e);
         return false
     }
 
@@ -201,25 +200,28 @@ export async function updateVideoWatched({
 
 export async function getVideo({
     videoPath,
+    userId
 }: {
     videoPath: string,
+    userId: number
 }) {
     let db = await Database.load("sqlite:main.db");
 
     let video: any;
 
     try {
+        // Ensure the video table exists with the correct schema including the userId field
         await db.execute(`
-        CREATE TABLE IF NOT EXISTS video (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            path TEXT NOT NULL UNIQUE, 
-            watched BOOLEAN NOT NULL DEFAULT 0,
-            userId INTEGER, 
-            FOREIGN KEY (userId) REFERENCES user(id)
-        )`
-        )
+            CREATE TABLE IF NOT EXISTS video (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                path TEXT NOT NULL, 
+                watched BOOLEAN NOT NULL DEFAULT 0,
+                userId INTEGER,
+                FOREIGN KEY (userId) REFERENCES user(id)
+            )
+        `);
 
-        video = await db.select("SELECT * from video WHERE path = ($1)", [videoPath])
+        video = await db.select("SELECT * from video WHERE path = $1 AND userId = $2", [videoPath, userId])
 
         //;
     } catch (e) {

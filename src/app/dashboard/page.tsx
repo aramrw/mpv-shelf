@@ -160,7 +160,7 @@ export default function Dashboard() {
         useEffect(() => {
             if (currentUser && files.length > 0 && finishedSettingFiles) {
                 setIsInvoking(true);
-                Promise.all(files.map(file => getVideo({ videoPath: file.path })))
+                Promise.all(files.map(file => getVideo({ videoPath: file.path, userId: currentUser.id })))
                     .then(videos => {
                         setPrismaVideos(videos.filter(video => video)); // Filter out undefined or null results
                     })
