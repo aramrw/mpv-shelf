@@ -71,7 +71,7 @@ export function Navbar() {
                     whileTap={{ scale: 0.9 }}
                     whileHover={{ scale: 1.1 }}
                 >
-                    <Link href="/settings">
+                    <Link href="/settings" >
                         <Sliders className={cn("h-auto cursor-pointer w-6 md:w-8 lg:w-9 drop-shadow-md",
                             pathname === "/dashboard" && 'w-7'
                         )} />

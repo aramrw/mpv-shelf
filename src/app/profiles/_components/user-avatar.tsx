@@ -33,7 +33,7 @@ export function UserAvatar({
                 asChild && "w-5/6 lg:w-[60%]",
             )} />
 
-            <AvatarFallback className={cn(`h-40 w-40 text-xl font-medium rounded-md select-none flex justify-center items-center`,
+            <AvatarFallback className={cn(`h-40 w-40 text-xl font-medium rounded-sm select-none flex justify-center items-center`,
                 asChild && "w-full text-lg font-medium",
                 !asChild &&
                 `md:w-52

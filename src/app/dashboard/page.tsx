@@ -706,7 +706,7 @@ export default function Dashboard() {
 
     return (
         <AnimatePresence>
-            <main className='lg:px-16 xl:px-36 2xl:px-48'>
+            <main className='pl-3 lg:px-16 xl:px-36 2xl:px-48'>
                 <div className='flex h-fit w-full flex-col items-center justify-center gap-2 overflow-auto py-2'>
                     {folderPaths.map((folder, index) => {
                         return <FolderList folderPath={folder} key={index} />

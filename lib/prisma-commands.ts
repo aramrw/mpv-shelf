@@ -81,7 +81,7 @@ export async function createNewUser({
                     if (user.length === 1) {
                         updateSettings({ formData, userId: user[0].id });
                     }
-                    //await db.close();
+                    await db.close();
                     return user;
                 })
         }
@@ -287,7 +287,6 @@ export async function updateSettings({
         console.log("error", e);
     });
 
-    await db.close();
 }
 
 export async function updateUserPin({
