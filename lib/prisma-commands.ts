@@ -3,7 +3,6 @@ import { User, Folder, Video } from "@prisma/client";
 import { SettingSchema } from "@/app/settings/page";
 import { Global } from "@prisma/client";
 import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
-import * as NextCache from "next/cache";
 // import { WebviewWindow } from "@tauri-apps/api/window";
 
 export async function getUsers() {
@@ -112,7 +111,7 @@ export async function addFolder({
         console.log(`setting expanded to true for ${folderPath.split("\\").pop()}`);
     }
 
-    await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded NOT NULL DEFAULT 0, FOREIGN KEY (userId) REFERENCES user(id))")
+    await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0, FOREIGN KEY (userId) REFERENCES user(id))")
 
     await db.execute("INSERT into folder (userId, path, expanded) VALUES ($1, $2, $3)", [userId, folderPath, expanded ? 1 : 0]);
 }
@@ -157,6 +156,8 @@ export async function updateFolderExpanded({
     expanded: boolean
 }) {
     let db = await Database.load("sqlite:main.db");
+
+    await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0, FOREIGN KEY (userId) REFERENCES user(id))")
 
     console.log("Updating expanded:", folderPath.split("\\").pop(), "as", expanded, "for user", userId);
 
@@ -519,34 +520,36 @@ export async function deleteProfile({
     }
 }
 
-export async function updateUserScrollY({
-    userId,
-    scrollY
-}: {
-    userId: number,
-    scrollY: number
-}) {
-    const db = await Database.load("sqlite:main.db");
 
-    await db.execute("UPDATE user SET scrollY = $1 WHERE id = $2", [scrollY, userId])
-}
+// ! These work but are not used in the app .. yet?
+// export async function updateUserScrollY({
+//     userId,
+//     scrollY
+// }: {
+//     userId: number,
+//     scrollY: number
+// }) {
+//     const db = await Database.load("sqlite:main.db");
 
-export async function getUserScrollY({
-    userId
-}: {
-    userId: number
-}) {
-    const db = await Database.load("sqlite:main.db");
+//     await db.execute("UPDATE user SET scrollY = $1 WHERE id = $2", [scrollY, userId])
+// }
 
-    try {
-        const scrollY: number = await db.select("SELECT scrollY from user WHERE id = $1", [userId])
+// export async function getUserScrollY({
+//     userId
+// }: {
+//     userId: number
+// }) {
+//     const db = await Database.load("sqlite:main.db");
 
-        if (scrollY) {
-            return scrollY;
-        }
-    } catch (e) {
-        console.log(e);
-        await db.close();
-        return null;
-    }
-}
+//     try {
+//         const scrollY: number = await db.select("SELECT scrollY from user WHERE id = $1", [userId])
+
+//         if (scrollY) {
+//             return scrollY;
+//         }
+//     } catch (e) {
+//         console.log(e);
+//         await db.close();
+//         return null;
+//     }
+// }

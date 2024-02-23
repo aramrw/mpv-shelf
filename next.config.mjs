@@ -5,9 +5,10 @@ const nextConfig = {
     images: {
         unoptimized: true,
     },
-    // experimental: {
-    //     scrollRestoration: true,
-    // }
+    experimental: {
+        scrollRestoration: true,
+    },
+
 };
 
 export default nextConfig;

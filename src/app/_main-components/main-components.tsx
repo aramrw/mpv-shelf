@@ -7,44 +7,41 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useScrollTop } from '../../../lib/hooks/scroll-y-check';
-import { getCurrentUserGlobal, getUsers, updateUserScrollY } from '../../../lib/prisma-commands';
-import { User } from '@prisma/client';
 
 
 export function Navbar() {
     const router = useRouter();
     const pathname = usePathname();
     const scrolled = useScrollTop();
-    const [currentUser, setCurrentUser] = useState<User>();
 
     let [isHidden, setIsHidden] = useState(false);
 
 
     // fetch the user object from db on start and set the current user
-    useEffect(() => {
-        getUsers().then((users) => {
-            if (users?.length !== 0 && users) {
-                getCurrentUserGlobal().then((GLOBAL_USER) => {
-                    if (GLOBAL_USER && GLOBAL_USER?.userId !== -1) {
-                        for (const user of users) {
-                            if (user.id === Number(GLOBAL_USER?.userId)) {
-                                setCurrentUser(user);
-                                break;
-                            }
-                        }
-                    } else {
-                        //router.prefetch('/');
-                        router.push('/', { scroll: false });
-                    }
-                });
-            } else {
+    // useEffect(() => {
+    //     getUsers().then((users) => {
+    //         if (users?.length !== 0 && users) {
+    //             getCurrentUserGlobal().then((GLOBAL_USER) => {
+    //                 if (GLOBAL_USER && GLOBAL_USER?.userId !== -1) {
+    //                     for (const user of users) {
+    //                         if (user.id === Number(GLOBAL_USER?.userId)) {
+    //                             setCurrentUser(user);
+    //                             break;
+    //                         }
+    //                     }
+    //                 } else {
+    //                     //router.prefetch('/');
+    //                     router.push('/', { scroll: false });
+    //                 }
+    //             });
+    //         } else {
 
-                router.push('/profiles/createUser');
-            }
+    //             router.push('/profiles/createUser');
+    //         }
 
-        })
+    //     })
 
-    }, [])
+    // }, [])
 
 
     // Function to handle the end of a drag event

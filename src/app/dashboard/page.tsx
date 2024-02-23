@@ -72,11 +72,11 @@ export default function Dashboard() {
 
     // fetch the settings object from db on start
     useEffect(() => {
-        console.log(folderPaths);
+        //console.log(folderPaths);
         if (currentUser?.id) {
             getUserSettings({ userId: currentUser?.id }).then((settings) => {
                 if (settings) {
-                    console.log("user settings:", settings);
+                    //console.log("user settings:", settings);
                     setUserSettings(settings);
                 }
             })
@@ -99,19 +99,19 @@ export default function Dashboard() {
 
         // Reading directory contents
         useEffect(() => {
-            console.log("CurrentFolderPath = ", folderPath);
+            //console.log("CurrentFolderPath = ", folderPath);
             setFinishedSettingFiles(false);
             readDir(folderPath).then((res) => {
                 if (res) {
-                    console.log("res:", res);
+                    //console.log("res:", res);
                     const videoFiles = res.filter(file => supportedVideoFormats.includes(file.path.replace(/^.*\./, '')) && !file.children);
                     let filtered = videoFiles.filter(video => video !== null && video !== undefined) as Video[];
                     const subtitleFiles = res.filter(file => file.path.split('.').pop() === 'srt');
                     const folders = res.filter(file => file.children);
 
-                    console.log("video files:", filtered);
+                    //console.log("video files:", filtered);
                     //console.log(subtitleFiles);
-                    console.log("child folders:", folders);
+                    //console.log("child folders:", folders);
 
                     // set is the folder is expanded
 
@@ -136,11 +136,11 @@ export default function Dashboard() {
                             if (folder.path === folderPath && folder.expanded) {
                                 console.log("setting expanded to true from useEffect on startup => ", folderPath);
                                 setExpanded(true);
-                                break;
-                            } else if (folder.path === folderPath && !folder.expanded) {
-                                console.log("setting expanded to false from useEffect on startup => ", folderPath);
-                                setExpanded(false);
-                                break;
+                                //break;
+                                // } else if (folder.path === folderPath && !folder.expanded) {
+                                //     console.log("setting expanded to false from useEffect on startup => ", folderPath);
+                                //     setExpanded(false);
+                                //     //break;
                             }
                         }
                     }
@@ -166,7 +166,7 @@ export default function Dashboard() {
 
 
         useEffect(() => {
-            if (currentUser && finishedSettingFiles) {
+            if (currentUser && finishedSettingFiles && !isInvoking) {
                 updateFolderExpanded({ folderPath: folderPath, expanded: expanded, userId: currentUser?.id })
             }
 
