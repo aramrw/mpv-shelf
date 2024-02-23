@@ -122,6 +122,7 @@ export default function Settings() {
     useEffect(() => {
         if (currentUser?.id) {
             getUserSettings({ userId: currentUser?.id }).then((settings) => {
+                console.log(settings);
                 if (settings) {
                     setFormState(settings);
                     setSavedChangesFormState(settings);
@@ -170,7 +171,7 @@ export default function Settings() {
         })
     }
 
-    const handleUserGlobal = (userId: { userId: number }) => {
+    const handleUserGlobal = () => {
         //router.prefetch('/');
         setCurrentUserGlobal({ userId: -1 }).then(() => {
             router.push('/');
@@ -221,7 +222,7 @@ export default function Settings() {
                                                                     formState?.fontSize === "Medium" && 'text-lg',
                                                                     formState?.fontSize === "Large" && 'text-xl',
                                                                     formState?.fontSize === "XLarge" && 'text-2xl',
-                                                                )} onClick={() => { handleUserGlobal({ userId: currentUser.id }) }}>
+                                                                )} onClick={() => { handleUserGlobal() }}>
                                                                     Sign Out
                                                                     <UserMinus className={cn('h-auto w-4 cursor-pointer',
                                                                         formState?.fontSize === "Medium" && 'h-auto w-5',

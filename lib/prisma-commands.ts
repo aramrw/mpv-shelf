@@ -47,10 +47,9 @@ export async function createNewUser({
 }) {
     let db = await Database.load("sqlite:main.db");
 
-    console.log("Creating User With Pin", userPin);
+    console.log("Attemping to create new user");
 
     try {
-        await db.execute(`BEGIN TRANSACTION;`);
 
         // Ensure the table exists before attempting to insert into it
         await db.execute(`
@@ -62,65 +61,36 @@ export async function createNewUser({
             color TEXT UNIQUE )`
         )
 
-        await db.execute(`
-        CREATE TABLE IF NOT EXISTS settings 
-        (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL UNIQUE, 
-            theme TEXT NOT NULL, 
-            fontSize TEXT NOT NULL, 
-            animations TEXT NOT NULL, 
-            autoRename TEXT NOT NULL, 
-            usePin TEXT NOT NULL,
-        FOREIGN KEY (userId) REFERENCES user(id))`
-        )
-
 
         // Attempt to insert a new user with a color if provided
         // This assumes you want to insert the color only if it doesn't already exist in the table
         // If the color is not provided or is an empty string, this will skip the attempt to insert the color
 
-        await invoke("generate_random_color").then(async (color) => {
-            await db.execute(`INSERT OR IGNORE INTO user (pin, color) VALUES ($1, $2)`, [userPin, color])
-        });
+        let currentColor = "";
 
-        await db.execute("COMMIT;")
+        await invoke("generate_random_color").then(async (color: any) => {
+            await db.execute(`INSERT OR IGNORE INTO user (pin, color) VALUES ($1, $2)`, [userPin, color]).then(() => {
+                currentColor = color.toString();
+            })
+        })
+
+
+        if (currentColor !== "") {
+            await db.select("SELECT * from user WHERE color = $1", [currentColor])
+                .then(async (user: any) => {
+                    if (user.length === 1) {
+                        updateSettings({ formData, userId: user[0].id });
+                    }
+                    //await db.close();
+                    return user;
+                })
+        }
 
     } catch (e) {
         console.log(e);
-        await db.execute("ROLLBACK;");
-    }
-
-    await db.select("SELECT * from user WHERE pin = $1", [userPin]).then(async (user: any) => {
-
-        if (user.length !== 0) {
-            console.log("Found user from pin", user);
-            await db.execute(`
-        INSERT INTO settings 
-        (
-            userId, theme, fontSize, animations, autoRename, usePin
-        )
-        VALUES ($1, $2, $3, $4, $5, $6)
-        ON CONFLICT(userId) DO UPDATE SET
-            theme = excluded.theme,
-            fontSize = excluded.fontSize,
-            animations = excluded.animations,
-            autoRename = excluded.autoRename,
-            usePin = excluded.usePin`,
-                [user[0].id, formData.theme, formData.fontSize, formData.animations, formData.autoRename, formData.usePin]).catch((e) => {
-                    console.log("error", e);
-                });
-
-            await db.close();
-            return user[0].id;
-        }
-    }).catch((e) => {
-        console.log(e);
+        await db.close();
         return false
-    });
-
-
-
-
+    }
 }
 
 export async function addFolder({
@@ -291,7 +261,7 @@ export async function updateSettings({
 }) {
     const db = await Database.load("sqlite:main.db");
 
-    //console.log("formData", formData);
+    console.log("updating settings for user:", userId);
 
     await db.execute(`
     CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL UNIQUE, 
