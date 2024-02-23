@@ -153,11 +153,15 @@ export default function Settings() {
             title: 'Pin Copied!',
             description: `Click to see pin.`,
             duration: 1500,
-
             onClick: () => {
                 if (currentUser?.pin) {
                     toast({
                         className: 'cursor-pointer',
+                        variant: 'destructive',
+                        style: {
+                            backdropFilter: 'blur(5px)',
+                            fontWeight: 'bold',
+                        },
                         description: `UserID: ${currentUser.id}・Pin: ${currentUser.pin}`,
                         duration: 1500,
                     });

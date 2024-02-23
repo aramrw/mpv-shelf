@@ -100,10 +100,11 @@ export default function Dashboard() {
                         if (res && currentUser) {
                             for (const path of folderPaths) {
                                 if (path === res?.toString()) {
+                                    let pathName = res.toString().replaceAll("\\", " ").split(" ").pop();
                                     toast({
-                                        title: "Folder already exists",
-                                        description: "The folder you are trying to add already exists in your library.",
-                                        duration: 1500,
+                                        title: `${pathName} already exists!`,
+                                        description: `You already have a folder with the name ${pathName} in your library.`,
+                                        duration: 2000,
                                     })
                                     return;
                                 }
