@@ -1,6 +1,3 @@
-
-
-
 ## What is mpv-shelf?
 - Mpv Shelf is a **cross-platform folder wrapper** to organize videos you would like to keep track of.
 - Compatible with **any video player out of the box** (no config required). *However*, it was created for **[mpv](https://mpv.io/)** in particular.
