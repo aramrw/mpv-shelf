@@ -6,7 +6,7 @@ import type { User } from "@prisma/client";
 import { useRouter } from 'next/navigation';
 import { UserAvatar } from '../profiles/_components/user-avatar';
 import { Button } from '@/components/ui/button';
-import { Check, Loader2 } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
