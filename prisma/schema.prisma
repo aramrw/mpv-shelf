@@ -14,9 +14,10 @@ model User {
   id        Int        @id @default(autoincrement())
   pin       String
   imagePath String?
+  color     String?
+  scrollY   Int        @default(0)
   folders   Folder[]   @relation("UserFolders")
   videos    Video[]
-  color     String?
   Settings  Settings[]
 }
 

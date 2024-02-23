@@ -33,7 +33,7 @@ export default function Home() {
 
         useEffect(() => {
             if (!isLoading && (users?.length === 0 || users === undefined)) {
-                router.push('/profiles/newUser');
+                router.push('/profiles/newUser', { scroll: false });
             } else if (!isLoading && users && users?.length > 1) {
 
                 console.log("multiple users found");
@@ -46,7 +46,7 @@ export default function Home() {
                             }
                         }
                     } else if (!isLoading) {
-                        router.push('/profiles');
+                        router.push('/profiles', { scroll: false });
                     }
                 })
             }
@@ -135,7 +135,7 @@ export default function Home() {
                     setCurrentUserGlobal({ userId: userId }).then((res) => {
                         if (res == true) {
                             setIsLoading(false);
-                            router.push('/dashboard');
+                            router.push('/dashboard', { scroll: false });
                         }
 
                     });
@@ -146,7 +146,7 @@ export default function Home() {
                 setCurrentUserGlobal({ userId: userId }).then((res) => {
                     if (res == true) {
                         setIsLoading(false);
-                        router.push('/dashboard');
+                        router.push('/dashboard', { scroll: false });
                     }
                 });
             }

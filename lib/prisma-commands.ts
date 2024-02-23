@@ -10,11 +10,13 @@ export async function getUsers() {
     const db = await Database.load("sqlite:main.db");
 
     await db.execute(
-        `CREATE TABLE IF NOT EXISTS user (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            pin TEXT NOT NULL, 
+        `CREATE TABLE IF NOT EXISTS user 
+        (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            pin TEXT NOT NULL,
             imagePath TEXT,
-            color TEXT  
+            color TEXT UNIQUE,
+            scrollY INTEGER DEFAULT 0
         )`
     )
 
@@ -58,7 +60,9 @@ export async function createNewUser({
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             pin TEXT NOT NULL,
             imagePath TEXT,
-            color TEXT UNIQUE )`
+            color TEXT UNIQUE, 
+            scrollY INTEGER DEFAULT 0
+        )`
         )
 
 
@@ -515,4 +519,34 @@ export async function deleteProfile({
     }
 }
 
+export async function updateUserScrollY({
+    userId,
+    scrollY
+}: {
+    userId: number,
+    scrollY: number
+}) {
+    const db = await Database.load("sqlite:main.db");
 
+    await db.execute("UPDATE user SET scrollY = $1 WHERE id = $2", [scrollY, userId])
+}
+
+export async function getUserScrollY({
+    userId
+}: {
+    userId: number
+}) {
+    const db = await Database.load("sqlite:main.db");
+
+    try {
+        const scrollY: number = await db.select("SELECT scrollY from user WHERE id = $1", [userId])
+
+        if (scrollY) {
+            return scrollY;
+        }
+    } catch (e) {
+        console.log(e);
+        await db.close();
+        return null;
+    }
+}

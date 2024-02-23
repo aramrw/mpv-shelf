@@ -180,7 +180,7 @@ export default function Profiles() {
                                                     if (!isGrabbing) {
                                                         router.prefetch('/home');
                                                         setCurrentUserGlobal({ userId: user.id }).then(() => {
-                                                            router.push('/home');
+                                                            router.push('/home', { scroll: false });
                                                         });
                                                     }
                                                 }}
@@ -206,7 +206,7 @@ export default function Profiles() {
                                                 if (!isGrabbing) {
                                                     router.prefetch('/profiles/newUser');
                                                     setCurrentUserGlobal({ userId: -1 }).then(() => {
-                                                        router.push('/profiles/newUser');
+                                                        router.push('/profiles/newUser', { scroll: false });
                                                     });
                                                 }
 

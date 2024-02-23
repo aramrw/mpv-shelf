@@ -1,18 +1,51 @@
 "use client"
 
-import { BadgeHelp, HelpCircle, MoveLeft, Sliders } from 'lucide-react'
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
+import { HelpCircle, MoveLeft, Sliders } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { motion, useMotionValueEvent, useScroll } from 'framer-motion'
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useScrollTop } from '../../../lib/hooks/scroll-y-check';
+import { getCurrentUserGlobal, getUsers, updateUserScrollY } from '../../../lib/prisma-commands';
+import { User } from '@prisma/client';
 
 
 export function Navbar() {
     const router = useRouter();
     const pathname = usePathname();
+    const scrolled = useScrollTop();
+    const [currentUser, setCurrentUser] = useState<User>();
 
     let [isHidden, setIsHidden] = useState(false);
+
+
+    // fetch the user object from db on start and set the current user
+    useEffect(() => {
+        getUsers().then((users) => {
+            if (users?.length !== 0 && users) {
+                getCurrentUserGlobal().then((GLOBAL_USER) => {
+                    if (GLOBAL_USER && GLOBAL_USER?.userId !== -1) {
+                        for (const user of users) {
+                            if (user.id === Number(GLOBAL_USER?.userId)) {
+                                setCurrentUser(user);
+                                break;
+                            }
+                        }
+                    } else {
+                        //router.prefetch('/');
+                        router.push('/', { scroll: false });
+                    }
+                });
+            } else {
+
+                router.push('/profiles/createUser');
+            }
+
+        })
+
+    }, [])
+
 
     // Function to handle the end of a drag event
     const handleDragEnd = (event: any, info: any) => {
@@ -25,9 +58,10 @@ export function Navbar() {
     };
 
     return (
-        <motion.div className={cn("flex h-8 w-full flex-row items-center justify-between border-b-2 bg-accent p-1 shadow-sm md:h-9 lg:h-10",
+        <motion.div className={cn("z-50 top-0 sticky flex h-8 w-full flex-row items-center justify-between border-b-2 bg-accent p-1 shadow-sm md:h-9 lg:h-10",
             pathname === "/profiles" && "bg-transparent border-none text-background px-2.5 pt-2 shadow-md py-0.5",
             pathname === "/dashboard" && "pl-2.5 drop-shadow-sm",
+            scrolled && "bg-accent"
         )}
             drag="y" // Enable vertical dragging
             dragConstraints={{ top: 0, bottom: 0 }} // Limit dragging to vertical movement within the component's height
@@ -71,7 +105,7 @@ export function Navbar() {
                     whileTap={{ scale: 0.9 }}
                     whileHover={{ scale: 1.1 }}
                 >
-                    <Link href="/settings" >
+                    <Link href="/settings" scroll={false} >
                         <Sliders className={cn("h-auto cursor-pointer w-6 md:w-8 lg:w-9 drop-shadow-md",
                             pathname === "/dashboard" && 'w-7'
                         )} />

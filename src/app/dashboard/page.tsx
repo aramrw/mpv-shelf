@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { z } from "zod"
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { open } from '@tauri-apps/api/dialog';
 import { addFolder, deleteFolder, getCurrentUserGlobal, getFolders, getUserSettings, getUsers, getVideo, unwatchVideo, updateFolderExpanded, updateVideoWatched } from '../../../lib/prisma-commands';
 import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
@@ -23,15 +23,14 @@ import { ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent } from '@ra
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
 import { set, string } from 'zod';
-import { finished } from 'stream';
 // import { WebviewWindow, appWindow } from "@tauri-apps/api/window"
 
 export default function Dashboard() {
     const [folderPaths, setFolderPaths] = useState<string[]>([]);
     const [currentUser, setCurrentUser] = useState<User>();
     const [userSettings, setUserSettings] = useState<SettingSchema>();
-
     const router = useRouter();
+
 
     // fetch the user object from db on start and set the current user
     useEffect(() => {
@@ -46,8 +45,8 @@ export default function Dashboard() {
                             }
                         }
                     } else {
-                        router.prefetch('/');
-                        router.push('/');
+                        //router.prefetch('/');
+                        router.push('/', { scroll: false });
                     }
                 });
             } else {
@@ -85,7 +84,7 @@ export default function Dashboard() {
     }, [folderPaths])
 
 
-    function FolderList({ folderPath, asChild, }: { folderPath: string, asChild?: boolean | undefined }) {
+    const FolderList = ({ folderPath, asChild, }: { folderPath: string, asChild?: boolean | undefined }) => {
 
         const [files, setFiles] = useState<FileEntry[]>([]);
         const [folders, setFolders] = useState<FileEntry[]>([]);
@@ -96,7 +95,6 @@ export default function Dashboard() {
         const [isInvoking, setIsInvoking] = useState(false);
         //const [deleting, setDeleting] = useState(false);
         //const [watchedVideos, setWatchedVideos] = useState<Video[]>([]);
-
 
 
         // Reading directory contents
@@ -167,7 +165,6 @@ export default function Dashboard() {
         }, [currentUser, files, finishedSettingFiles]);
 
 
-
         useEffect(() => {
             if (currentUser && finishedSettingFiles) {
                 updateFolderExpanded({ folderPath: folderPath, expanded: expanded, userId: currentUser?.id })
@@ -191,6 +188,7 @@ export default function Dashboard() {
         return (
             <AnimatePresence >
                 <motion.main className='my-1 h-full w-full overflow-hidden'
+                    id='MAIN_FOLDER'
                 >
                     <ContextMenu>
                         <ContextMenuTrigger>
@@ -718,8 +716,11 @@ export default function Dashboard() {
     }
 
     return (
-        <AnimatePresence>
-            <main className='pl-3 lg:px-16 xl:px-36 2xl:px-48'>
+        <main className={cn('pl-3 lg:px-16 xl:px-36 2xl:px-48',
+        )}
+
+        >
+            <AnimatePresence>
                 <div className='flex h-fit w-full flex-col items-center justify-center gap-1.5 overflow-auto py-2 drop-shadow-sm'>
                     {folderPaths.map((folder, index) => {
                         return (
@@ -782,9 +783,9 @@ export default function Dashboard() {
                         <Loader2 className='animate-spin text-accent' size={40} />
                     </motion.div>
                 )}
+            </AnimatePresence>
+        </main>
 
-            </main>
-        </AnimatePresence>
     )
 
 }

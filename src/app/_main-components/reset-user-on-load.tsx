@@ -10,9 +10,10 @@ export default function ResetUserOnLoad() {
     let router = useRouter();
 
     useEffect(() => {
+        console.log('resetting user on load');
         //router.prefetch('/home');
         setCurrentUserGlobal({ userId: -1 }).then(() => {
-            router.push('/home');
+            router.push('/home', { scroll: false });
         })
     }, [])
 
