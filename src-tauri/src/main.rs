@@ -30,6 +30,7 @@ struct Global {
 fn main() {
     let open = CustomMenuItem::new("open".to_string(), "Open");
     let hide = CustomMenuItem::new("hide".to_string(), "Hide");
+    let restart = CustomMenuItem::new("restart".to_string(), "Restart");
     let quit = CustomMenuItem::new("quit".to_string(), "Quit");
 
     let tray_menu = SystemTrayMenu::new()
@@ -37,7 +38,10 @@ fn main() {
         .add_native_item(SystemTrayMenuItem::Separator)
         .add_item(hide)
         .add_native_item(SystemTrayMenuItem::Separator)
+        .add_item(restart)
+        .add_native_item(SystemTrayMenuItem::Separator)
         .add_item(quit);
+
     let tray = SystemTray::new().with_menu(tray_menu).clone();
     fn hack_builder(tray: SystemTray) {
         tauri::Builder::default()
@@ -98,18 +102,22 @@ fn main() {
                                 }
                             }
                             None => {
-                                tauri::WindowBuilder::new(
-                                    app,
-                                    "new".to_string(),
-                                    tauri::WindowUrl::App("/dashboard".into()),
-                                )
-                                .transparent(true)
-                                .inner_size(700.0, 600.0)
-                                .build()
-                                .unwrap();
+                                // ! Do nothing since there is no window to hide
+                                // tauri::WindowBuilder::new(
+                                //     app,
+                                //     "new".to_string(),
+                                //     tauri::WindowUrl::App("/dashboard".into()),
+                                // )
+                                // .transparent(true)
+                                // .inner_size(700.0, 600.0)
+                                // .build()
+                                // .unwrap();
                             }
                         },
                     },
+                    "restart" => {
+                        app.restart();
+                    }
                     "quit" => {
                         app.exit(1);
                     }
