@@ -5,11 +5,11 @@ import React, { useEffect, useState } from 'react'
 import { open } from '@tauri-apps/api/dialog';
 import { addFolder, deleteFolder, getCurrentUserGlobal, getFolders, getUserSettings, getUsers, getVideo, unwatchVideo, updateVideoWatched } from '../../../lib/prisma-commands';
 import type { User, Video } from "@prisma/client";
-import { Captions, ChevronDown, ChevronUp, CornerUpRight, Eye, EyeOff, Film, Folder, FolderInput, Folders, Loader2, Trash2, VideoIcon, } from 'lucide-react';
+import { Captions, ChevronDown, ChevronUp, CornerLeftDown, Eye, EyeOff, Film, Folder, FolderInput, Folders, Loader2, Trash2, VideoIcon, } from 'lucide-react';
 import { FileEntry, readDir } from '@tauri-apps/api/fs'
 import { cn } from '@/lib/utils';
 import { invoke } from '@tauri-apps/api/tauri';
-import { AnimatePresence, motion, usePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -83,44 +83,43 @@ export default function Dashboard() {
     }, [folderPaths])
 
 
-    function AddFolder(
+    function AddFolderButton(
     ) {
         return (
-            <main
-            >
-                <Button variant="outline"
-                    className={cn('select-none',
-                        userSettings?.fontSize === "Medium" && 'text-lg mx-0',
-                        userSettings?.fontSize === "Large" && 'text-xl mx-0',
-                        userSettings?.fontSize === "XLarge" && 'text-2xl mx-0',
-                    )}
-                    onClick={() => {
-                        open({
-                            directory: true
-                        }).then((res): void => {
-                            if (res && currentUser) {
-                                for (const path of folderPaths) {
-                                    if (path === res?.toString()) {
-                                        toast({
-                                            title: "Folder already exists",
-                                            description: "The folder you are trying to add already exists in your library.",
-                                            duration: 1500,
-                                        })
-                                        return;
-                                    }
+
+            <Button variant="outline"
+                className={cn('select-none',
+                    userSettings?.fontSize === "Medium" && 'text-lg mx-0',
+                    userSettings?.fontSize === "Large" && 'text-xl mx-0',
+                    userSettings?.fontSize === "XLarge" && 'text-2xl mx-0',
+                )}
+                onClick={() => {
+                    open({
+                        directory: true
+                    }).then((res): void => {
+                        if (res && currentUser) {
+                            for (const path of folderPaths) {
+                                if (path === res?.toString()) {
+                                    toast({
+                                        title: "Folder already exists",
+                                        description: "The folder you are trying to add already exists in your library.",
+                                        duration: 1500,
+                                    })
+                                    return;
                                 }
-
-                                addFolder({ userId: currentUser?.id, folderPath: res.toString() }).then(() => {
-                                    setFolderPaths(prevPaths => [...prevPaths, res] as string[]);
-                                });
-
                             }
-                        })
-                    }}
-                >
-                    Add Folder
-                </Button>
-            </main>
+
+                            addFolder({ userId: currentUser?.id, folderPath: res.toString() }).then(() => {
+                                setFolderPaths(prevPaths => [...prevPaths, res] as string[]);
+                            });
+
+                        }
+                    })
+                }}
+            >
+                Add Folder
+            </Button>
+
         )
     }
 
@@ -132,9 +131,10 @@ export default function Dashboard() {
         const [subtitleFiles, setSubtitleFiles] = useState<FileEntry[]>([]);
         const [deleting, setDeleting] = useState(false);
         const [prismaVideos, setPrismaVideos] = useState<Video[]>([]);
+        const [watchedVideos, setWatchedVideos] = useState<Video[]>([]);
         const [finishedSettingFiles, setFinishedSettingFiles] = useState(false);
         const [isInvoking, setIsInvoking] = useState(false);
-        const [watchedVideos, setWatchedVideos] = useState<Video[]>([]);
+
 
         // Reading directory contents
         useEffect(() => {
@@ -150,6 +150,7 @@ export default function Dashboard() {
                     setFolders(folders as FileEntry[]);
                     setSubtitleFiles(subtitleFiles as FileEntry[]);
                     setFinishedSettingFiles(true);
+
                 }
             });
         }, [folderPath]); // Added folderPath as a dependency
@@ -180,55 +181,50 @@ export default function Dashboard() {
         };
 
         return (
-            <AnimatePresence mode='sync'>
+            <AnimatePresence >
                 <motion.main className='h-full w-full overflow-hidden'
-                    initial={userSettings?.animations === "On" ? { y: -50 } : undefined}
-                    animate={userSettings?.animations === "On" ? { y: 0 } : undefined}
-                    exit={userSettings?.animations === "On" ? { y: -50 } : undefined}
-                    key={"folder"}
+
 
                 >
                     <ContextMenu>
                         <ContextMenuTrigger>
                             {/* Main Parent Folder */}
                             <motion.div
-                                key={"main parent folder" + folderPath + "main parent"}
-                                style={expanded && !asChild ? { padding: "5px" } : {}}
+                                initial={userSettings?.animations === "On" ? { y: -50 } : undefined}
+                                animate={userSettings?.animations === "On" ? { y: 0 } : undefined}
+                                exit={userSettings?.animations === "On" ? { y: -50 } : undefined}
+                                transition={{ duration: 0.5, bounce: 0.3, type: 'spring' }}
+                                key={"main-parent-folder+folder"}
+
+                                style={expanded && !asChild ? { padding: "10px" } : {}}
                                 className={cn(
                                     'flex cursor-pointer flex-row items-center justify-between rounded-md bg-accent p-1',
-                                    (expanded && files.length > 0 && !asChild) && 'rounded-b-none border-b-4 border-tertiary]',
-                                    (expanded && folders.length > 0 && !asChild) && 'rounded-b-none border-b-4 border-tertiary',
+                                    (expanded && files.length > 0 && !asChild) && 'rounded-b-none border-b-4 border-tertiary',
+                                    (expanded && folders.length > 0 && !asChild) && 'rounded-b-none border-b-4',
                                     (expanded && asChild) && 'border-none',
                                     asChild && 'bg-muted',
                                     (asChild && expanded) && 'p-1 border-none drop-shadow-sm rounded-b-sm',
                                     (!asChild && expanded) && 'border-none',
                                     (asChild) && 'flex flex-col rounded-t-none',
-                                    (asChild && folderPath.replaceAll("\\", " ").length > 100) && 'flex-col items-start justify-center gap-1',
-                                    userSettings?.animations === "Off" && 'hover:opacity-70',
+                                    userSettings?.animations === "Off" && 'hover:opacity-80',
 
                                 )}
                                 onClick={(e) => {
-                                    if (e.button === 0)
+                                    if (files.length > 0 || folders.length > 0)
                                         setExpanded(!expanded);
                                 }}
-                                whileHover={(userSettings?.animations === "On" && !asChild) ? { padding: "10px" } : undefined}
-                                transition={{ duration: 0.2, damping: 10, stiffness: 100 }}
-                                exit={userSettings?.animations === "On" ? { y: -50, opacity: 0 } : undefined}
-                                initial={userSettings?.animations === "On" ? { y: -50 } : undefined}
-                                animate={userSettings?.animations === "On" ? { y: 0 } : undefined}
-                            >
+                                whileHover={(userSettings?.animations === "On" && !asChild) ? { padding: "10px", transition: { duration: 0.1 } } : undefined}
 
+                            >
                                 {/* Displays all the tags for main parent folder. */}
                                 < div className={cn('flex flex-row items-center justify-start gap-1 font-medium text-primary text-sm text-center w-full',
                                 )}>
-
-
-                                    <motion.div className='flex items-start justify-center text-center'
-                                        key={folderPath + "not expanded" + (Math.random() * 10) + ""}
-                                        initial={userSettings?.animations === "On" ? { rotate: 0.7 } : undefined}
-                                        animate={userSettings?.animations === "On" ? { opacity: 1 } : undefined}
-                                        exit={userSettings?.animations === "On" ? { opacity: 0, x: -30 } : undefined}
-                                        transition={{ duration: 0.1, damping: 10, stiffness: 100 }}
+                                    <motion.div className='flex items-start justify-center'
+                                        key={folderPath + "not expanded5"}
+                                        initial={userSettings?.animations === "On" ? { y: -50, opacity: 0 } : undefined}
+                                        animate={userSettings?.animations === "On" ? { y: 0, opacity: 1 } : undefined}
+                                        exit={userSettings?.animations === "On" ? { y: -50, opacity: 0 } : undefined}
+                                        transition={{ duration: 0.7, bounce: 0.2, type: 'spring' }}
                                     >
                                         {(asChild && !expanded) && (
                                             <Folder className={cn('h-auto w-4',
@@ -240,25 +236,23 @@ export default function Dashboard() {
 
                                     </motion.div>
                                     <motion.div className='flex items-start justify-center'
-                                        key={folderPath + "expanded"}
-                                        initial={userSettings?.animations === "On" ? { rotate: 0.7, rotateX: -200 } : undefined}
-                                        animate={userSettings?.animations === "On" ? { opacity: 1 } : undefined}
-                                        exit={userSettings?.animations === "On" ? { opacity: 0, x: -30 } : undefined}
-                                        transition={{ duration: 0.1, damping: 10, stiffness: 100 }}
+                                        key={folderPath + "expanded1"}
+                                        initial={userSettings?.animations === "On" ? { y: -50, opacity: 0 } : undefined}
+                                        animate={userSettings?.animations === "On" ? { y: 0, opacity: 1 } : undefined}
+                                        exit={userSettings?.animations === "On" ? { y: -50, opacity: 0 } : undefined}
+                                        transition={{ duration: 0.7, bounce: 0.2, type: 'spring' }}
                                     >
                                         {(asChild && expanded) && (
-                                            <CornerUpRight className={cn('h-auto w-5 px-0.5',
+                                            <CornerLeftDown className={cn('h-auto w-5 px-0.5',
                                                 userSettings?.fontSize === "Medium" && 'h-auto w-6',
                                                 userSettings?.fontSize === "Large" && 'h-auto w-7',
-                                                userSettings?.fontSize === "XLarge" && 'h-auto w-8'
+                                                userSettings?.fontSize === "XLarge" && 'h-auto w-8',
+                                                files.length < 0 || folders.length < 0 && "hidden"
                                             )}
                                             />
                                         )}
                                     </motion.div>
-
-
-
-                                    {folders.length === 0 && files.length === 0 && subtitleFiles.length === 0 ?
+                                    {folders.length === 0 && files.length === 0 ?
                                         <span className={cn('line-through',
                                             userSettings?.fontSize === "Medium" && 'text-lg',
                                             userSettings?.fontSize === "Large" && 'text-2xl',
@@ -395,25 +389,23 @@ export default function Dashboard() {
                     </ContextMenu>
 
                     {/* Displays all the child files and folders */}
-
-
-                    <ul className='overflow-hidden overflow-y-auto bg-muted' >
+                    <ul className='overflow-hidden bg-muted' >
 
                         {/* Files */}
+
                         {
                             expanded && files.map((file, index) => {
                                 return (
-
                                     <ContextMenu key={index}>
                                         <ContextMenuTrigger>
-                                            <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 py-1 px-4 cursor-pointer overflow-hidden',
+                                            <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 py-1.5 px-4 cursor-pointer overflow-hidden',
                                                 (index === files.length - 1) && 'rounded-b-md border-b-0 border-tertiary',
                                                 userSettings?.animations === "Off" && 'hover:opacity-50',
                                                 prismaVideos.some((video) => video.path === file.path && video.watched) && 'bg-accent drop-shadow-sm',
                                             )}
 
                                                 onClick={(e) => {
-                                                    if (e.button === 0 && !isInvoking && finishedSettingFiles) {
+                                                    if (!isInvoking && finishedSettingFiles) {
                                                         setIsInvoking(true);
                                                         setFinishedSettingFiles(false);
                                                         updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).then(() => {
@@ -421,21 +413,18 @@ export default function Dashboard() {
                                                             setFinishedSettingFiles(true);
                                                             setIsInvoking(true);
                                                         });
-
-
-
                                                     }
                                                 }}
-                                                key={file.name}
-                                                initial={userSettings?.animations === "On" ? { opacity: 0 } : undefined}
-                                                animate={userSettings?.animations === "On" ? { opacity: 1 } : undefined}
-                                                exit={userSettings?.animations === "On" ? { opacity: 0, x: -100 } : undefined}
+                                                key={file.name + "current"}
+                                                initial={userSettings?.animations === "On" ? { opacity: 0, x: -20 } : undefined}
+                                                animate={userSettings?.animations === "On" ? { opacity: 1, x: 0 } : undefined}
+                                                exit={userSettings?.animations === "On" ? { opacity: 0, x: -20 } : undefined}
                                                 whileHover={userSettings?.animations === "On" ? { x: 1.5 } : undefined}
-                                                transition={{ duration: 0.15, damping: 10, stiffness: 100 }}
+                                                transition={{ duration: 0.3, bounce: 0.4, type: 'spring' }}
                                             >
                                                 {/* If its not a folder render it as a video file */}
                                                 {!file.children &&
-                                                    <div className={cn('flex flex-row items-center justify-center gap-1 font-medium select-none',
+                                                    <div className={cn('flex flex-row items-center justify-center gap-1 font-medium select-none ',
                                                         (file.name && file.name?.length > 100) && 'flex-col items-start justify-center gap-1',
                                                     )}
 
@@ -468,8 +457,8 @@ export default function Dashboard() {
                                                                     initial={userSettings?.animations === "On" ? { x: -20, opacity: 0 } : undefined}
                                                                     animate={userSettings?.animations === "On" ? { x: 0, opacity: 1 } : undefined}
                                                                     exit={userSettings?.animations === "On" ? { x: -20, opacity: 0 } : undefined}
-                                                                    transition={{ duration: 0.2, damping: 10, stiffness: 100 }}
-                                                                    whileHover={userSettings?.animations === "On" ? { scale: 1.2 } : undefined}
+                                                                    transition={{ duration: 0.35, bounce: 0.5, type: 'spring' }}
+                                                                    whileHover={userSettings?.animations === "On" ? { scale: 1.15 } : undefined}
                                                                     whileTap={userSettings?.animations === "On" ? { scale: 0.9 } : undefined}
                                                                     onClick={(e) => {
                                                                         // set the video as unwatched when the user clicks on the eye icon
@@ -489,7 +478,7 @@ export default function Dashboard() {
                                                                     )} />
                                                                 </motion.div
                                                                 >
-                                                                <span className={cn('text-sm',
+                                                                <span className={cn('text-sm ',
                                                                     userSettings?.fontSize === "Medium" && 'text-base',
                                                                     userSettings?.fontSize === "Large" && 'text-lg',
                                                                     userSettings?.fontSize === "XLarge" && 'text-2xl',
@@ -524,7 +513,7 @@ export default function Dashboard() {
 
 
                                             >
-                                                <ContextMenuItem className='cursor-pointer gap-1 py-0.5 font-medium'
+                                                <ContextMenuItem className='cursor-pointer gap-1 font-medium'
                                                     onClick={(e) => {
 
                                                         if (e.button === 0 && !isInvoking) {
@@ -548,7 +537,7 @@ export default function Dashboard() {
                                                 </ContextMenuItem>
                                                 <ContextMenuSeparator className='my-1 h-[1px] bg-accent' />
                                                 <ContextMenuSub>
-                                                    <ContextMenuSubTrigger className={cn('cursor-pointer gap-1 py-0.5 font-medium',
+                                                    <ContextMenuSubTrigger className={cn('cursor-pointer gap-1 font-medium',
                                                         userSettings?.fontSize === "Medium" && 'text-base',
                                                         userSettings?.fontSize === "Large" && 'text-lg',
                                                         userSettings?.fontSize === "XLarge" && 'text-xl',
@@ -682,32 +671,33 @@ export default function Dashboard() {
                             })
                         }
 
+
                         {/*Child Folders */}
+                        <AnimatePresence>
+                            {
+                                expanded && folders.map((folder, index) => {
+                                    return (
+                                        <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 p-0.5 px-2 cursor-pointer overflow-hidden select-none ',
+                                            (index === folders.length - 1 && !asChild) && 'rounded-b-md border-b-4 border-tertiary',
+                                            asChild && 'rounded-b-md border-none border-tertiary',
 
-                        {
-                            expanded && folders.map((folder, index) => {
-                                return (
-                                    <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 p-0.5 px-2 cursor-pointer overflow-hidden select-none',
-                                        (index === folders.length - 1) && 'rounded-b-md border-b-4 border-tertiary',
-                                        asChild && 'px-3.5 border-none rounded-none',
-                                    )}
-                                        key={folder.name}
+                                        )}
+                                            key={folder.name + "current-child" + index}
+                                            initial={userSettings?.animations === "On" ? { y: -40 } : undefined}
+                                            animate={userSettings?.animations === "On" ? { opacity: 1, y: 0 } : undefined}
+                                            exit={(userSettings?.animations === "On") ? { y: -40, opacity: 0 } : undefined}
+                                            whileHover={(userSettings?.animations === "On") ? { x: 1 } : undefined}
+                                            transition={{ duration: 0.15, damping: 10, stiffness: 100 }}
+                                        >
 
-                                        initial={userSettings?.animations === "On" ? { opacity: 0 } : undefined}
-                                        animate={userSettings?.animations === "On" ? { opacity: 1 } : undefined}
-                                        exit={(userSettings?.animations === "On") ? { y: -20, opacity: 0 } : undefined}
-                                        whileHover={(userSettings?.animations === "On") ? { x: 1 } : undefined}
-                                        transition={{ duration: 0.15, damping: 10, stiffness: 100 }}
-                                    >
+                                            <FolderList folderPath={folder.path} asChild />
 
-                                        <FolderList folderPath={folder.path} asChild />
+                                        </motion.li>
 
-                                    </motion.li>
-
-                                )
-                            })
-                        }
-
+                                    )
+                                })
+                            }
+                        </AnimatePresence>
                     </ul>
 
                 </motion.main >
@@ -717,31 +707,36 @@ export default function Dashboard() {
 
     return (
         <AnimatePresence>
-            <div>
-                <motion.div className='flex h-fit w-full flex-col gap-2 overflow-auto p-3'
+            <main className='lg:px-16 xl:px-36 2xl:px-48'>
+                <div className='flex h-fit w-full flex-col items-center justify-center gap-2 overflow-auto p-3'>
+                    {folderPaths.map((folder, index) => {
+                        return <FolderList folderPath={folder} key={index} />
+                    })}
+                </div>
+                <motion.div className='flex h-fit w-full flex-col items-start justify-center overflow-auto px-3'
                     initial={{ opacity: 0, x: -50 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -50 }}
                     transition={{ duration: 0.2, bounce: 0.5, type: 'spring' }}
                     key={"folder"}
                 >
-                    {folderPaths.map((folder, index) => {
-                        return <FolderList folderPath={folder} key={index} />
-                    })}
-                    <AddFolder />
+
+                    <AddFolderButton />
                 </motion.div>
 
-                <motion.div className='h-fit w-full overflow-hidden'
-                    initial={{ opacity: 0, x: -50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 50 }}
-                    transition={{ duration: 0.2, bounce: 0.5, type: 'spring' }}
-                    key={"Loader"}
-                >
-                    <Loader2 className='animate-spin text-accent' size={40} />
-                </motion.div>
+                {!currentUser && !userSettings && (
+                    <motion.div className='h-fit w-full overflow-hidden'
+                        initial={{ opacity: 0, x: -50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 50 }}
+                        transition={{ duration: 0.2, bounce: 0.5, type: 'spring' }}
+                        key={"Loader"}
+                    >
+                        <Loader2 className='animate-spin text-accent' size={40} />
+                    </motion.div>
+                )}
 
-            </div>
+            </main>
         </AnimatePresence>
     )
 
