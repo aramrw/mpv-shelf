@@ -102,17 +102,14 @@ export default function Profiles() {
 
     return (
         <AnimatePresence>
-            {/* <motion.video className="fixed left-0 top-0 z-[-1] h-full w-full object-cover"
+            {/* <video className="fixed left-0 top-0 z-[-1] h-full w-full object-cover"
                 autoPlay
                 muted
                 loop
                 src='video.mp4'
-                initial={{ opacity: 0, y: -50 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 50 }}
                 key={"video"}
             /> */}
-            <motion.main className={cn("flex w-full flex-col items-center justify-center gap-2 overflow-hidden relative select-none shadow-2xl",
+            <motion.main className={cn("flex w-full flex-col items-center justify-center gap-2 overflow-hidden relative select-none shadow-2xl ",
                 allUsers.length >= 3 && 'items-start',
             )}
                 ref={wrapperRef}

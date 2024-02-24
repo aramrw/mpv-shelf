@@ -71,7 +71,7 @@ export default function NewUser() {
                     <UserPlus className={cn("h-auto w-24 md:w-[7.5rem] lg:w-32 xl:w-36 text-primary",
 
                     )} />
-                    <motion.h1 className="text-4xl font-medium md:text-5xl lg:text-[3.25rem] xl:text-6xl">Create New Profile</motion.h1>
+                    <h1 className="text-4xl font-medium md:text-5xl lg:text-[3.25rem] xl:text-6xl">Create New Profile</h1>
                     <div className="my-4 flex space-x-2">
                         {pins.map((pin, index) => (
                             <input
