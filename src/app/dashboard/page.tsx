@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { open } from '@tauri-apps/api/dialog';
 import { addFolder, deleteFolder, getCurrentUserGlobal, getFolders, getUserScrollY, getUserSettings, getUsers, getVideo, unwatchVideo, updateFolderExpanded, updateUserScrollY, updateVideoWatched } from '../../../lib/prisma-commands';
 import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
-import { Captions, ChevronDown, ChevronUp, CornerLeftDown, Eye, EyeOff, Film, Folder, FolderInput, Folders, Key, Loader2, Trash2, VideoIcon, } from 'lucide-react';
+import { Captions, ChevronDown, ChevronUp, CornerLeftDown, Eye, EyeOff, Film, Folder, FolderInput, Folders, Trash2, VideoIcon, } from 'lucide-react';
 import { FileEntry, readDir } from '@tauri-apps/api/fs'
 import { cn } from '@/lib/utils';
 import { invoke } from '@tauri-apps/api/tauri';
@@ -320,37 +320,43 @@ export default function Dashboard() {
                                             </span>
                                         )}
                                     {folders.length > 0 && (
-                                        <div className='flex flex-row items-center justify-center gap-0.5 rounded-md bg-tertiary px-0.5'>
+                                        <div className={cn('flex flex-row items-center justify-center gap-0.5 rounded-md bg-tertiary px-0.5',
+                                            asChild && 'opacity-80',
+                                        )}
+
+                                        >
                                             <Folders className={cn('h-auto w-4',
-                                                userSettings?.fontSize === "Medium" && 'h-auto w-4',
-                                                userSettings?.fontSize === "Large" && 'h-auto w-5',
-                                                userSettings?.fontSize === "XLarge" && 'h-auto w-6'
+                                                userSettings?.fontSize === "Medium" && !asChild && 'h-auto w-4',
+                                                userSettings?.fontSize === "Large" && !asChild && 'h-auto w-5',
+                                                userSettings?.fontSize === "XLarge" && !asChild && 'h-auto w-6'
                                             )}
 
                                             />
-                                            <span className={cn('text-xs',
-                                                userSettings?.fontSize === "Medium" && 'text-sm',
-                                                userSettings?.fontSize === "Large" && 'text-base',
-                                                userSettings?.fontSize === "XLarge" && 'text-lg',
+                                            <span className={cn('text-xs lg:text-sm font-bold',
+                                                userSettings?.fontSize === "Medium" && !asChild && 'text-sm',
+                                                userSettings?.fontSize === "Large" && !asChild && 'text-base',
+                                                userSettings?.fontSize === "XLarge" && !asChild && 'text-lg',
                                             )}>
                                                 {folders.length > 0 && folders.length}
                                             </span>
                                         </div>
                                     )}
                                     {files.length > 0 && (
-                                        <div className={cn('flex flex-row items-center justify-center text-sm rounded-md bg-tertiary px-0.5 gap-0.5',
+                                        <div className={cn('flex flex-row items-center justify-center text-sm rounded-md bg-tertiary px-0.5 gap-0.5 ',
+                                            asChild && 'opacity-80',
+
                                         )}>
                                             <VideoIcon className={cn('h-auto w-4',
-                                                userSettings?.fontSize === "Medium" && 'h-auto w-4',
-                                                userSettings?.fontSize === "Large" && 'h-auto w-5',
-                                                userSettings?.fontSize === "XLarge" && 'h-auto w-6'
+                                                userSettings?.fontSize === "Medium" && !asChild && 'h-auto w-4',
+                                                userSettings?.fontSize === "Large" && !asChild && 'h-auto w-5',
+                                                userSettings?.fontSize === "XLarge" && !asChild && 'h-auto w-6'
                                             )}
-                                                strokeWidth={1.85}
+
                                             />
-                                            <span className={cn('text-xs',
-                                                userSettings?.fontSize === "Medium" && 'text-sm',
-                                                userSettings?.fontSize === "Large" && 'text-base',
-                                                userSettings?.fontSize === "XLarge" && 'text-lg',
+                                            <span className={cn('text-xs lg:text-sm font-bold',
+                                                userSettings?.fontSize === "Medium" && !asChild && 'text-sm',
+                                                userSettings?.fontSize === "Large" && !asChild && 'text-base',
+                                                userSettings?.fontSize === "XLarge" && !asChild && 'text-lg',
                                             )}>
                                                 {files.length > 0 && files.length}
                                             </span>
@@ -359,20 +365,21 @@ export default function Dashboard() {
                                     )}
                                     {subtitleFiles.length > 0 && (
                                         <div className={cn('flex flex-row items-center justify-center text-xs rounded-md bg-tertiary px-0.5 gap-0.5',
+                                            asChild && 'opacity-80',
                                         )}>
                                             <Captions className={cn('h-auto w-4',
-                                                userSettings?.fontSize === "Medium" && 'h-auto w-4',
-                                                userSettings?.fontSize === "Large" && 'h-auto w-5',
-                                                userSettings?.fontSize === "XLarge" && 'h-auto w-6'
+                                                userSettings?.fontSize === "Medium" && !asChild && 'h-auto w-4',
+                                                userSettings?.fontSize === "Large" && !asChild && 'h-auto w-5',
+                                                userSettings?.fontSize === "XLarge" && !asChild && 'h-auto w-6'
                                             )}
-                                                strokeWidth={1.8}
+
 
 
                                             />
-                                            <span className={cn('text-xs',
-                                                userSettings?.fontSize === "Medium" && 'text-sm',
-                                                userSettings?.fontSize === "Large" && 'text-base',
-                                                userSettings?.fontSize === "XLarge" && 'text-lg',
+                                            <span className={cn('text-xs lg:text-sm font-bold',
+                                                userSettings?.fontSize === "Medium" && !asChild && 'text-sm',
+                                                userSettings?.fontSize === "Large" && !asChild && 'text-base',
+                                                userSettings?.fontSize === "XLarge" && !asChild && 'text-lg',
                                             )}>
                                                 {subtitleFiles.length > 0 && subtitleFiles.length}
                                             </span>
