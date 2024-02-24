@@ -175,9 +175,9 @@ export default function Profiles() {
                                                 onClick={(e) => {
                                                     e.preventDefault();
                                                     if (!isGrabbing) {
-                                                        router.prefetch('/home');
+                                                        router.prefetch('/login');
                                                         setCurrentUserGlobal({ userId: user.id }).then(() => {
-                                                            router.push('/home', { scroll: false });
+                                                            router.push('/login', { scroll: false });
                                                         });
                                                     }
                                                 }}

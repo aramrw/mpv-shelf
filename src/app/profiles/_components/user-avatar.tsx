@@ -42,7 +42,7 @@ export function UserAvatar({
                  lg:h-64
                  xl:h-80
                  xl:w-80`,
-                pathname.includes("/home") && "h-40 w-40"
+                pathname.includes("/login") && "h-40 w-40"
             )}>
                 <div className="flex h-full w-full flex-col items-center justify-center" style={{ backgroundColor: `${userObject?.color}` }}>
                     <span className={cn(

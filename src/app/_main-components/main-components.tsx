@@ -69,7 +69,7 @@ export function Navbar() {
         >
             <div className='flex w-full flex-row items-center justify-between gap-1'>
                 {(pathname === "/settings" ||
-                    pathname === "/home" ||
+                    pathname === "/login" ||
                     pathname === "/profiles/newUser"
                 ) && (
                         <motion.div
@@ -98,7 +98,7 @@ export function Navbar() {
 
             </div>
 
-            {(pathname !== "/settings" && !pathname.includes("/profile") && pathname !== "/home" && pathname !== "/") && (
+            {(pathname !== "/settings" && !pathname.includes("/profile") && pathname !== "/login" && pathname !== "/") && (
                 <motion.div
                     whileTap={{ scale: 0.9 }}
                     whileHover={{ scale: 1.1 }}
