@@ -29,7 +29,7 @@ export function UserAvatar({
             (asChild && !userObject?.imagePath) && "outline drop-shadow-md",
             asChild && userObject.imagePath && "w-full outline-none",
         )}>
-            <AvatarImage src={userObject?.imagePath ? userObject?.imagePath : ""} alt={userObject?.id.toString()} className={cn("object-cover drop-shadow-md scale-125",
+            <AvatarImage src={userObject?.imagePath ? userObject?.imagePath : ""} alt={userObject?.id.toString()} className={cn("object-cover drop-shadow-md",
                 asChild && "w-5/6 lg:w-[60%]",
             )} />
 

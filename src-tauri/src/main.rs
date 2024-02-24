@@ -66,7 +66,7 @@ fn main() {
                                 window.show().unwrap();
                             }
                         }
-                        None => match app.get_window("new") {
+                        None => match app.get_window("main") {
                             Some(window) => {
                                 if window.is_visible().unwrap() {
                                     window.hide().unwrap();
@@ -78,7 +78,7 @@ fn main() {
                             None => {
                                 tauri::WindowBuilder::new(
                                     app,
-                                    "new".to_string(),
+                                    "main".to_string(),
                                     tauri::WindowUrl::App("/login".into()),
                                 )
                                 .center()
@@ -125,7 +125,7 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
     let window: Window = handle
         .clone()
         .get_window("main")
-        .or_else(|| handle.clone().get_window("new"))
+        .or_else(|| handle.clone().get_window("main"))
         .expect("failed to get any windows!");
 
     let screen_res = window.current_monitor().unwrap().unwrap();
@@ -179,7 +179,7 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
 
             // open a new window and close the first exe (not a window anymore) in the system tray
 
-            match handle.get_window("new") {
+            match handle.get_window("main") {
                 Some(window) => {
                     window.center().unwrap();
                     window.show().unwrap();
@@ -191,7 +191,7 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
                     // build the window
                     tauri::WindowBuilder::new(
                         &handle,
-                        "new".to_string(),
+                        "main".to_string(),
                         tauri::WindowUrl::App("/dashboard".into()),
                     )
                     .center()

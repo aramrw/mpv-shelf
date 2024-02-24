@@ -33,13 +33,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${noto.className} subpixel-antialiased overflow-y-hidden`}  >
+        <ThemeProvider defaultTheme="light" forcedTheme="light" >
+          <Navbar />
 
-        <Navbar />
-        <ThemeProvider>
           {children}
-        </ThemeProvider>
-        <Toaster />
 
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );
