@@ -6,6 +6,7 @@ use random_color::color_dictionary::{ColorDictionary, ColorInformation};
 #[allow(unused_imports)]
 use random_color::{Color, Luminosity, RandomColor};
 use serde::{Deserialize, Serialize};
+//use tauri_plugin_oauth::start;
 
 use std::collections::HashMap;
 use std::io::{stdout, Write};
@@ -106,7 +107,8 @@ fn main() {
             .invoke_handler(generate_handler![
                 open_video,
                 show_in_folder,
-                generate_random_color
+                generate_random_color,
+                //start_server
             ])
             .build(tauri::generate_context!())
             .expect("error while building tauri application")
@@ -122,7 +124,7 @@ fn main() {
     hack_builder(tray);
 }
 
-#[tauri::command]
+#[command]
 fn generate_random_color() -> String {
     let color = RandomColor::new()
         .luminosity(Luminosity::Light) // Ensuring the color is light, for a pastel-like effect
@@ -133,10 +135,20 @@ fn generate_random_color() -> String {
     color
 }
 
-// *MAL API* //
+// // *MAL API* //
+// #[command]
+// async fn start_server(window: Window) -> Result<u16, String> {
+//     start(move |url| {
+//         // Because of the unprotected localhost port, you must verify the URL here.
+//         // Preferebly send back only the token, or nothing at all if you can handle everything else in Rust.
+//         let _ = window.emit("redirect_uri", url);
+//     })
+//     .map_err(|err| err.to_string())
+// }
+// // *MAL API* //
 
 // ! DONT TOUCH THESE FUNCTIONS ! //
-#[tauri::command]
+#[command]
 fn show_in_folder(path: String) {
     #[cfg(target_os = "windows")]
     {
@@ -183,7 +195,7 @@ fn show_in_folder(path: String) {
     }
 }
 
-#[tauri::command]
+#[command]
 async fn open_video(path: String, handle: tauri::AppHandle) -> String {
     let window: Window = handle
         .clone()
@@ -276,3 +288,4 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
         std::thread::sleep(std::time::Duration::from_millis(500));
     }
 }
+// ! DONT TOUCH THESE FUNCTIONS ! //
