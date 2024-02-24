@@ -30,15 +30,12 @@ struct Global {
 }
 
 fn main() {
-    let open = CustomMenuItem::new("open".to_string(), "Open");
-    let hide = CustomMenuItem::new("hide".to_string(), "Hide");
+    let toggle_window = CustomMenuItem::new("toggle_window".to_string(), "Toggle Window");
     let restart = CustomMenuItem::new("restart".to_string(), "Restart");
     let quit = CustomMenuItem::new("quit".to_string(), "Quit");
 
     let tray_menu = SystemTrayMenu::new()
-        .add_item(open)
-        .add_native_item(SystemTrayMenuItem::Separator)
-        .add_item(hide)
+        .add_item(toggle_window)
         .add_native_item(SystemTrayMenuItem::Separator)
         .add_item(restart)
         .add_native_item(SystemTrayMenuItem::Separator)
@@ -60,43 +57,9 @@ fn main() {
             .system_tray(tray.clone())
             .on_system_tray_event(move |app, event| match event {
                 SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
-                    "open" => match app.get_window("main") {
+                    "toggle_window" => match app.get_window("main") {
                         Some(window) => {
                             if window.is_visible().unwrap() {
-                                window.center().unwrap();
-                            } else if !window.is_visible().unwrap() {
-                                window.center().unwrap();
-                                window.show().unwrap();
-                            }
-                        }
-                        None => match app.get_window("new") {
-                            Some(window) => {
-                                if window.is_visible().unwrap() {
-                                    window.center().unwrap();
-                                } else if !window.is_visible().unwrap() {
-                                    window.center().unwrap();
-                                    window.show().unwrap();
-                                }
-                            }
-                            None => {
-                                tauri::WindowBuilder::new(
-                                    app,
-                                    "new".to_string(),
-                                    tauri::WindowUrl::App("/dashboard".into()),
-                                )
-                                .center()
-                                .transparent(true)
-                                .title("mpv-shelf")
-                                .inner_size(700.0, 600.0)
-                                .build()
-                                .unwrap();
-                            }
-                        },
-                    },
-                    "hide" => match app.get_window("main") {
-                        Some(window) => {
-                            if window.is_visible().unwrap() {
-                                window.center().unwrap();
                                 window.hide().unwrap();
                             } else if !window.is_visible().unwrap() {
                                 window.center().unwrap();
@@ -106,7 +69,6 @@ fn main() {
                         None => match app.get_window("new") {
                             Some(window) => {
                                 if window.is_visible().unwrap() {
-                                    window.center().unwrap();
                                     window.hide().unwrap();
                                 } else if !window.is_visible().unwrap() {
                                     window.center().unwrap();
@@ -114,17 +76,16 @@ fn main() {
                                 }
                             }
                             None => {
-                                // ! Do nothing since there is no window to hide
-                                // tauri::WindowBuilder::new(
-                                //     app,
-                                //     "new".to_string(),
-                                //     tauri::WindowUrl::App("/dashboard".into()),
-                                // )
-                                // .transparent(true)
-                                // .title("mpv-shelf")
-                                //.inner_size(700.0, 600.0)
-                                // .build()
-                                // .unwrap();
+                                tauri::WindowBuilder::new(
+                                    app,
+                                    "new".to_string(),
+                                    tauri::WindowUrl::App("/login".into()),
+                                )
+                                .center()
+                                .title("mpv-shelf")
+                                .inner_size(800.0, 600.0)
+                                .build()
+                                .unwrap();
                             }
                         },
                     },
