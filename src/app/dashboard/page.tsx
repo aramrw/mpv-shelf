@@ -208,7 +208,11 @@ export default function Dashboard() {
         return (
             <AnimatePresence >
                 <motion.main className='my-1 h-full w-full rounded-b-md'
-                    id='MAIN_FOLDER'
+                    initial={userSettings?.animations === "On" ? { y: -50 } : undefined}
+                    animate={userSettings?.animations === "On" ? { y: 0 } : undefined}
+                    exit={userSettings?.animations === "On" ? { y: -50 } : undefined}
+                    transition={{ duration: 0.5, bounce: 0.5, type: 'spring' }}
+                    key={"mainmain"}
                 >
                     <ContextMenu>
                         <ContextMenuTrigger>
@@ -219,7 +223,7 @@ export default function Dashboard() {
                                 exit={userSettings?.animations === "On" ? { y: -50 } : undefined}
                                 transition={{ duration: 0.5, bounce: 0.5, type: 'spring' }}
                                 key={"main-parent-folder+folder"}
-                                style={expanded && !asChild ? { padding: "10px", paddingBottom: "15px" } : {}}
+                                style={expanded && !asChild ? { padding: "10px" } : {}}
                                 className={cn(
                                     'flex cursor-pointer flex-row items-center justify-between rounded-md bg-accent p-1',
                                     (expanded && files.length > 0 && !asChild) && 'rounded-b-none border-b-4 border-tertiary',
@@ -230,7 +234,6 @@ export default function Dashboard() {
                                     (!asChild && expanded) && 'border-none',
                                     (asChild) && 'flex flex-col rounded-t-none',
                                     userSettings?.animations === "Off" && 'hover:opacity-80',
-                                    !asChild && 'pb-2',
 
                                 )}
                                 onClick={(e) => {
@@ -238,11 +241,10 @@ export default function Dashboard() {
                                         setExpanded(!expanded);
                                 }}
 
-                                whileHover={(userSettings?.animations === "On" && !asChild) ? { padding: "10px", paddingBottom: "15px" } : undefined}
-
+                                whileHover={(userSettings?.animations === "On" && !asChild) ? { padding: "10px" } : undefined}
                             >
                                 {/* Displays all the tags for main parent folder. */}
-                                < div className={cn('flex flex-row items-center justify-start gap-1 font-medium text-primary text-sm text-center w-full',
+                                < div className={cn('flex flex-row items-center justify-start gap-1 font-medium text-primary text-sm text-center w-full pb-1.5',
                                 )}>
                                     <motion.div className='flex items-start justify-center'
                                         key={folderPath + "not expanded5"}
@@ -424,7 +426,7 @@ export default function Dashboard() {
                                             <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 py-1.5 px-4 cursor-pointer overflow-hidden',
                                                 (index === files.length - 1) && 'rounded-b-md border-b-0 border-tertiary',
                                                 userSettings?.animations === "Off" && 'hover:opacity-50',
-                                                prismaVideos.some((video) => video.path === file.path && video.watched) && 'bg-accent drop-shadow-sm',
+                                                prismaVideos.some((video) => video.path === file.path && video.watched) && 'bg-tertiary drop-shadow-sm',
                                             )}
 
                                                 onClick={(e) => {
@@ -443,11 +445,11 @@ export default function Dashboard() {
                                                 animate={userSettings?.animations === "On" ? { opacity: 1, x: 0 } : undefined}
                                                 exit={userSettings?.animations === "On" ? { opacity: 0, x: -20 } : undefined}
                                                 whileHover={userSettings?.animations === "On" ? { x: 1.5 } : undefined}
-                                                transition={{ duration: 0.3, bounce: 0.4, type: 'spring' }}
+                                                transition={{ duration: 0.5, bounce: 0.4, type: 'spring' }}
                                             >
                                                 {/* If its not a folder render it as a video file */}
                                                 {!file.children &&
-                                                    <div className={cn('flex flex-row items-center justify-center gap-1 font-medium select-none ',
+                                                    <motion.div className={cn('flex flex-row items-center justify-center gap-1 font-medium select-none ',
                                                         (file.name && file.name?.length > 100) && 'flex-col items-start justify-center gap-1',
                                                     )}
 
@@ -526,7 +528,7 @@ export default function Dashboard() {
                                                             </motion.div>
                                                         )}
 
-                                                    </div>
+                                                    </motion.div>
                                                 }
                                             </motion.li>
                                             <ContextMenuContent className={cn(``,
@@ -743,6 +745,7 @@ export default function Dashboard() {
             style={{ scrollbarGutter: "stable", }}
         >
             <AnimatePresence>
+
                 <div className='mb-20 flex h-full w-full flex-col items-center justify-center gap-2 rounded-b-sm drop-shadow-sm'
                 >
                     {folderPaths.map((folder, index) => {
@@ -755,7 +758,7 @@ export default function Dashboard() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -50 }}
                         transition={{ duration: 0.2, bounce: 0.5, type: 'spring' }}
-                        key={"folder"}
+                        key={"folder8888888"}
                     >
                         <Button variant="outline"
                             className={cn('select-none',
