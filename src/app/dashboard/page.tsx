@@ -9,7 +9,7 @@ import { Captions, ChevronDown, ChevronUp, CornerLeftDown, Eye, EyeOff, Film, Fo
 import { FileEntry, readDir } from '@tauri-apps/api/fs'
 import { cn } from '@/lib/utils';
 import { invoke } from '@tauri-apps/api/tauri';
-import { AnimatePresence, animate, motion, scroll, useMotionValueEvent, useScroll } from 'framer-motion';
+import { AnimatePresence, animate, motion, scroll, useMotionValueEvent, useScroll, useSpring } from 'framer-motion';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -29,7 +29,8 @@ export default function Dashboard() {
     const [folderPaths, setFolderPaths] = useState<string[]>([]);
     const [currentUser, setCurrentUser] = useState<User>();
     const [userSettings, setUserSettings] = useState<SettingSchema>();
-    const scrolledDiv = useRef(null);
+    const scrolledDiv = useRef<HTMLDivElement>(null);
+    //const { scrollYProgress } = useScroll();
     const router = useRouter();
     const { scrollY } = useScroll({
         container: scrolledDiv
@@ -52,11 +53,12 @@ export default function Dashboard() {
     useEffect(() => {
         if (currentUser)
             getUserScrollY({ userId: currentUser?.id }).then((userY: any) => {
-                console.log("User scroll: ", userY)
+                if (userY !== 0 && userY !== null && userY !== undefined)
+                    console.log("User scroll: ", userY)
                 setTimeout(() => {
                     console.log("scrolling to: ", userY);
                     setScrollPosition(userY);
-                }, 500);
+                }, 200);
             })
     }, [currentUser]);
 
@@ -208,11 +210,6 @@ export default function Dashboard() {
         return (
             <AnimatePresence >
                 <motion.main className='my-1 h-full w-full rounded-b-md'
-                    initial={userSettings?.animations === "On" ? { y: -50 } : undefined}
-                    animate={userSettings?.animations === "On" ? { y: 0 } : undefined}
-                    exit={userSettings?.animations === "On" ? { y: -50 } : undefined}
-                    transition={{ duration: 0.5, bounce: 0.5, type: 'spring' }}
-                    key={"mainmain"}
                 >
                     <ContextMenu>
                         <ContextMenuTrigger>

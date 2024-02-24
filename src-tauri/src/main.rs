@@ -171,17 +171,13 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
     // First we update all information of our `System` struct.
     sys.refresh_all();
 
+    // kill any mpv processes before opening a new one
     #[allow(unused_variables)]
     for (pid, process) in sys.processes() {
         if process.name().to_lowercase().contains("mpv.exe") {
             process.kill();
         }
     }
-
-    match open::that(path) {
-        Ok(_) => "Video opened successfully",
-        Err(_) => "Failed to open video",
-    };
 
     let instant = std::time::Instant::now();
 
