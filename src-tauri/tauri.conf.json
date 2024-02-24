@@ -96,7 +96,7 @@
         "assetScope": ["**"]
       },
       "globalShortcut": {
-        "all": false
+        "all": true
       }
     },
     "bundle": {

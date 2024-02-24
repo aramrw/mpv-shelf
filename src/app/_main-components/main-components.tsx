@@ -1,13 +1,11 @@
 "use client"
-
+// import React, { useEffect, useState } from 'react'
+import { motion, /*useMotionValueEvent, useScroll*/ } from 'framer-motion'
 import { HelpCircle, MoveLeft, Sliders } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
-import { motion, useMotionValueEvent, useScroll } from 'framer-motion'
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useScrollTop } from '../../../lib/hooks/scroll-y-check';
-import { ModeToggle } from './mode-toggle';
 
 
 export function Navbar() {
@@ -15,57 +13,45 @@ export function Navbar() {
     const pathname = usePathname();
     const scrolled = useScrollTop();
 
-    let [isHidden, setIsHidden] = useState(false);
-
-
-    // fetch the user object from db on start and set the current user
     // useEffect(() => {
-    //     getUsers().then((users) => {
-    //         if (users?.length !== 0 && users) {
-    //             getCurrentUserGlobal().then((GLOBAL_USER) => {
-    //                 if (GLOBAL_USER && GLOBAL_USER?.userId !== -1) {
-    //                     for (const user of users) {
-    //                         if (user.id === Number(GLOBAL_USER?.userId)) {
-    //                             setCurrentUser(user);
-    //                             break;
-    //                         }
-    //                     }
-    //                 } else {
-    //                     //router.prefetch('/');
-    //                     router.push('/', { scroll: false });
-    //                 }
-    //             });
-    //         } else {
+    //     // if (pathname === "/profiles") {
+    //     //     if (pathname === "/profiles") {
 
-    //             router.push('/profiles/createUser');
-    //         }
-
-    //     })
-
-    // }, [])
+    //     //         isRegistered("CommandOrControl+Shift+C").then((res) => {
+    //     //             if (res === false) {
+    //     //                 register("CommandOrControl+Shift+C", () => {
+    //     //                     alert("CommandOrControl+Shift+C has been pressed");
+    //     //                 })
+    //     //             } else {
+    //     //                 console.log("CommandOrControl+Shift+C is already registered");
+    //     //             }
+    //     //         })
 
 
-    // Function to handle the end of a drag event
-    const handleDragEnd = (event: any, info: any) => {
-        // Determine if the drag was upwards significantly
-        // "info.point.y" gives the endpoint of the drag relative to the drag start
-        // Adjust the threshold according to your needs
-        if (info.offset.y < -50) {
-            setIsHidden(true);
-        }
-    };
+    //     //     } else {
+    //     //         unregister("CommandOrControl+Shift+F11+3").then(() => {
+    //     //             console.log("Global shortcut has been unregistered");
+    //     //         });
+    //     //     }
+    //     // }
+
+
+    //     return () => {
+    //         unregister("CommandOrControl+Shift+F11+3").then(() => {
+    //             console.log("Global shortcut has been unregistered");
+    //         });
+    //     }
+
+    // }, [pathname])
+
+
 
     return (
-        <motion.div className={cn("z-50 top-0 sticky flex h-8 w-full flex-row items-center justify-between border-b-2 bg-accent p-1 shadow-sm md:h-9 lg:h-10 lg:px-16 xl:px-36 2xl:px-48",
+        <div className={cn("z-50 top-0 sticky flex h-8 w-full flex-row items-center justify-between border-b-2 bg-accent p-1 shadow-sm md:h-9 lg:h-10 lg:px-16 xl:px-36 2xl:px-48",
             pathname === "/profiles" && "bg-transparent border-none text-background px-2.5 pt-2 shadow-md py-0.5",
             pathname === "/dashboard" && "pl-2 drop-shadow-sm",
             scrolled && "bg-red-500"
         )}
-            drag="y" // Enable vertical dragging
-            dragConstraints={{ top: 0, bottom: 0 }} // Limit dragging to vertical movement within the component's height
-            onDragEnd={handleDragEnd} // Handle the drag end event
-            animate={{ y: isHidden ? -100 : 0 }} // Adjust this value to control how far the navbar moves up
-            transition={{ type: 'spring', stiffness: 300 }}
         >
             <div className='flex w-full flex-row items-center justify-between gap-1'>
                 {(pathname === "/settings" ||
@@ -114,6 +100,6 @@ export function Navbar() {
                 </Link>
             )}
 
-        </motion.div>
+        </div>
     );
 }
