@@ -449,7 +449,7 @@ export default function Dashboard() {
                         <ContextMenu key={"context-menu" + index}>
                             <ContextMenuTrigger>
                                 <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 py-1.5 px-4 cursor-pointer overflow-hidden',
-                                    (index === files.length - 1) && 'rounded-b-md border-b-4 border-tertiary',
+                                    (index === files.length - 1) && 'rounded-b-md border-none pb-0',
                                     userSettings?.animations === "Off" && 'hover:opacity-50',
                                     prismaVideos.some((video) => video.path === file.path && video.watched) && 'bg-tertiary drop-shadow-sm',
                                 )}
@@ -497,7 +497,6 @@ export default function Dashboard() {
                                                 return false;
                                             }
                                         }) ? (
-
                                             <motion.div style={
                                                 currentUser?.color ? {
                                                     textShadow: "0 0 5px rgba(0,0,0,0.2)"
@@ -734,31 +733,28 @@ export default function Dashboard() {
                     )
                 })}
 
-
                 {/*Child Folders */}
+                {expanded && folders.map((folder, index) => {
+                    return (
+                        <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 p-0.5 px-2 cursor-pointer overflow-hidden select-none ',
+                            (index === folders.length - 1 && !asChild) && 'rounded-b-md border-b-4 border-tertiary',
+                            asChild && 'rounded-b-md border-none border-tertiary',
 
-                {
-                    expanded && folders.map((folder, index) => {
-                        return (
-                            <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 p-0.5 px-2 cursor-pointer overflow-hidden select-none ',
-                                (index === folders.length - 1 && !asChild) && 'rounded-b-md border-b-4 border-tertiary',
-                                asChild && 'rounded-b-md border-none border-tertiary',
+                        )}
+                            key={folder.name + "current-child" + index}
+                            initial={userSettings?.animations === "On" ? { y: -40 } : undefined}
+                            animate={userSettings?.animations === "On" ? { opacity: 1, y: 0 } : undefined}
+                            exit={(userSettings?.animations === "On") ? { y: -40, opacity: 0 } : undefined}
+                            whileHover={(userSettings?.animations === "On") ? { x: 1 } : undefined}
+                            transition={{ duration: 0.3, stiffness: 30 }}
+                        >
 
-                            )}
-                                key={folder.name + "current-child" + index}
-                                initial={userSettings?.animations === "On" ? { y: -40 } : undefined}
-                                animate={userSettings?.animations === "On" ? { opacity: 1, y: 0 } : undefined}
-                                exit={(userSettings?.animations === "On") ? { y: -40, opacity: 0 } : undefined}
-                                whileHover={(userSettings?.animations === "On") ? { x: 1 } : undefined}
-                                transition={{ duration: 0.3, stiffness: 30 }}
-                            >
+                            <FolderList folderPath={folder.path} asChild />
 
-                                <FolderList folderPath={folder.path} asChild />
+                        </motion.li>
 
-                            </motion.li>
-
-                        )
-                    })
+                    )
+                })
                 }
 
             </main >
