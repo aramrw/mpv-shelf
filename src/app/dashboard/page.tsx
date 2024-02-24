@@ -653,7 +653,39 @@ export default function Dashboard() {
                                                     )} />
                                                 </ContextMenuItem>
                                             )}
+                                            <ContextMenuSeparator className='my-1 h-[1px] bg-accent' />
+                                            <ContextMenuItem className='cursor-pointer'
+                                                onClick={(e) => {
+                                                    setFinishedSettingFiles(false);
+                                                    if (currentUser) {
+                                                        files.slice(index, files.length).map((file) => {
+                                                            setFinishedSettingFiles(false);
+                                                            unwatchVideo({ videoPath: file.path, userId: currentUser?.id }).finally(() => setFinishedSettingFiles(true));
 
+                                                        })
+                                                    }
+                                                }}
+                                            >
+                                                <div className='flex gap-1'>
+                                                    <span className={cn("",
+                                                        userSettings?.fontSize === "Medium" && 'text-base',
+                                                        userSettings?.fontSize === "Large" && 'text-lg',
+                                                        userSettings?.fontSize === "XLarge" && 'text-xl',
+                                                    )}>Unwatch To</span>
+                                                    <div className='flex'>
+                                                        <EyeOff className={cn('h-auto w-4 ',
+                                                            userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                                                            userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                                            userSettings?.fontSize === "XLarge" && 'h-auto w-7'
+                                                        )} />
+                                                        <ChevronUp className={cn('h-auto w-4 ',
+                                                            userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                                                            userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                                            userSettings?.fontSize === "XLarge" && 'h-auto w-7'
+                                                        )} />
+                                                    </div>
+                                                </div>
+                                            </ContextMenuItem>
                                             <ContextMenuItem className='cursor-pointer'
                                                 onClick={(e) => {
                                                     e.stopPropagation();
@@ -685,38 +717,6 @@ export default function Dashboard() {
                                                             userSettings?.fontSize === "XLarge" && 'h-auto w-7'
                                                         )} />
                                                         <ChevronDown className={cn('h-auto w-4 ',
-                                                            userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                            userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                                            userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                                        )} />
-                                                    </div>
-                                                </div>
-                                            </ContextMenuItem>
-                                            <ContextMenuItem className='cursor-pointer'
-                                                onClick={(e) => {
-                                                    setFinishedSettingFiles(false);
-                                                    if (currentUser) {
-                                                        files.slice(index, files.length).map((file) => {
-                                                            setFinishedSettingFiles(false);
-                                                            unwatchVideo({ videoPath: file.path, userId: currentUser?.id }).finally(() => setFinishedSettingFiles(true));
-
-                                                        })
-                                                    }
-                                                }}
-                                            >
-                                                <div className='flex gap-1'>
-                                                    <span className={cn("",
-                                                        userSettings?.fontSize === "Medium" && 'text-base',
-                                                        userSettings?.fontSize === "Large" && 'text-lg',
-                                                        userSettings?.fontSize === "XLarge" && 'text-xl',
-                                                    )}>Unwatch To</span>
-                                                    <div className='flex'>
-                                                        <EyeOff className={cn('h-auto w-4 ',
-                                                            userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                            userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                                            userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                                        )} />
-                                                        <ChevronUp className={cn('h-auto w-4 ',
                                                             userSettings?.fontSize === "Medium" && 'h-auto w-5',
                                                             userSettings?.fontSize === "Large" && 'h-auto w-6',
                                                             userSettings?.fontSize === "XLarge" && 'h-auto w-7'
