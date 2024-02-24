@@ -43,6 +43,8 @@ export default function Home() {
                             if (user.id === GLOBAL_USER.userId) {
                                 setUsers([]);
                                 setUsers([user]);
+                                // ! reset the global user to -1
+                                setCurrentUserGlobal({ userId: -1 });
                             }
                         }
                     } else if (!isLoading) {
@@ -240,7 +242,7 @@ export default function Home() {
                                         value={pin}
                                         onChange={(e) => handleChange(e.target.value, index)}
                                         onKeyDown={(e) => handleBackspace(e, index)}
-                                        className={cn("h-20 w-20 rounded border-2 border-secondary text-center text-4xl md:h-28 md:w-28 md:text-5xl shadow-md font-bold lg:text-6xl",
+                                        className={cn("h-20 w-20 rounded border-2 border-secondary text-center text-4xl md:h-28 md:w-28 md:text-5xl shadow-md font-bold lg:text-6xl bg-background dark:bg-primary",
                                             (pins.join('').length === 4 && pins.join('') !== userPin) && "border-red-500 focus:outline-none focus:border-red-500",
                                         )}
                                         pattern="\d{4,4}"

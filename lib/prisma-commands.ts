@@ -166,13 +166,16 @@ export async function updateFolderExpanded({
         if (folders.length === 1) {
             await db.execute("UPDATE folder SET expanded = $1 WHERE path = $2 AND userId = $3", [expanded ? 1 : 0, folderPath, userId])
         } else {
-            await db.execute("INSERT into folder (expanded, path, userId) VALUES ($1, $2, $3)", [expanded ? 1 : 0, folderPath, userId]).then(() => {
-                console.log("Created New Folder: ", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
-            }).catch(async (e) => {
-                await db.close()
-                console.log(e)
-                return false;
-            });
+
+            // ! This is a bug, the folder should be created if it does not exist, but it adds it as if it was a main folder, so it needs to be related to the parent or another way
+
+            // await db.execute("INSERT into folder (expanded, path, userId) VALUES ($1, $2, $3)", [expanded ? 1 : 0, folderPath, userId]).then(() => {
+            //     console.log("Created New Folder: ", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
+            // }).catch(async (e) => {
+            //     await db.close()
+            //     console.log(e)
+            //     return false;
+            // });
         }
     }
 

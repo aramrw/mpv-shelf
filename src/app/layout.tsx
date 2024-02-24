@@ -4,6 +4,7 @@ import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "./_main-components/main-components";
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/components/ui/theme-provider";
 
 const mplus = Poppins({
   subsets: ["latin", "latin-ext", "devanagari"],
@@ -34,7 +35,9 @@ export default function RootLayout({
       <body className={`${noto.className} subpixel-antialiased overflow-y-hidden`}  >
 
         <Navbar />
-        {children}
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
         <Toaster />
 
       </body>

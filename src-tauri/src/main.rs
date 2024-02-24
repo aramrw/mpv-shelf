@@ -55,7 +55,6 @@ fn main() {
                     }
                     None => return Ok(()),
                 };
-
                 Ok(())
             })
             .system_tray(tray.clone())
@@ -64,19 +63,19 @@ fn main() {
                     "open" => match app.get_window("main") {
                         Some(window) => {
                             if window.is_visible().unwrap() {
-                                window.set_focus().unwrap();
+                                window.center().unwrap();
                             } else if !window.is_visible().unwrap() {
+                                window.center().unwrap();
                                 window.show().unwrap();
-                                window.set_focus().unwrap();
                             }
                         }
                         None => match app.get_window("new") {
                             Some(window) => {
                                 if window.is_visible().unwrap() {
-                                    window.set_focus().unwrap();
+                                    window.center().unwrap();
                                 } else if !window.is_visible().unwrap() {
+                                    window.center().unwrap();
                                     window.show().unwrap();
-                                    window.set_focus().unwrap();
                                 }
                             }
                             None => {
@@ -97,19 +96,21 @@ fn main() {
                     "hide" => match app.get_window("main") {
                         Some(window) => {
                             if window.is_visible().unwrap() {
+                                window.center().unwrap();
                                 window.hide().unwrap();
                             } else if !window.is_visible().unwrap() {
+                                window.center().unwrap();
                                 window.show().unwrap();
-                                window.set_focus().unwrap();
                             }
                         }
                         None => match app.get_window("new") {
                             Some(window) => {
                                 if window.is_visible().unwrap() {
+                                    window.center().unwrap();
                                     window.hide().unwrap();
                                 } else if !window.is_visible().unwrap() {
+                                    window.center().unwrap();
                                     window.show().unwrap();
-                                    window.set_focus().unwrap();
                                 }
                             }
                             None => {
@@ -219,6 +220,7 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
 
             match handle.get_window("new") {
                 Some(window) => {
+                    window.center().unwrap();
                     window.show().unwrap();
                     window.set_focus().unwrap();
                 }
@@ -231,6 +233,7 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
                         "new".to_string(),
                         tauri::WindowUrl::App("/dashboard".into()),
                     )
+                    .center()
                     .transparent(true)
                     .title("mpv-shelf")
                     .inner_size(

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useScrollTop } from '../../../lib/hooks/scroll-y-check';
+import { ModeToggle } from './mode-toggle';
 
 
 export function Navbar() {
@@ -109,6 +110,7 @@ export function Navbar() {
                     </Link>
                 </motion.div>
             )}
+
         </motion.div>
     );
 }

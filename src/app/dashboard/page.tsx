@@ -38,7 +38,7 @@ export default function Dashboard() {
 
     const setScrollPosition = (userYPos: any) => {
         (scrolledDiv.current as HTMLElement | null)?.scrollTo({
-            top: userYPos + 50, // test offset
+            top: userYPos > 200 ? userYPos + 50 : userYPos, // test offset
             behavior: "smooth"
         });
     };
@@ -414,322 +414,341 @@ export default function Dashboard() {
                         </ContextMenuContent>
                     </ContextMenu>
                 </AnimatePresence>
-                <AnimatePresence >
-                    {/* Displays all the child files and folders */}
-                    <ul className='overflow-hidden bg-muted' >
 
-                        {/* Video Files */}
-                        {expanded && files.map((file, index) => {
-                            return (
-                                <ContextMenu key={index}>
-                                    <ContextMenuTrigger>
-                                        <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 py-1.5 px-4 cursor-pointer overflow-hidden',
-                                            (index === files.length - 1) && 'rounded-b-md border-b-0 border-tertiary',
-                                            userSettings?.animations === "Off" && 'hover:opacity-50',
-                                            prismaVideos.some((video) => video.path === file.path && video.watched) && 'bg-tertiary drop-shadow-sm',
+                {/* Displays all the child files and folders */}
+
+
+                <AnimatePresence>
+                    {/* Video Files //.. map it only if it has not children*/}
+                    {expanded && files.filter((file) => !file.children).map((file, index) => {
+                        return (
+                            <ContextMenu key={"context-menu" + index}>
+                                <ContextMenuTrigger>
+                                    <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 py-1.5 px-4 cursor-pointer overflow-hidden',
+                                        (index === files.length - 1) && 'rounded-b-md border-b-0 border-tertiary',
+                                        userSettings?.animations === "Off" && 'hover:opacity-50',
+                                        prismaVideos.some((video) => video.path === file.path && video.watched) && 'bg-tertiary drop-shadow-sm',
+                                    )}
+
+                                        onClick={(e) => {
+                                            if (!isInvoking && finishedSettingFiles) {
+                                                setIsInvoking(true);
+                                                setFinishedSettingFiles(false);
+                                                if (currentUser)
+                                                    updateVideoWatched({ videoPath: file.path, user: currentUser, watched: true }).then(() => {
+                                                        invoke('open_video', { path: file.path, userId: string });
+                                                        setFinishedSettingFiles(true);
+                                                        setIsInvoking(false);
+                                                    });
+                                            }
+                                        }}
+                                        key={file.name + "current-video" + index}
+                                        initial={userSettings?.animations === "On" ? { opacity: 0, x: -20 } : undefined}
+                                        animate={userSettings?.animations === "On" ? { opacity: 1, x: 0 } : undefined}
+                                        exit={userSettings?.animations === "On" ? { opacity: 0, x: -20 } : undefined}
+                                        whileHover={userSettings?.animations === "On" ? { x: 1.5 } : undefined}
+                                        transition={{ duration: 0.5, damping: 8 }}
+                                    >
+
+
+                                        <motion.div className={cn('flex flex-row items-center justify-center gap-1 font-medium select-none ',
+                                            (file.name && file.name?.length > 100) && 'flex-col items-start justify-center gap-1',
+
                                         )}
-
-                                            onClick={(e) => {
-                                                if (!isInvoking && finishedSettingFiles) {
-                                                    setIsInvoking(true);
-                                                    setFinishedSettingFiles(false);
-                                                    if (currentUser)
-                                                        updateVideoWatched({ videoPath: file.path, user: currentUser, watched: true }).then(() => {
-                                                            invoke('open_video', { path: file.path, userId: string });
-                                                            setFinishedSettingFiles(true);
-                                                            setIsInvoking(false);
-                                                        });
-                                                }
-                                            }}
-                                            key={file.name + "current" + index}
+                                            key={file.name + "current-video-as-video-file-showing-film" + index}
                                             initial={userSettings?.animations === "On" ? { opacity: 0, x: -20 } : undefined}
                                             animate={userSettings?.animations === "On" ? { opacity: 1, x: 0 } : undefined}
                                             exit={userSettings?.animations === "On" ? { opacity: 0, x: -20 } : undefined}
                                             whileHover={userSettings?.animations === "On" ? { x: 1.5 } : undefined}
                                             transition={{ duration: 0.5, bounce: 0.4, type: 'spring' }}
                                         >
-                                            {/* If its not a folder render it as a video file */}
-                                            {!file.children &&
-                                                <motion.div className={cn('flex flex-row items-center justify-center gap-1 font-medium select-none ',
-                                                    (file.name && file.name?.length > 100) && 'flex-col items-start justify-center gap-1',
+                                            <Film className={cn('h-auto w-4',
+                                                userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                                                userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                                userSettings?.fontSize === "XLarge" && 'h-auto w-7'
+                                            )}
 
-                                                )}
-                                                    key={file.name + "current"}
+                                            />
+                                            {/* Check if the file's path matches any video's path in prismaVideos to render an eye next to the film */}
+                                            {prismaVideos.some((video) => {
+                                                if (video?.path === file?.path && video?.watched) {
+                                                    return true;
+                                                } else {
+                                                    return false;
+                                                }
+                                            }) ? (
+
+                                                <motion.div style={
+                                                    currentUser?.color ? {
+                                                        textShadow: "0 0 5px rgba(0,0,0,0.2)"
+                                                    } : {}} className={(`flex flex-row items-center justify-center gap-1 rounded-sm px-0.5 font-bold`)}
+                                                    key={"watched-video-file-name" + file.name + index}
+                                                    initial={userSettings?.animations === "On" ? { opacity: 0, x: -20 } : undefined}
+                                                    animate={userSettings?.animations === "On" ? { opacity: 1, x: 0 } : undefined}
+                                                    exit={userSettings?.animations === "On" ? { opacity: 0, x: -20 } : undefined}
+                                                    whileHover={userSettings?.animations === "On" ? { x: 1.5 } : undefined}
+                                                    transition={{ duration: 0.5, bounce: 0.4, type: 'spring' }}
                                                 >
-                                                    <Film className={cn('h-auto w-4',
-                                                        userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                        userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                                        userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                                    )}
-
-                                                    />
-                                                    {/* Check if the file's path matches any video's path in prismaVideos */}
-                                                    {prismaVideos.some((video) => {
-                                                        if (video?.path === file?.path && video?.watched) {
-                                                            return true;
-                                                        } else {
-                                                            return false;
-                                                        }
-                                                    }) ? (
-                                                        <motion.div style={
-                                                            currentUser?.color ? {
-                                                                textShadow: "0 0 5px rgba(0,0,0,0.2)"
-                                                            } : {}} className={(`flex flex-row items-center justify-center gap-1 rounded-sm px-0.5 font-bold`)}
-                                                            key={"watched" + file.name + file.name?.length}
-                                                        >
-                                                            <motion.div
-                                                                key={file.name}
-                                                                className={cn('',
-                                                                    userSettings?.animations === "Off" && 'hover:opacity-20'
-                                                                )}
-                                                                initial={userSettings?.animations === "On" ? { x: -20, opacity: 0 } : undefined}
-                                                                animate={userSettings?.animations === "On" ? { x: 0, opacity: 1 } : undefined}
-                                                                exit={userSettings?.animations === "On" ? { x: -20, opacity: 0 } : undefined}
-                                                                transition={{ duration: 0.35, bounce: 0.3, type: 'spring' }}
-                                                                whileHover={userSettings?.animations === "On" ? { scale: 1.15 } : undefined}
-                                                                whileTap={userSettings?.animations === "On" ? { scale: 0.9 } : undefined}
-                                                                onClick={(e) => {
-                                                                    // set the video as unwatched when the user clicks on the eye icon
-                                                                    e.stopPropagation();
-                                                                    if (currentUser) {
-                                                                        setFinishedSettingFiles(false);
-                                                                        unwatchVideo({ videoPath: file.path, userId: currentUser?.id }).finally(() => setFinishedSettingFiles(true));
-                                                                    }
-                                                                }}
-                                                            >
-
-                                                                <Eye className={cn('h-auto w-4 mr-0.5 ',
-                                                                    userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                                    userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                                                    userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                                                )} />
-                                                            </motion.div
-                                                            >
-                                                            <span className={cn('text-sm ',
-                                                                userSettings?.fontSize === "Medium" && 'text-base',
-                                                                userSettings?.fontSize === "Large" && 'text-lg',
-                                                                userSettings?.fontSize === "XLarge" && 'text-2xl',
-                                                            )}>
-                                                                {file.name}
-                                                            </span>
-                                                        </motion.div>
-                                                    ) : (
-                                                        <motion.div
-                                                            key={file.name + "1"}
-                                                            className={cn('flex flex-row items-center justify-center gap-1 rounded-sm px-0.5 font-bold',
-                                                            )}
-                                                            initial={userSettings?.animations === "On" ? { x: 20 } : undefined}
-                                                            animate={userSettings?.animations === "On" ? { x: 0 } : undefined}
-                                                            exit={userSettings?.animations === "On" ? { x: 20 } : undefined}
-                                                            transition={{ duration: 0.2, bounce: 0.3, type: 'spring' }}
-                                                        >
-                                                            <span className={cn('text-sm',
-                                                                userSettings?.fontSize === "Medium" && 'text-base',
-                                                                userSettings?.fontSize === "Large" && 'text-lg',
-                                                                userSettings?.fontSize === "XLarge" && 'text-2xl',
-                                                            )}>{file.name}</span>
-                                                        </motion.div>
-                                                    )}
-
-                                                </motion.div>
-                                            }
-                                        </motion.li>
-                                        <ContextMenuContent className={cn(``,
-                                            userSettings?.animations === "Off" && ``
-                                        )}
-
-
-                                        >
-                                            <ContextMenuItem className='cursor-pointer gap-1 font-medium'
-                                                onClick={(e) => {
-
-                                                    if (e.button === 0 && !isInvoking) {
-                                                        setIsInvoking(true);
-                                                        invoke('show_in_folder', { path: `${file.path}` }).then((res) => {
-                                                            setIsInvoking(false);
-                                                        });
-                                                    }
-                                                }}
-                                            >
-                                                <span className={cn("",
-                                                    userSettings?.fontSize === "Medium" && 'text-base',
-                                                    userSettings?.fontSize === "Large" && 'text-lg',
-                                                    userSettings?.fontSize === "XLarge" && 'text-xl',
-                                                )}>Open In Explorer</span>
-                                                <FolderInput className={cn('h-auto w-4',
-                                                    userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                    userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                                    userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                                )} />
-                                            </ContextMenuItem>
-                                            <ContextMenuSeparator className='my-1 h-[1px] bg-accent' />
-                                            <ContextMenuSub>
-                                                <ContextMenuSubTrigger className={cn('cursor-pointer gap-1 font-medium',
-                                                    userSettings?.fontSize === "Medium" && 'text-base',
-                                                    userSettings?.fontSize === "Large" && 'text-lg',
-                                                    userSettings?.fontSize === "XLarge" && 'text-xl',
-                                                )}
-                                                    inset>Watch</ContextMenuSubTrigger>
-                                                <ContextMenuSubContent className="mx-2 overflow-hidden rounded-md border bg-popover p-1 font-medium text-popover-foreground shadow-md animate-in fade-in-80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
-                                                    {/* Renders the watched context menu sub */}
-                                                    {handleCheckWatched(file) ? (
-                                                        <ContextMenuItem
-                                                            className='flex cursor-pointer gap-1'
-                                                            onClick={() => {
-                                                                setIsInvoking(true);
+                                                    <motion.div
+                                                        key={index + "watched-video-file-name" + "eye-icon"}
+                                                        className={cn('',
+                                                            userSettings?.animations === "Off" && 'hover:opacity-20'
+                                                        )}
+                                                        initial={userSettings?.animations === "On" ? { x: -20, opacity: 0 } : undefined}
+                                                        animate={userSettings?.animations === "On" ? { x: 0, opacity: 1 } : undefined}
+                                                        exit={userSettings?.animations === "On" ? { x: -20, opacity: 0 } : undefined}
+                                                        transition={{ duration: 0.35, bounce: 0.3, type: 'spring' }}
+                                                        whileHover={userSettings?.animations === "On" ? { scale: 1.15 } : undefined}
+                                                        whileTap={userSettings?.animations === "On" ? { scale: 0.9 } : undefined}
+                                                        onClick={(e) => {
+                                                            // set the video as unwatched when the user clicks on the eye icon
+                                                            e.stopPropagation();
+                                                            if (currentUser) {
                                                                 setFinishedSettingFiles(false);
-                                                                updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).finally(() => {
-                                                                    setFinishedSettingFiles(true);
-                                                                    setIsInvoking(false);
-                                                                });
-                                                            }}
-                                                        >
-                                                            <span className={cn("",
-                                                                userSettings?.fontSize === "Medium" && 'text-base',
-                                                                userSettings?.fontSize === "Large" && 'text-lg',
-                                                                userSettings?.fontSize === "XLarge" && 'text-xl',
-                                                            )}>Set Watched</span>
+                                                                unwatchVideo({ videoPath: file.path, userId: currentUser?.id }).finally(() => setFinishedSettingFiles(true));
+                                                            }
+                                                        }}
+                                                    >
 
+                                                        <Eye className={cn('h-auto w-4 mr-0.5 ',
+                                                            userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                                                            userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                                            userSettings?.fontSize === "XLarge" && 'h-auto w-7'
+                                                        )} />
+                                                    </motion.div
+                                                    >
+                                                    <span className={cn('text-sm ',
+                                                        userSettings?.fontSize === "Medium" && 'text-base',
+                                                        userSettings?.fontSize === "Large" && 'text-lg',
+                                                        userSettings?.fontSize === "XLarge" && 'text-2xl',
+                                                    )}>
+                                                        {file.name}
+                                                    </span>
+                                                </motion.div>
+
+                                            ) : (
+
+                                                <motion.div
+                                                    key={"render-file-name" + file.name + "1"}
+                                                    className={cn('flex flex-row items-center justify-center gap-1 rounded-sm px-0.5 font-bold',
+                                                    )}
+                                                    initial={userSettings?.animations === "On" ? { x: 20 } : undefined}
+                                                    animate={userSettings?.animations === "On" ? { x: 0 } : undefined}
+                                                    exit={userSettings?.animations === "On" ? { x: 20 } : undefined}
+                                                    transition={{ duration: 0.2, bounce: 0.3, type: 'spring' }}
+                                                >
+                                                    <span className={cn('text-sm',
+                                                        userSettings?.fontSize === "Medium" && 'text-base',
+                                                        userSettings?.fontSize === "Large" && 'text-lg',
+                                                        userSettings?.fontSize === "XLarge" && 'text-2xl',
+                                                    )}>{file.name}</span>
+                                                </motion.div>
+
+                                            )}
+
+                                        </motion.div>
+
+
+
+                                    </motion.li>
+
+                                    <ContextMenuContent className={cn(``,
+                                        userSettings?.animations === "Off" && ``
+                                    )}
+                                    >
+
+                                        <ContextMenuItem className='cursor-pointer gap-1 font-medium'
+                                            onClick={(e) => {
+                                                if (e.button === 0 && !isInvoking) {
+                                                    setIsInvoking(true);
+                                                    invoke('show_in_folder', { path: `${file.path}` }).then((res) => {
+                                                        setIsInvoking(false);
+                                                    });
+                                                }
+                                            }}
+                                        >
+                                            <span className={cn("",
+                                                userSettings?.fontSize === "Medium" && 'text-base',
+                                                userSettings?.fontSize === "Large" && 'text-lg',
+                                                userSettings?.fontSize === "XLarge" && 'text-xl',
+                                            )}>Open In Explorer</span>
+                                            <FolderInput className={cn('h-auto w-4',
+                                                userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                                                userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                                userSettings?.fontSize === "XLarge" && 'h-auto w-7'
+                                            )} />
+                                        </ContextMenuItem>
+                                        <ContextMenuSeparator className='my-1 h-[1px] bg-accent' />
+                                        <ContextMenuSub>
+                                            <ContextMenuSubTrigger className={cn('cursor-pointer gap-1 font-medium',
+                                                userSettings?.fontSize === "Medium" && 'text-base',
+                                                userSettings?.fontSize === "Large" && 'text-lg',
+                                                userSettings?.fontSize === "XLarge" && 'text-xl',
+                                            )}
+                                                inset>Watch</ContextMenuSubTrigger>
+                                            <ContextMenuSubContent className="mx-2 overflow-hidden rounded-md border bg-popover p-1 font-medium text-popover-foreground shadow-md animate-in fade-in-80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
+                                                {/* Renders the watched context menu sub */}
+                                                {handleCheckWatched(file) ? (
+                                                    <ContextMenuItem
+                                                        className='flex cursor-pointer gap-1'
+                                                        onClick={() => {
+                                                            setIsInvoking(true);
+                                                            setFinishedSettingFiles(false);
+                                                            updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).finally(() => {
+                                                                setFinishedSettingFiles(true);
+                                                                setIsInvoking(false);
+                                                            });
+                                                        }}
+                                                    >
+                                                        <span className={cn("",
+                                                            userSettings?.fontSize === "Medium" && 'text-base',
+                                                            userSettings?.fontSize === "Large" && 'text-lg',
+                                                            userSettings?.fontSize === "XLarge" && 'text-xl',
+                                                        )}>Set Watched</span>
+
+                                                        <Eye className={cn('h-auto w-4 ',
+                                                            userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                                                            userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                                            userSettings?.fontSize === "XLarge" && 'h-auto w-7'
+                                                        )} />
+
+                                                    </ContextMenuItem>
+                                                ) : (
+                                                    <ContextMenuItem className='flex cursor-pointer gap-1'
+                                                        onClick={(e) => {
+
+                                                            if (currentUser) {
+                                                                setFinishedSettingFiles(false);
+                                                                unwatchVideo({ videoPath: file.path, userId: currentUser?.id }).finally(() => setFinishedSettingFiles(true));
+                                                            }
+
+
+                                                        }}
+                                                    >
+                                                        <span className={cn("",
+                                                            userSettings?.fontSize === "Medium" && 'text-base',
+                                                            userSettings?.fontSize === "Large" && 'text-lg',
+                                                            userSettings?.fontSize === "XLarge" && 'text-xl',
+                                                        )}>Unwatch</span>
+
+                                                        <EyeOff className={cn('h-auto w-4 ',
+                                                            userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                                                            userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                                            userSettings?.fontSize === "XLarge" && 'h-auto w-7'
+                                                        )} />
+                                                    </ContextMenuItem>
+                                                )}
+
+                                                <ContextMenuItem className='cursor-pointer'
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setFinishedSettingFiles(false);
+                                                        setIsInvoking(true);
+                                                        if (currentUser) {
+                                                            files.slice(0, index + 1).reverse().map((file) => {
+                                                                updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).then(() => {
+
+                                                                }).finally(() => setFinishedSettingFiles(true));
+                                                            });
+
+
+                                                        }
+
+                                                    }
+                                                    }
+                                                >
+                                                    <div className='flex gap-1'>
+                                                        <span className={cn("",
+                                                            userSettings?.fontSize === "Medium" && 'text-base',
+                                                            userSettings?.fontSize === "Large" && 'text-lg',
+                                                            userSettings?.fontSize === "XLarge" && 'text-xl',
+                                                        )}>Cascade As</span>
+                                                        <div className='flex'>
                                                             <Eye className={cn('h-auto w-4 ',
                                                                 userSettings?.fontSize === "Medium" && 'h-auto w-5',
                                                                 userSettings?.fontSize === "Large" && 'h-auto w-6',
                                                                 userSettings?.fontSize === "XLarge" && 'h-auto w-7'
                                                             )} />
+                                                            <ChevronDown className={cn('h-auto w-4 ',
+                                                                userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                                                                userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                                                userSettings?.fontSize === "XLarge" && 'h-auto w-7'
+                                                            )} />
+                                                        </div>
+                                                    </div>
+                                                </ContextMenuItem>
+                                                <ContextMenuItem className='cursor-pointer'
+                                                    onClick={(e) => {
+                                                        setFinishedSettingFiles(false);
+                                                        if (currentUser) {
+                                                            files.slice(index, files.length).map((file) => {
+                                                                setFinishedSettingFiles(false);
+                                                                unwatchVideo({ videoPath: file.path, userId: currentUser?.id }).finally(() => setFinishedSettingFiles(true));
 
-                                                        </ContextMenuItem>
-                                                    ) : (
-                                                        <ContextMenuItem className='flex cursor-pointer gap-1'
-                                                            onClick={(e) => {
-
-                                                                if (currentUser) {
-                                                                    setFinishedSettingFiles(false);
-                                                                    unwatchVideo({ videoPath: file.path, userId: currentUser?.id }).finally(() => setFinishedSettingFiles(true));
-                                                                }
-
-
-                                                            }}
-                                                        >
-                                                            <span className={cn("",
-                                                                userSettings?.fontSize === "Medium" && 'text-base',
-                                                                userSettings?.fontSize === "Large" && 'text-lg',
-                                                                userSettings?.fontSize === "XLarge" && 'text-xl',
-                                                            )}>Unwatch</span>
-
+                                                            })
+                                                        }
+                                                    }}
+                                                >
+                                                    <div className='flex gap-1'>
+                                                        <span className={cn("",
+                                                            userSettings?.fontSize === "Medium" && 'text-base',
+                                                            userSettings?.fontSize === "Large" && 'text-lg',
+                                                            userSettings?.fontSize === "XLarge" && 'text-xl',
+                                                        )}>Cascade As</span>
+                                                        <div className='flex'>
                                                             <EyeOff className={cn('h-auto w-4 ',
                                                                 userSettings?.fontSize === "Medium" && 'h-auto w-5',
                                                                 userSettings?.fontSize === "Large" && 'h-auto w-6',
                                                                 userSettings?.fontSize === "XLarge" && 'h-auto w-7'
                                                             )} />
-                                                        </ContextMenuItem>
-                                                    )}
-
-                                                    <ContextMenuItem className='cursor-pointer'
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setFinishedSettingFiles(false);
-                                                            setIsInvoking(true);
-                                                            if (currentUser) {
-                                                                files.slice(0, index + 1).reverse().map((file) => {
-                                                                    updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).then(() => {
-
-                                                                    }).finally(() => setFinishedSettingFiles(true));
-                                                                });
-
-
-                                                            }
-
-                                                        }
-                                                        }
-                                                    >
-                                                        <div className='flex gap-1'>
-                                                            <span className={cn("",
-                                                                userSettings?.fontSize === "Medium" && 'text-base',
-                                                                userSettings?.fontSize === "Large" && 'text-lg',
-                                                                userSettings?.fontSize === "XLarge" && 'text-xl',
-                                                            )}>Cascade As</span>
-                                                            <div className='flex'>
-                                                                <Eye className={cn('h-auto w-4 ',
-                                                                    userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                                    userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                                                    userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                                                )} />
-                                                                <ChevronDown className={cn('h-auto w-4 ',
-                                                                    userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                                    userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                                                    userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                                                )} />
-                                                            </div>
+                                                            <ChevronUp className={cn('h-auto w-4 ',
+                                                                userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                                                                userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                                                userSettings?.fontSize === "XLarge" && 'h-auto w-7'
+                                                            )} />
                                                         </div>
-                                                    </ContextMenuItem>
-                                                    <ContextMenuItem className='cursor-pointer'
-                                                        onClick={(e) => {
-                                                            setFinishedSettingFiles(false);
-                                                            if (currentUser) {
-                                                                files.slice(index, files.length).map((file) => {
-                                                                    setFinishedSettingFiles(false);
-                                                                    unwatchVideo({ videoPath: file.path, userId: currentUser?.id }).finally(() => setFinishedSettingFiles(true));
-
-                                                                })
-                                                            }
-                                                        }}
-                                                    >
-                                                        <div className='flex gap-1'>
-                                                            <span className={cn("",
-                                                                userSettings?.fontSize === "Medium" && 'text-base',
-                                                                userSettings?.fontSize === "Large" && 'text-lg',
-                                                                userSettings?.fontSize === "XLarge" && 'text-xl',
-                                                            )}>Cascade As</span>
-                                                            <div className='flex'>
-                                                                <EyeOff className={cn('h-auto w-4 ',
-                                                                    userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                                    userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                                                    userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                                                )} />
-                                                                <ChevronUp className={cn('h-auto w-4 ',
-                                                                    userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                                    userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                                                    userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                                                )} />
-                                                            </div>
-                                                        </div>
-                                                    </ContextMenuItem>
-                                                </ContextMenuSubContent>
-                                            </ContextMenuSub>
+                                                    </div>
+                                                </ContextMenuItem>
+                                            </ContextMenuSubContent>
+                                        </ContextMenuSub>
 
 
-                                        </ContextMenuContent>
-                                    </ContextMenuTrigger>
-                                </ContextMenu>
+                                    </ContextMenuContent>
+                                </ContextMenuTrigger>
+                            </ContextMenu>
+                        )
+                    })}
+                </AnimatePresence>
+
+                {/*Child Folders */}
+                <AnimatePresence>
+                    {
+                        expanded && folders.map((folder, index) => {
+                            return (
+                                <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 p-0.5 px-2 cursor-pointer overflow-hidden select-none ',
+                                    (index === folders.length - 1 && !asChild) && 'rounded-b-md border-b-4 border-tertiary',
+                                    asChild && 'rounded-b-md border-none border-tertiary',
+
+                                )}
+                                    key={folder.name + "current-child" + index}
+                                    initial={userSettings?.animations === "On" ? { y: -40 } : undefined}
+                                    animate={userSettings?.animations === "On" ? { opacity: 1, y: 0 } : undefined}
+                                    exit={(userSettings?.animations === "On") ? { y: -40, opacity: 0 } : undefined}
+                                    whileHover={(userSettings?.animations === "On") ? { x: 1 } : undefined}
+                                    transition={{ duration: 0.15, damping: 10, stiffness: 100 }}
+                                >
+
+                                    <FolderList folderPath={folder.path} asChild />
+
+                                </motion.li>
+
                             )
-                        })}
-                        {/*Child Folders */}
-                        <AnimatePresence>
-                            {
-                                expanded && folders.map((folder, index) => {
-                                    return (
-                                        <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 p-0.5 px-2 cursor-pointer overflow-hidden select-none ',
-                                            (index === folders.length - 1 && !asChild) && 'rounded-b-md border-b-4 border-tertiary',
-                                            asChild && 'rounded-b-md border-none border-tertiary',
+                        })
+                    }
+                </AnimatePresence>
 
-                                        )}
-                                            key={folder.name + "current-child" + index}
-                                            initial={userSettings?.animations === "On" ? { y: -40 } : undefined}
-                                            animate={userSettings?.animations === "On" ? { opacity: 1, y: 0 } : undefined}
-                                            exit={(userSettings?.animations === "On") ? { y: -40, opacity: 0 } : undefined}
-                                            whileHover={(userSettings?.animations === "On") ? { x: 1 } : undefined}
-                                            transition={{ duration: 0.15, damping: 10, stiffness: 100 }}
-                                        >
 
-                                            <FolderList folderPath={folder.path} asChild />
 
-                                        </motion.li>
-
-                                    )
-                                })
-                            }
-                        </AnimatePresence>
-                    </ul>
-                </AnimatePresence >
             </main >
 
         )
