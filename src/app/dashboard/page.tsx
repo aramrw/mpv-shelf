@@ -441,9 +441,8 @@ export default function Dashboard() {
                     return (
                         <ContextMenu key={"context-menu" + index}>
                             <ContextMenuTrigger>
-
                                 <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 py-1.5 px-4 cursor-pointer overflow-hidden',
-                                    (index === files.length - 1) && 'rounded-b-md border-b-0 border-tertiary',
+                                    (index === files.length - 1) && 'rounded-b-md border-b-4 border-tertiary',
                                     userSettings?.animations === "Off" && 'hover:opacity-50',
                                     prismaVideos.some((video) => video.path === file.path && video.watched) && 'bg-tertiary drop-shadow-sm',
                                 )}
