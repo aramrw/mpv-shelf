@@ -793,7 +793,13 @@ export default function Dashboard() {
                                 )}
                                 onClick={() => {
                                     open({
-                                        directory: true
+                                        directory: true,
+                                        multiple: false,
+                                        recursive: true,
+                                        filters: [
+                                            { name: 'Folders', extensions: [""] }
+                                        ],
+                                        title: "Add Folder"
                                     }).then((res): void => {
                                         if (res && currentUser) {
                                             for (const path of folderPaths) {
