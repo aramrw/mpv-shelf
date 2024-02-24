@@ -239,14 +239,13 @@ export default function Dashboard() {
                                 key={"main-parent-folder+folder"}
                                 style={expanded && !asChild ? { padding: "10px" } : {}}
                                 className={cn(
-                                    'flex cursor-pointer flex-row items-center justify-between rounded-sm bg-accent p-1',
+                                    'flex cursor-pointer flex-row items-center justify-between rounded-sm bg-secondary p-1',
                                     (expanded && files.length > 0 && !asChild) && 'rounded-b-none border-b-4 border-tertiary',
                                     (expanded && folders.length > 0 && !asChild) && 'rounded-b-none border-b-4',
                                     (expanded && asChild) && 'border-none rounded-sm',
-                                    asChild && 'bg-muted rounded-sm',
-                                    (asChild && expanded) && 'p-1 border-none  rounded-b-sm',
-                                    (!asChild && expanded) && 'border-none ',
-                                    (asChild) && 'flex flex-col rounded-t-none  brightness-90',
+                                    (asChild && expanded) && 'p-1 border-none rounded-b-none',
+                                    (!asChild && expanded) && 'border-none',
+                                    asChild && 'bg-muted flex flex-col brightness-[0.87]',
                                     userSettings?.animations === "Off" && 'hover:opacity-80',
 
                                 )}
@@ -321,7 +320,7 @@ export default function Dashboard() {
                                         )}
                                     {folders.length > 0 && (
                                         <div className={cn('flex flex-row items-center justify-center gap-0.5 rounded-md bg-tertiary px-0.5',
-                                            asChild && 'opacity-80',
+                                            asChild && 'p-0.5 brightness-[1.15]'
                                         )}
 
                                         >
@@ -343,7 +342,7 @@ export default function Dashboard() {
                                     )}
                                     {files.length > 0 && (
                                         <div className={cn('flex flex-row items-center justify-center text-sm rounded-md bg-tertiary px-0.5 gap-0.5 ',
-                                            asChild && 'opacity-80',
+                                            asChild && 'p-0.5 brightness-[1.15]'
 
                                         )}>
                                             <VideoIcon className={cn('h-auto w-4',
@@ -365,7 +364,7 @@ export default function Dashboard() {
                                     )}
                                     {subtitleFiles.length > 0 && (
                                         <div className={cn('flex flex-row items-center justify-center text-xs rounded-md bg-tertiary px-0.5 gap-0.5',
-                                            asChild && 'opacity-80',
+                                            asChild && 'p-0.5 brightness-[1.15]'
                                         )}>
                                             <Captions className={cn('h-auto w-4',
                                                 userSettings?.fontSize === "Medium" && !asChild && 'h-auto w-4',
@@ -451,7 +450,7 @@ export default function Dashboard() {
                                 <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 py-1.5 px-4 cursor-pointer overflow-hidden',
                                     (index === files.length - 1) && 'rounded-b-md border-none',
                                     userSettings?.animations === "Off" && 'hover:opacity-50',
-                                    prismaVideos.some((video) => video.path === file.path && video.watched) && 'bg-tertiary drop-shadow-sm',
+                                    prismaVideos.some((video) => video.path === file.path && video.watched) && 'bg-accent brightness-100 drop-shadow-sm',
                                 )}
 
                                     onClick={(e) => {
@@ -737,7 +736,7 @@ export default function Dashboard() {
                 {expanded && folders.map((folder, index) => {
                     return (
                         <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 p-0.5 px-2 cursor-pointer overflow-hidden select-none',
-                            (index === folders.length - 1 && !asChild) && 'rounded-b-md border-b-4 border-tertiary',
+                            (index === folders.length - 1 && !asChild) && 'rounded-b-xl border-b-8 border-tertiary',
                             asChild && 'rounded-b-md border-none border-tertiary',
 
                         )}
