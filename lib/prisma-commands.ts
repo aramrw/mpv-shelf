@@ -157,15 +157,26 @@ export async function updateFolderExpanded({
 }) {
     let db = await Database.load("sqlite:main.db");
 
+    // create the folder table if it doesnt exist
     await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0, FOREIGN KEY (userId) REFERENCES user(id))")
 
-    console.log("Updating expanded:", folderPath.split("\\").pop(), "as", expanded, "for user", userId);
+    let folders: Folder[] = await db.select("SELECT * from folder WHERE PATH = $1 AND userId = $2", [folderPath, userId]);
 
-    await db.execute("UPDATE folder SET expanded = $1 WHERE path = $2 AND userId = $3", [expanded ? 1 : 0, folderPath, userId]).catch(async (e) => {
-        await db.close()
-        console.log(e)
-        return false;
-    });
+    if (folders) {
+        if (folders.length === 1) {
+            await db.execute("UPDATE folder SET expanded = $1 WHERE path = $2 AND userId = $3", [expanded ? 1 : 0, folderPath, userId])
+        } else {
+            await db.execute("INSERT into folder (expanded, path, userId) VALUES ($1, $2, $3)", [expanded ? 1 : 0, folderPath, userId]).then(() => {
+                console.log("Created New Folder with expanded:", folderPath.split("\\").pop(), "as", expanded, "for user", userId);
+            }).catch(async (e) => {
+                await db.close()
+                console.log(e)
+                return false;
+            });
+        }
+    }
+
+
 
     //await db.close();
     return true;
@@ -522,34 +533,34 @@ export async function deleteProfile({
 
 
 // ! These work but are not used in the app .. yet?
-// export async function updateUserScrollY({
-//     userId,
-//     scrollY
-// }: {
-//     userId: number,
-//     scrollY: number
-// }) {
-//     const db = await Database.load("sqlite:main.db");
+export async function updateUserScrollY({
+    userId,
+    scrollY
+}: {
+    userId: number,
+    scrollY: number
+}) {
+    const db = await Database.load("sqlite:main.db");
 
-//     await db.execute("UPDATE user SET scrollY = $1 WHERE id = $2", [scrollY, userId])
-// }
+    await db.execute("UPDATE user SET scrollY = $1 WHERE id = $2", [scrollY, userId])
+}
 
-// export async function getUserScrollY({
-//     userId
-// }: {
-//     userId: number
-// }) {
-//     const db = await Database.load("sqlite:main.db");
+export async function getUserScrollY({
+    userId
+}: {
+    userId: number
+}) {
+    const db = await Database.load("sqlite:main.db");
 
-//     try {
-//         const scrollY: number = await db.select("SELECT scrollY from user WHERE id = $1", [userId])
+    try {
+        const scrollY: any = await db.select("SELECT scrollY from user WHERE id = $1", [userId])
 
-//         if (scrollY) {
-//             return scrollY;
-//         }
-//     } catch (e) {
-//         console.log(e);
-//         await db.close();
-//         return null;
-//     }
-// }
+        if (scrollY) {
+            return scrollY[0].scrollY;
+        }
+    } catch (e) {
+        console.log(e);
+        await db.close();
+        return null;
+    }
+}

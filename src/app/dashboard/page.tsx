@@ -1,16 +1,15 @@
 "use client"
 
 import { Button } from '@/components/ui/button'
-import { z } from "zod"
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { open } from '@tauri-apps/api/dialog';
-import { addFolder, deleteFolder, getCurrentUserGlobal, getFolders, getUserSettings, getUsers, getVideo, unwatchVideo, updateFolderExpanded, updateVideoWatched } from '../../../lib/prisma-commands';
+import { addFolder, deleteFolder, getCurrentUserGlobal, getFolders, getUserScrollY, getUserSettings, getUsers, getVideo, unwatchVideo, updateFolderExpanded, updateUserScrollY, updateVideoWatched } from '../../../lib/prisma-commands';
 import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
 import { Captions, ChevronDown, ChevronUp, CornerLeftDown, Eye, EyeOff, Film, Folder, FolderInput, Folders, Loader2, Trash2, VideoIcon, } from 'lucide-react';
 import { FileEntry, readDir } from '@tauri-apps/api/fs'
 import { cn } from '@/lib/utils';
 import { invoke } from '@tauri-apps/api/tauri';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, animate, motion, scroll, useMotionValueEvent, useScroll } from 'framer-motion';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -22,14 +21,44 @@ import { SettingSchema } from '../settings/page';
 import { ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent } from '@radix-ui/react-context-menu';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
-import { set, string } from 'zod';
+import { string } from 'zod';
 // import { WebviewWindow, appWindow } from "@tauri-apps/api/window"
+
 
 export default function Dashboard() {
     const [folderPaths, setFolderPaths] = useState<string[]>([]);
     const [currentUser, setCurrentUser] = useState<User>();
     const [userSettings, setUserSettings] = useState<SettingSchema>();
+    const scrolledDiv = useRef(null);
     const router = useRouter();
+    const { scrollY } = useScroll({
+        container: scrolledDiv
+    })
+
+    const setScrollPosition = (userYPos: any) => {
+        (scrolledDiv.current as HTMLElement | null)?.scrollTo({
+            top: userYPos,
+            behavior: "smooth"
+        });
+    };
+
+    useMotionValueEvent(scrollY, "change", (latest) => {
+        if (currentUser && latest > 20)
+            updateUserScrollY({ userId: currentUser?.id, scrollY: latest }).then(() => {
+                console.log("Page scroll: ", latest);
+            });
+    },)
+
+    useEffect(() => {
+        if (currentUser)
+            getUserScrollY({ userId: currentUser?.id }).then((userY: any) => {
+                console.log("User scroll: ", userY)
+                setTimeout(() => {
+                    console.log("scrolling to: ", userY);
+                    setScrollPosition(userY);
+                }, 500);
+            })
+    }, [currentUser]);
 
 
     // fetch the user object from db on start and set the current user
@@ -50,12 +79,9 @@ export default function Dashboard() {
                     }
                 });
             } else {
-
                 router.push('/profiles/createUser');
             }
-
         })
-
     }, [])
 
     // get all the folder paths from the folder table with user id on startup
@@ -88,7 +114,7 @@ export default function Dashboard() {
 
         const [files, setFiles] = useState<FileEntry[]>([]);
         const [folders, setFolders] = useState<FileEntry[]>([]);
-        const [expanded, setExpanded] = useState(false);
+        const [expanded, setExpanded] = useState<boolean>();
         const [subtitleFiles, setSubtitleFiles] = useState<FileEntry[]>([]);
         const [prismaVideos, setPrismaVideos] = useState<Video[]>([]);
         const [finishedSettingFiles, setFinishedSettingFiles] = useState(false);
@@ -107,6 +133,7 @@ export default function Dashboard() {
                     const videoFiles = res.filter(file => supportedVideoFormats.includes(file.path.replace(/^.*\./, '')) && !file.children);
                     let filtered = videoFiles.filter(video => video !== null && video !== undefined) as Video[];
                     const subtitleFiles = res.filter(file => file.path.split('.').pop() === 'srt');
+
                     const folders = res.filter(file => file.children);
 
                     //console.log("video files:", filtered);
@@ -140,7 +167,7 @@ export default function Dashboard() {
                                 // } else if (folder.path === folderPath && !folder.expanded) {
                                 //     console.log("setting expanded to false from useEffect on startup => ", folderPath);
                                 //     setExpanded(false);
-                                //     //break;
+                                //break;
                             }
                         }
                     }
@@ -166,18 +193,11 @@ export default function Dashboard() {
 
 
         useEffect(() => {
-            if (currentUser && finishedSettingFiles && !isInvoking) {
+            if (currentUser && finishedSettingFiles && !isInvoking && expanded !== undefined) {
                 updateFolderExpanded({ folderPath: folderPath, expanded: expanded, userId: currentUser?.id })
             }
 
         }, [expanded, isInvoking]);
-
-        // Filtering watched videos
-        // useEffect(() => {
-        //     // setWatchedVideos(prismaVideos.filter(video => video.watched));
-        //     console.log("use effect prisma videos => ", prismaVideos);
-        // }, [prismaVideos]);
-
 
         // Check if video is watched
         const handleCheckWatched = (file: FileEntry) => {
@@ -187,7 +207,7 @@ export default function Dashboard() {
 
         return (
             <AnimatePresence >
-                <motion.main className='my-1 h-full w-full overflow-hidden'
+                <motion.main className='my-1 h-full w-full rounded-b-md'
                     id='MAIN_FOLDER'
                 >
                     <ContextMenu>
@@ -709,26 +729,28 @@ export default function Dashboard() {
                         </AnimatePresence>
                     </ul>
                 </motion.main >
-
-
             </AnimatePresence >
         )
     }
 
     return (
-        <main className={cn('pl-3 lg:px-16 xl:px-36 2xl:px-48',
+        <main className={cn('pl-3 lg:px-16 xl:px-36 2xl:px-48 mt-3 max-h-screen overflow-auto',
         )}
-
+            onLoad={(e) => {
+                e.preventDefault();
+            }}
+            ref={scrolledDiv}
+            style={{ scrollbarGutter: "stable", }}
         >
             <AnimatePresence>
-                <div className='flex h-fit w-full flex-col items-center justify-center gap-1.5 overflow-auto py-2 drop-shadow-sm'>
+                <div className='mb-20 flex h-full w-full flex-col items-center justify-center gap-2 rounded-b-sm drop-shadow-sm'
+                >
                     {folderPaths.map((folder, index) => {
                         return (
                             <FolderList folderPath={folder} key={index} />
                         )
                     })}
-
-                    <motion.div className='flex h-fit w-full flex-col items-start justify-center overflow-auto'
+                    <motion.div className='flex h-fit w-full flex-col items-start justify-center'
                         initial={{ opacity: 0, y: -50 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -50 }}
@@ -784,6 +806,7 @@ export default function Dashboard() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
         </main>
 
     )

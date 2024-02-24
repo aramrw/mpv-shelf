@@ -31,10 +31,12 @@ export default function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${noto.className} subpixel-antialiased`} style={{ scrollbarGutter: "stable" }}  >
+      <body className={`${noto.className} subpixel-antialiased overflow-y-hidden`}  >
+
         <Navbar />
         {children}
         <Toaster />
+
       </body>
     </html>
   );
