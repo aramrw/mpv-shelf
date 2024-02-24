@@ -27,6 +27,7 @@ import { string } from 'zod';
 
 export default function Dashboard() {
     const [folderPaths, setFolderPaths] = useState<string[]>([]);
+    const [parentFolderPaths, setParentFolderPaths] = useState<string[]>([]);
     const [currentUser, setCurrentUser] = useState<User>();
     const [userSettings, setUserSettings] = useState<SettingSchema>();
     const scrolledDiv = useRef<HTMLDivElement>(null);
@@ -49,23 +50,6 @@ export default function Dashboard() {
                 //console.log("Page scroll: ", latest);
             });
     })
-
-
-
-    useEffect(() => {
-        if (currentUser)
-            getUserScrollY({ userId: currentUser?.id }).then((userY: any) => {
-                if (userY !== 0 && userY !== null && userY !== undefined)
-                    console.log("User scroll: ", userY)
-
-                // TODO : This needs to be changed. The timeout needs to be referenced to an element.
-                setTimeout(() => {
-                    console.log("scrolling to: ", userY);
-                    setScrollPosition(userY);
-                }, 200);
-            })
-    }, [currentUser]);
-
 
     // fetch the user object from db on start and set the current user
     useEffect(() => {
@@ -90,33 +74,61 @@ export default function Dashboard() {
         })
     }, [])
 
+    // get the user's scroll position from the db once currentUser is set
+    useEffect(() => {
+        if (currentUser)
+            getUserScrollY({ userId: currentUser?.id }).then((userY: any) => {
+                if (userY !== 0 && userY !== null && userY !== undefined)
+                    console.log("User scroll: ", userY)
+
+                // TODO : This needs to be changed. The timeout needs to be referenced to an element.
+                setTimeout(() => {
+                    console.log("scrolling to: ", userY);
+                    setScrollPosition(userY);
+                }, 200);
+            })
+    }, [currentUser]);
+
+
     // get all the folder paths from the folder table with user id on startup
     useEffect(() => {
         console.log(currentUser);
 
         getFolders({ userId: currentUser?.id as number }).then((folders) => {
             if (folders) {
-                setFolderPaths(folders.map(folder => folder.path));
+                console.log("folders: ", folders);
+                for (const folder of folders) {
+                    if (!folder.asChild) {
+                        setFolderPaths([...folderPaths, folder.path]);
+                    }
+                }
             }
         });
 
     }, [currentUser])
 
+    // 
+    useEffect(() => {
+        // for each folder in folderPaths if the folder is not in parentFolderPaths then add it to parentFolderPaths
+        console.log("folderPaths: ", folderPaths);
+
+    }, [folderPaths, parentFolderPaths]);
+
     // fetch the settings object from db on start
     useEffect(() => {
-        //console.log(folderPaths);
+        console.log(`parent folder paths: ${folderPaths}`);
         if (currentUser?.id) {
             getUserSettings({ userId: currentUser?.id }).then((settings) => {
                 if (settings) {
-                    //console.log("user settings:", settings);
+                    console.log("user settings:", settings);
                     setUserSettings(settings);
                 }
             })
         }
-    }, [folderPaths])
+    }, [currentUser])
 
 
-    const FolderList = ({ folderPath, asChild, }: { folderPath: string, asChild?: boolean | undefined }) => {
+    const FolderList = ({ folderPath, asChild }: { folderPath: string, asChild?: boolean | undefined }) => {
 
         const [files, setFiles] = useState<FileEntry[]>([]);
         const [folders, setFolders] = useState<FileEntry[]>([]);
@@ -139,11 +151,17 @@ export default function Dashboard() {
                     const subtitleFiles = res.filter(file => file.path.split('.').pop() === 'srt');
                     const folders = res.filter(file => file.children);
 
-                    //console.log("video files:", filtered);
-                    //console.log(subtitleFiles);
-                    //console.log("child folders:", folders);
+                    let uniqueFolders: FileEntry[] = [];
 
-                    // set is the folder is expanded
+                    for (const folder of folders) {
+                        for (const uniqueFolder of uniqueFolders) {
+                            if (uniqueFolder.path !== folder.path) {
+                                uniqueFolders.push(folder);
+                            }
+                        }
+                    }
+
+
 
 
                     setFiles(filtered as FileEntry[]);
@@ -186,7 +204,7 @@ export default function Dashboard() {
                 Promise.all(files.map(file => getVideo({ videoPath: file.path, userId: currentUser.id })))
                     .then(videos => {
                         setPrismaVideos(videos.filter(video => video !== null && video !== undefined) as Video[]);
-                        console.log("set prismaVideos => ", videos);
+                        //console.log("set prismaVideos => ", videos);
                     }).finally(() => {
                         setIsInvoking(false);
                     });
@@ -194,10 +212,11 @@ export default function Dashboard() {
             }
         }, [currentUser, files, finishedSettingFiles]);
 
-
+        // Update the folder expanded state in the db
         useEffect(() => {
             if (currentUser && finishedSettingFiles && !isInvoking && expanded !== undefined) {
-                updateFolderExpanded({ folderPath: folderPath, expanded: expanded, userId: currentUser?.id })
+
+                updateFolderExpanded({ folderPath: folderPath, expanded: expanded, userId: currentUser?.id, asChild: asChild || false })
             }
 
         }, [expanded, isInvoking]);
@@ -379,15 +398,17 @@ export default function Dashboard() {
                                             e.stopPropagation();
                                             // trigger the delete folder db command
                                             deleteFolder({ folderPath }).then(() => {
-                                                //router.prefetch('/dashboard');
-                                                window.location.reload();
+                                                setFolderPaths(folderPaths.filter(path => path !== folderPath));
+                                                setParentFolderPaths(parentFolderPaths.filter(path => path !== folderPath));
+                                                router.refresh();
                                             });
                                         }} />
-
                                     </motion.span>
-
                                 )}
+
                             </motion.div>
+
+                            {/* Main Parent Folder */}
                         </ContextMenuTrigger>
                         <ContextMenuContent>
                             <ContextMenuItem className='flex cursor-pointer items-center gap-1 font-medium'
@@ -416,10 +437,8 @@ export default function Dashboard() {
                 </AnimatePresence>
 
                 {/* Displays all the child files and folders */}
-
-
                 <AnimatePresence>
-                    {/* Video Files //.. map it only if it has not children*/}
+                    {/* Video Files //.. map it only if it has no children*/}
                     {expanded && files.filter((file) => !file.children).map((file, index) => {
                         return (
                             <ContextMenu key={"context-menu" + index}>
@@ -746,11 +765,7 @@ export default function Dashboard() {
                         })
                     }
                 </AnimatePresence>
-
-
-
             </main >
-
         )
     }
 
@@ -761,7 +776,7 @@ export default function Dashboard() {
             style={{ scrollbarGutter: "stable", }}
         >
 
-            {/* Render Parent Folders */}
+            {/* Render Parent Folders by making sure the paths are unique */}
             <motion.div className='mb-20 flex h-full w-full flex-col items-center justify-center gap-2 rounded-b-sm drop-shadow-sm'
                 key={"main-parent-folder" + folderPaths.length + 1}
             >
@@ -803,7 +818,7 @@ export default function Dashboard() {
                                                 }
                                             }
 
-                                            addFolder({ userId: currentUser?.id, folderPath: res.toString(), expanded: false }).then(() => {
+                                            addFolder({ userId: currentUser?.id, folderPath: res.toString(), expanded: false, asChild: false }).then(() => {
                                                 setFolderPaths(prevPaths => [...prevPaths, res] as string[]);
                                             });
 

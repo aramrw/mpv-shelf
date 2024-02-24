@@ -99,21 +99,26 @@ export async function createNewUser({
 export async function addFolder({
     userId,
     folderPath,
-    expanded
+    expanded,
+    asChild
 }: {
     userId: number,
     folderPath: string
     expanded: boolean
+    asChild: boolean
 }) {
     let db = await Database.load("sqlite:main.db");
 
+    // create a new folder table if it doesnt exist
+    await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0, asChild BOOLEAN NOT NULL DEFAULT 0, FOREIGN KEY (userId) REFERENCES user(id))").catch((e) => {
+        console.log("error", e);
+    });
+
+    await db.execute("INSERT into folder (userId, path, expanded, asChild) VALUES ($1, $2, $3, $4)", [userId, folderPath, expanded ? 1 : 0, asChild ? 1 : 0]);
+
     if (expanded) {
-        console.log(`setting expanded to true for ${folderPath.split("\\").pop()}`);
+        console.log(`creating ${folderPath.split("\\").pop()}` + " as expanded for user " + userId);
     }
-
-    await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0, FOREIGN KEY (userId) REFERENCES user(id))")
-
-    await db.execute("INSERT into folder (userId, path, expanded) VALUES ($1, $2, $3)", [userId, folderPath, expanded ? 1 : 0]);
 }
 
 export async function getFolders({
@@ -126,7 +131,11 @@ export async function getFolders({
     console.log("userId", userId);
 
     try {
-        await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0 , FOREIGN KEY (userId) REFERENCES user(id))")
+        // create a new folder table if it doesnt exist
+        await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0, asChild BOOLEAN NOT NULL DEFAULT 0, FOREIGN KEY (userId) REFERENCES user(id))").catch((e) => {
+            console.log("error", e);
+        });
+
         // Directly return the result of the query
         let folders: Folder[] = await db.select("SELECT * from folder WHERE userId = $1", [userId]);
         //console.log("folders", folders);
@@ -150,34 +159,37 @@ export async function updateFolderExpanded({
     userId,
     folderPath,
     expanded,
+    asChild
 }: {
     userId: number,
     folderPath: string,
-    expanded: boolean
+    expanded: boolean,
+    asChild: boolean
 }) {
     let db = await Database.load("sqlite:main.db");
 
-    // create the folder table if it doesnt exist
-    await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0, FOREIGN KEY (userId) REFERENCES user(id))")
+    // create a new folder table if it doesnt exist
+    await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0, asChild BOOLEAN NOT NULL DEFAULT 0, FOREIGN KEY (userId) REFERENCES user(id))").catch((e) => {
+        console.log("error", e);
+    });
 
-    let folders: Folder[] = await db.select("SELECT * from folder WHERE PATH = $1 AND userId = $2", [folderPath, userId]);
-
-    if (folders) {
-        if (folders.length === 1) {
+    await db.select("SELECT * from folder WHERE PATH = $1 AND userId = $2", [folderPath, userId]).then(async (folders: unknown) => {
+        console.log("folders", folders)
+        if (Array.isArray(folders) && folders.length !== 0) {
             await db.execute("UPDATE folder SET expanded = $1 WHERE path = $2 AND userId = $3", [expanded ? 1 : 0, folderPath, userId])
+            console.log("Updated", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
         } else {
-
-            // ! This is a bug, the folder should be created if it does not exist, but it adds it as if it was a main folder, so it needs to be related to the parent or another way
-
-            // await db.execute("INSERT into folder (expanded, path, userId) VALUES ($1, $2, $3)", [expanded ? 1 : 0, folderPath, userId]).then(() => {
-            //     console.log("Created New Folder: ", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
-            // }).catch(async (e) => {
-            //     await db.close()
-            //     console.log(e)
-            //     return false;
-            // });
+            await db.execute("INSERT into folder (expanded, path, userId, asChild) VALUES ($1, $2, $3, $4)", [expanded ? 1 : 0, folderPath, userId, asChild ? 1 : 0]).then(() => {
+                console.log("Created New Folder: ", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
+            }).catch(async (e) => {
+                await db.close()
+                console.log(e)
+                return false;
+            });
         }
-    }
+
+    })
+
 
 
 
@@ -536,7 +548,6 @@ export async function deleteProfile({
         await db.close();
     }
 }
-
 
 // scroll hooks need to be moved to /hooks 
 export async function updateUserScrollY({
