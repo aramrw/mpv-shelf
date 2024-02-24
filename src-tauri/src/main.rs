@@ -220,10 +220,10 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
                         "new".to_string(),
                         tauri::WindowUrl::App("/dashboard".into()),
                     )
-                    .center()
+                    .fullscreen(true)
                     .transparent(true)
                     .title("mpv-shelf")
-                    .inner_size(700.0, 600.0)
+                    .inner_size(600.0, 800.0)
                     .build()
                     .unwrap();
                 }
