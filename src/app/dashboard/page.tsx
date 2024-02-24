@@ -392,9 +392,9 @@ export default function Dashboard() {
                                     <motion.span
                                         whileHover={userSettings?.animations === "On" ? { scale: 1.1 } : undefined}
                                         whileTap={userSettings?.animations === "On" ? { scale: 0.9 } : undefined}
-                                        className=''
+                                        className='drop-shadow-md'
                                     >
-                                        <Trash2 className={cn('rounded-lg p-0.5 text-primary hover:bg-background h-auto w-6',
+                                        <Trash2 className={cn('rounded-lg p-0.5 text-primary hover:bg-background h-auto w-6 drop-shadow-md',
                                             userSettings?.fontSize === "Medium" && 'h-auto w-7',
                                             userSettings?.fontSize === "Large" && 'h-auto w-8',
                                             userSettings?.fontSize === "XLarge" && 'h-auto w-9'
