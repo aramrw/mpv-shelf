@@ -677,7 +677,7 @@ export default function Dashboard() {
                                                         userSettings?.fontSize === "Medium" && 'text-base',
                                                         userSettings?.fontSize === "Large" && 'text-lg',
                                                         userSettings?.fontSize === "XLarge" && 'text-xl',
-                                                    )}>Cascade As</span>
+                                                    )}>Watch From</span>
                                                     <div className='flex'>
                                                         <Eye className={cn('h-auto w-4 ',
                                                             userSettings?.fontSize === "Medium" && 'h-auto w-5',
@@ -709,7 +709,7 @@ export default function Dashboard() {
                                                         userSettings?.fontSize === "Medium" && 'text-base',
                                                         userSettings?.fontSize === "Large" && 'text-lg',
                                                         userSettings?.fontSize === "XLarge" && 'text-xl',
-                                                    )}>Cascade As</span>
+                                                    )}>Unwatch To</span>
                                                     <div className='flex'>
                                                         <EyeOff className={cn('h-auto w-4 ',
                                                             userSettings?.fontSize === "Medium" && 'h-auto w-5',
