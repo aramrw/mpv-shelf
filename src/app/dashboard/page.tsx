@@ -468,13 +468,14 @@ export default function Dashboard() {
                                     transition={{ duration: 0.5, type: 'spring', bounce: 0.4 }}
                                 >
 
-                                    <div className={cn('flex flex-row items-center justify-center gap-1 font-medium select-none ',
-                                        (file.name && file.name?.length > 100) && 'flex-col items-start justify-center gap-1',
+                                    <div className={cn('flex flex-row items-start justify-center gap-1 font-medium select-none',
+                                        (file.name && file.name?.length > 100) && 'items-start justify-center gap-1',
 
                                     )}
 
                                     >
-                                        <Film className={cn('h-auto w-4',
+                                        <Film className={cn('h-auto w-4 pl-1.5',
+                                            (file.name && file.name?.length > 100) && 'items-start justify-center gap-1 p-0',
                                             userSettings?.fontSize === "Medium" && 'h-auto w-5',
                                             userSettings?.fontSize === "Large" && 'h-auto w-6',
                                             userSettings?.fontSize === "XLarge" && 'h-auto w-7'
