@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { open } from '@tauri-apps/api/dialog';
 import { addFolder, deleteFolder, getCurrentUserGlobal, getFolders, getUserScrollY, getUserSettings, getUsers, getVideo, unwatchVideo, updateFolderExpanded, updateUserScrollY, updateVideoWatched } from '../../../lib/prisma-commands';
 import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
-import { Captions, ChevronDown, ChevronUp, CornerLeftDown, Eye, EyeOff, Film, Folder, FolderInput, Folders, Trash2, VideoIcon, } from 'lucide-react';
+import { Captions, ChevronDown, ChevronUp, CornerLeftDown, Eye, EyeOff, Film, Folder, FolderInput, FolderPlus, Folders, Trash2, VideoIcon, } from 'lucide-react';
 import { FileEntry, readDir } from '@tauri-apps/api/fs'
 import { cn } from '@/lib/utils';
 import { invoke } from '@tauri-apps/api/tauri';
@@ -787,7 +787,7 @@ export default function Dashboard() {
                             key={"Add-Folder-Button"}
                         >
                             <Button variant="outline"
-                                className={cn('select-none',
+                                className={cn('select-none flex flex-row justify-center items-end gap-1.5 font-bold',
                                     userSettings?.fontSize === "Medium" && 'text-lg mx-0',
                                     userSettings?.fontSize === "Large" && 'text-xl mx-0',
                                     userSettings?.fontSize === "XLarge" && 'text-2xl mx-0',
@@ -823,7 +823,13 @@ export default function Dashboard() {
                                     })
                                 }}
                             >
-                                Add Folder
+                                <span>Add Folder</span>
+                                <FolderPlus className={cn('h-auto w-4',
+                                    userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                                    userSettings?.fontSize === "Large" && 'h-auto w-6',
+                                    userSettings?.fontSize === "XLarge" && 'h-auto w-7'
+                                )} />
+
                             </Button>
 
                         </motion.div>
