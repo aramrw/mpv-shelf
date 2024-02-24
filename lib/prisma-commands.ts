@@ -128,7 +128,6 @@ export async function getFolders({
 }) {
     let db = await Database.load("sqlite:main.db");
 
-    console.log("userId", userId);
 
     try {
         // create a new folder table if it doesnt exist
@@ -136,20 +135,27 @@ export async function getFolders({
             console.log("error", e);
         });
 
-        // Directly return the result of the query
-        let folders: Folder[] = await db.select("SELECT * from folder WHERE userId = $1", [userId]);
-        //console.log("folders", folders);
-        if (folders.length !== 0) {
-            //  console.log("retrived", folders.path.split("\\").pop(), "as", video[0].watched, "for user", video[0].userId);
-            return folders;
-        } else {
-            return folders;
+        try {
+            // Directly return the result of the query
+            let folders: Folder[] = await db.select("SELECT * from folder WHERE userId = $1", [userId])
+
+            console.log(`getFolders() => Folders found from user ${userId}:`, folders.length);
+            if (folders.length !== 0) {
+                return folders
+            } else {
+                return [];
+            }
+
+        } catch (e) {
+            await db.close();
+            console.log(e);
+            return [];
         }
 
     } catch (e) {
+        await db.close();
         console.log(e);
         // Return an empty array or handle the error as needed
-        ;
         return [];
     }
 
