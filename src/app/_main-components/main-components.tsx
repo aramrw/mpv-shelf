@@ -56,10 +56,10 @@ export function Navbar() {
     };
 
     return (
-        <motion.div className={cn("z-50 top-0 sticky flex h-8 w-full flex-row items-center justify-between border-b-2 bg-accent p-1 shadow-sm md:h-9 lg:h-10",
+        <motion.div className={cn("z-50 top-0 sticky flex h-8 w-full flex-row items-center justify-between border-b-2 bg-accent p-1 shadow-sm md:h-9 lg:h-10 lg:px-16 xl:px-36 2xl:px-48",
             pathname === "/profiles" && "bg-transparent border-none text-background px-2.5 pt-2 shadow-md py-0.5",
-            pathname === "/dashboard" && "pl-2.5 drop-shadow-sm",
-            scrolled && "bg-accent"
+            pathname === "/dashboard" && "pl-2 drop-shadow-sm",
+            scrolled && "bg-red-500"
         )}
             drag="y" // Enable vertical dragging
             dragConstraints={{ top: 0, bottom: 0 }} // Limit dragging to vertical movement within the component's height
