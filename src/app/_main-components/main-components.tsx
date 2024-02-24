@@ -80,17 +80,17 @@ export function Navbar() {
                                 router.back();
                             }}
                         >
-                            <MoveLeft className={`h-auto drop-shadow-md md:w-7 lg:w-8`} />
+                            <MoveLeft className={`h-auto drop-shadow-lg md:w-7 lg:w-8`} />
                         </motion.div>
                     )}
                 <motion.div
-                    className='cursor-pointer'
+                    className='flex cursor-pointer'
                     whileTap={{ scale: 0.9 }}
                     whileHover={{ scale: 1.1 }}
                 >
-                    <HelpCircle className={cn(`h-auto md:w-7 lg:w-8  text-transparent `,
+                    <HelpCircle className={cn(`h-auto md:w-6 lg:w-7 drop-shadow-md`,
                         pathname === "/profiles" && "text-primary",
-                        pathname === "/dashboard" && 'w-7'
+                        pathname === "/dashboard" && 'w-6'
                     )} />
                 </motion.div>
 
@@ -99,16 +99,19 @@ export function Navbar() {
             </div>
 
             {(pathname !== "/settings" && !pathname.includes("/profile") && pathname !== "/login" && pathname !== "/") && (
-                <motion.div
-                    whileTap={{ scale: 0.9 }}
-                    whileHover={{ scale: 1.1 }}
-                >
-                    <Link href="/settings" scroll={false} >
+                <Link href="/settings" scroll={false} className='' >
+                    <motion.div
+                        whileTap={{ scale: 0.9 }}
+                        whileHover={{ scale: 1.1 }}
+                        className=''
+                    >
+
                         <Sliders className={cn("h-auto cursor-pointer w-6 md:w-8 lg:w-9 drop-shadow-md",
                             pathname === "/dashboard" && 'w-7'
                         )} />
-                    </Link>
-                </motion.div>
+
+                    </motion.div>
+                </Link>
             )}
 
         </motion.div>
