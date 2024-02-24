@@ -244,7 +244,7 @@ export default function Dashboard() {
                                     (expanded && folders.length > 0 && !asChild) && 'rounded-b-none border-b-4',
                                     (expanded && asChild) && 'border-none rounded-sm',
                                     asChild && 'bg-muted rounded-sm',
-                                    (asChild && expanded) && 'p-1 border-none drop-shadow-sm rounded-b-sm',
+                                    (asChild && expanded) && 'p-1 border-none  rounded-b-sm',
                                     (!asChild && expanded) && 'border-none ',
                                     (asChild) && 'flex flex-col rounded-t-none  brightness-90',
                                     userSettings?.animations === "Off" && 'hover:opacity-80',
@@ -449,7 +449,7 @@ export default function Dashboard() {
                         <ContextMenu key={"context-menu" + index}>
                             <ContextMenuTrigger>
                                 <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 py-1.5 px-4 cursor-pointer overflow-hidden',
-                                    (index === files.length - 1) && 'rounded-b-md border-none pb-0',
+                                    (index === files.length - 1) && 'rounded-b-md border-none',
                                     userSettings?.animations === "Off" && 'hover:opacity-50',
                                     prismaVideos.some((video) => video.path === file.path && video.watched) && 'bg-tertiary drop-shadow-sm',
                                 )}
