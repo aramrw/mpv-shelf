@@ -261,6 +261,7 @@ export default function Dashboard() {
                                 < div className={cn('flex flex-row items-center justify-start gap-1 font-medium text-primary text-sm text-center w-full pb-1.5',
                                 )}>
 
+
                                     {(asChild && !expanded) ? (
                                         <motion.div className='flex items-start justify-center'
                                             key={folderPath + "not expanded5"}
@@ -435,12 +436,12 @@ export default function Dashboard() {
 
 
                 {/* Displays all the child files and folders */}
-
                 {/* Video Files //.. map it only if it has no children*/}
                 {expanded && files.filter((file) => !file.children).map((file, index) => {
                     return (
                         <ContextMenu key={"context-menu" + index}>
                             <ContextMenuTrigger>
+
                                 <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 py-1.5 px-4 cursor-pointer overflow-hidden',
                                     (index === files.length - 1) && 'rounded-b-md border-b-0 border-tertiary',
                                     userSettings?.animations === "Off" && 'hover:opacity-50',
@@ -728,31 +729,31 @@ export default function Dashboard() {
 
 
                 {/*Child Folders */}
-                <AnimatePresence>
-                    {
-                        expanded && folders.map((folder, index) => {
-                            return (
-                                <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 p-0.5 px-2 cursor-pointer overflow-hidden select-none ',
-                                    (index === folders.length - 1 && !asChild) && 'rounded-b-md border-b-4 border-tertiary',
-                                    asChild && 'rounded-b-md border-none border-tertiary',
 
-                                )}
-                                    key={folder.name + "current-child" + index}
-                                    initial={userSettings?.animations === "On" ? { y: -40 } : undefined}
-                                    animate={userSettings?.animations === "On" ? { opacity: 1, y: 0 } : undefined}
-                                    exit={(userSettings?.animations === "On") ? { y: -40, opacity: 0 } : undefined}
-                                    whileHover={(userSettings?.animations === "On") ? { x: 1 } : undefined}
-                                    transition={{ duration: 0.3, stiffness: 30 }}
-                                >
+                {
+                    expanded && folders.map((folder, index) => {
+                        return (
+                            <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 p-0.5 px-2 cursor-pointer overflow-hidden select-none ',
+                                (index === folders.length - 1 && !asChild) && 'rounded-b-md border-b-4 border-tertiary',
+                                asChild && 'rounded-b-md border-none border-tertiary',
 
-                                    <FolderList folderPath={folder.path} asChild />
+                            )}
+                                key={folder.name + "current-child" + index}
+                                initial={userSettings?.animations === "On" ? { y: -40 } : undefined}
+                                animate={userSettings?.animations === "On" ? { opacity: 1, y: 0 } : undefined}
+                                exit={(userSettings?.animations === "On") ? { y: -40, opacity: 0 } : undefined}
+                                whileHover={(userSettings?.animations === "On") ? { x: 1 } : undefined}
+                                transition={{ duration: 0.3, stiffness: 30 }}
+                            >
 
-                                </motion.li>
+                                <FolderList folderPath={folder.path} asChild />
 
-                            )
-                        })
-                    }
-                </AnimatePresence>
+                            </motion.li>
+
+                        )
+                    })
+                }
+
             </main >
         )
     }
@@ -764,7 +765,7 @@ export default function Dashboard() {
             style={{ scrollbarGutter: "stable", }}
         >
 
-            {/* Render Parent Folders by making sure the paths are unique */}
+            {/* Render Parent Folders */}
             <motion.div className='mb-20 flex h-full w-full flex-col items-center justify-center gap-2 rounded-b-sm drop-shadow-sm'
                 key={"main-parent-folder" + folderPaths.length + 1}
             >
