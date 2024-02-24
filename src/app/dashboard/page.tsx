@@ -257,7 +257,7 @@ export default function Dashboard() {
                                 whileHover={(userSettings?.animations === "On" && !asChild) ? { padding: "10px" } : undefined}
                             >
                                 {/* Displays all the tags for main parent folder. */}
-                                < div className={cn('dark:bg-red-500 flex flex-row items-center justify-start gap-1 font-medium text-primary text-sm text-center w-full pb-1.5 drop-shadow-sm',
+                                < div className={cn('flex flex-row items-center justify-start gap-1 font-medium text-primary text-sm text-center w-full pb-1.5 drop-shadow-md ',
                                 )}>
 
 
