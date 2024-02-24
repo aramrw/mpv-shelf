@@ -82,7 +82,7 @@ export default function NewUser() {
                                 value={pin}
                                 onChange={(e) => handleChange(e.target.value, index)}
                                 onKeyDown={(e) => handleBackspace(e, index)}
-                                className={cn("h-20 w-20 rounded border-2 border-muted text-center text-3xl md:h-28 md:w-28 md:text-3xl lg:h-36 lg:w-36 lg:text-4xl xl:h-40 xl:w-40 xl:text-5xl shadow-md font-bold",
+                                className={cn("h-20 w-20 rounded border-2 border-muted text-center text-4xl md:h-28 md:w-28 md:text-6xl lg:h-36 lg:w-36 lg:text-8xl xl:h-40 xl:w-40 xl:text-8xl shadow-md font-bold",
                                 )}
                                 pattern="[0-9]*" // Ensure only numbers can be inputted
                             />
