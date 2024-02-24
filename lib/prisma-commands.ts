@@ -545,6 +545,7 @@ export async function deleteProfile({
 
         // Commit the transaction
         await db.execute(`COMMIT;`);
+        console.log("deleteProfile() => Deleted user:", userId);
     } catch (e) {
         console.log(e);
         // If an error occurs, rollback the transaction
