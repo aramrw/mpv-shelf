@@ -7,7 +7,9 @@ use random_color::color_dictionary::{ColorDictionary, ColorInformation};
 use random_color::{Color, Luminosity, RandomColor};
 use serde::{Deserialize, Serialize};
 
+use std::collections::HashMap;
 use std::io::{stdout, Write};
+// use std::os::windows::process;
 use std::process::Command;
 use std::vec;
 use sysinfo::System;
@@ -164,37 +166,47 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
         .or_else(|| handle.clone().get_window("new"))
         .expect("failed to get any windows!");
 
+    let screen_res = window.current_monitor().unwrap().unwrap();
+
     window.close().expect("failed to close main window");
 
     let mut sys = System::new_all();
 
-    // First we update all information of our `System` struct.
-    sys.refresh_all();
+    // Kill all mpv.exe processes before opening a new video.
+    sys.refresh_processes(); // Refresh the list of processes.
 
-    // kill any mpv processes before opening a new one
-    #[allow(unused_variables)]
-    for (pid, process) in sys.processes() {
+    let processes_hashmap = sys.processes().iter().collect::<HashMap<_, _>>();
+
+    // TODO : To make it support any video player, get the default video player from the user / the os
+
+    processes_hashmap.iter().for_each(|(_pid, process)| {
         if process.name().to_lowercase().contains("mpv.exe") {
             process.kill();
         }
-    }
+    });
+
+    // Open the video with mpv.
+    match open::that(path) {
+        Ok(_) => "Video opened successfully",
+        Err(_) => "Failed to open video",
+    };
 
     let instant = std::time::Instant::now();
 
+    // variable to track the users screen resolution
+
     // Loop indefinitely until mpv.exe is not found.
     loop {
+        let mut mpv_running = false; // Flag to check if mpv is running.
         sys.refresh_processes(); // Refresh the list of processes.
 
-        let mut mpv_running = false; // Flag to check if mpv is running.
+        let processes_hashmap = sys.processes().iter().collect::<HashMap<_, _>>();
 
-        // Check all processes to see if mpv.exe is running.
-        for (_pid, process) in sys.processes() {
-            if process.name().to_lowercase() == "mpv.exe" {
-                sys.refresh_all();
-                mpv_running = true; // mpv is still running.
-                break; // No need to check further processes.
+        processes_hashmap.iter().for_each(|(_pid, process)| {
+            if process.name().to_lowercase().contains("mpv.exe") {
+                mpv_running = true;
             }
-        }
+        });
 
         if !mpv_running {
             println!(
@@ -211,15 +223,20 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
                     window.set_focus().unwrap();
                 }
                 None => {
+                    // get users current resolution
+
+                    // build the window
                     tauri::WindowBuilder::new(
                         &handle,
                         "new".to_string(),
                         tauri::WindowUrl::App("/dashboard".into()),
                     )
-                    .fullscreen(true)
                     .transparent(true)
                     .title("mpv-shelf")
-                    .inner_size(600.0, 800.0)
+                    .inner_size(
+                        screen_res.size().width as f64,
+                        screen_res.size().height as f64,
+                    )
                     .build()
                     .unwrap();
                 }

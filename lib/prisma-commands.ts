@@ -3,7 +3,6 @@ import { User, Folder, Video } from "@prisma/client";
 import { SettingSchema } from "@/app/settings/page";
 import { Global } from "@prisma/client";
 import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
-// import { WebviewWindow } from "@tauri-apps/api/window";
 
 export async function getUsers() {
     const db = await Database.load("sqlite:main.db");
@@ -96,6 +95,7 @@ export async function createNewUser({
     }
 }
 
+// ** Folders **
 export async function addFolder({
     userId,
     folderPath,
@@ -167,7 +167,7 @@ export async function updateFolderExpanded({
             await db.execute("UPDATE folder SET expanded = $1 WHERE path = $2 AND userId = $3", [expanded ? 1 : 0, folderPath, userId])
         } else {
             await db.execute("INSERT into folder (expanded, path, userId) VALUES ($1, $2, $3)", [expanded ? 1 : 0, folderPath, userId]).then(() => {
-                console.log("Created New Folder with expanded:", folderPath.split("\\").pop(), "as", expanded, "for user", userId);
+                console.log("Created New Folder: ", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
             }).catch(async (e) => {
                 await db.close()
                 console.log(e)
@@ -217,12 +217,27 @@ export async function updateVideoWatched({
             await db.execute("UPDATE video SET watched = $3 WHERE path = $1 AND userId = $2", [videoPath, user.id, watched ? 1 : 0]);
         }
     } catch (e) {
+        await db.close();
         console.error(e);
         return false
     }
 
     return true;
 }
+
+export async function deleteFolder({
+    folderPath,
+}: {
+    folderPath: string
+
+}) {
+    let db = await Database.load("sqlite:main.db");
+
+    await db.execute("DELETE from folder WHERE path = $1", [folderPath])
+
+        ;
+}
+// ** Folders **
 
 export async function getVideo({
     videoPath,
@@ -263,19 +278,6 @@ export async function getVideo({
     } else {
         return null
     }
-}
-
-export async function deleteFolder({
-    folderPath,
-}: {
-    folderPath: string
-
-}) {
-    let db = await Database.load("sqlite:main.db");
-
-    await db.execute("DELETE from folder WHERE path = $1", [folderPath])
-
-        ;
 }
 
 export async function unwatchVideo({
@@ -499,6 +501,7 @@ export async function getProfilePicture({
 
 }
 
+// TODO : this doesnt work anymore i forgot why
 export async function deleteProfile({
     userId
 }: {
@@ -532,7 +535,7 @@ export async function deleteProfile({
 }
 
 
-// ! These work but are not used in the app .. yet?
+// scroll hooks need to be moved to /hooks 
 export async function updateUserScrollY({
     userId,
     scrollY
