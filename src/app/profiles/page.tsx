@@ -163,6 +163,15 @@ export default function Profiles() {
                                     {allUsers.map((user, index) => (
                                         <div className='flex flex-row items-center justify-center text-background'
                                             key={user.id * 1000 + index}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                if (!isGrabbing) {
+                                                    router.prefetch('/login');
+                                                    setCurrentUserGlobal({ userId: user.id }).then(() => {
+                                                        router.push('/login', { scroll: false });
+                                                    });
+                                                }
+                                            }}
                                         >
                                             <motion.button
                                                 className={cn('flex h-fit w-fit flex-row items-center justify-center',
@@ -172,15 +181,7 @@ export default function Profiles() {
                                                 whileHover={{ y: 10 }}
                                                 whileTap={{ scale: 0.95 }}
                                                 transition={{ duration: 0.5, bounce: 0.5, type: "spring" }}
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    if (!isGrabbing) {
-                                                        router.prefetch('/login');
-                                                        setCurrentUserGlobal({ userId: user.id }).then(() => {
-                                                            router.push('/login', { scroll: false });
-                                                        });
-                                                    }
-                                                }}
+
                                             >
                                                 <UserAvatar userObject={user} />
                                             </motion.button>
@@ -189,6 +190,16 @@ export default function Profiles() {
                                     ))}
                                     <div className='flex flex-row items-center justify-center'
                                         key={"add profile"}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            if (!isGrabbing) {
+                                                router.prefetch('/profiles/newUser');
+                                                setCurrentUserGlobal({ userId: -1 }).then(() => {
+                                                    router.push('/profiles/newUser', { scroll: false });
+                                                });
+                                            }
+
+                                        }}
                                     >
                                         <motion.button
                                             className={cn('flex h-fit w-fit flex-row items-center justify-center',
@@ -198,16 +209,7 @@ export default function Profiles() {
                                             whileHover={{ y: 10 }}
                                             whileTap={{ scale: 0.95 }}
                                             transition={{ duration: 0.5, bounce: 0.5, type: "spring" }}
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                if (!isGrabbing) {
-                                                    router.prefetch('/profiles/newUser');
-                                                    setCurrentUserGlobal({ userId: -1 }).then(() => {
-                                                        router.push('/profiles/newUser', { scroll: false });
-                                                    });
-                                                }
 
-                                            }}
                                         >
                                             <UserAvatar userObject={allUsers[99]} />
                                         </motion.button>
