@@ -117,18 +117,15 @@ export default function Dashboard() {
                 if (userY !== 0 && userY !== null && userY !== undefined)
                     console.log("User scroll: ", userY)
 
-                // TODO : This needs to be changed. The timeout needs to be referenced to an element.
+                // TODO : This needs to be changed but it works. position to be referenced to an element, or do math.
                 setTimeout(() => {
                     console.log("scrolling to: ", userY);
                     if (userY > 0 && userY !== null && userY !== undefined)
-                        setScrollPosition(userY + 25)
-
-                }, 150)
-
-
+                        setScrollPosition(userY)
+                }, 300)
 
             })
-    }, [currentUser, isLoading]);
+    }, [isLoading]);
 
     const FolderList = ({ folderPath, asChild }: { folderPath: string, asChild?: boolean | undefined }) => {
 
@@ -775,9 +772,10 @@ export default function Dashboard() {
     }
 
     return (
-        <main className={cn('pl-3 lg:px-16 xl:px-36 2xl:px-48 mt-3 max-h-screen overflow-auto',
+        <main className={cn('pl-3 lg:px-16 xl:px-36 2xl:px-48 mt-3 max-h-screen overflow-auto pb-5',
         )}
             ref={scrolledDiv}
+            style={{ scrollbarGutter: "stable", }}
         >
 
             {/* Render Parent Folders */}
@@ -808,29 +806,53 @@ export default function Dashboard() {
                                 onClick={() => {
                                     open({
                                         directory: true,
-                                        multiple: false,
+                                        multiple: true,
                                         recursive: true,
                                         filters: [
                                             { name: 'Folders', extensions: [""] }
                                         ],
                                         title: "Add Folder"
-                                    }).then((res): void => {
-                                        if (res && currentUser) {
-                                            for (const path of folderPaths) {
-                                                if (path === res?.toString()) {
-                                                    let pathName = res.toString().replaceAll("\\", " ").split(" ").pop();
+                                    }).then((selectedFolders): void => {
+                                        if (currentUser) {
+                                            if (Array.isArray(selectedFolders)) {
+                                                // user selected multiple files
+                                                for (const path of selectedFolders) {
+                                                    if (folderPaths.some((folderPath) => folderPath.toString() === path)) {
+                                                        let pathName = path.replaceAll("\\", " ").split(" ").pop();
+                                                        toast({
+                                                            title: `${pathName} already exists!`,
+                                                            description: `You already have a folder with the name ${pathName} in your library.`,
+                                                            duration: 2000,
+                                                        })
+                                                        return
+                                                    } else {
+                                                        addFolder({ userId: currentUser?.id, folderPath: path, expanded: false, asChild: false }).then(() => {
+                                                            setFolderPaths(prevPaths => [...prevPaths, path] as string[]);
+                                                        });
+                                                    }
+
+                                                }
+
+                                            } else if (selectedFolders === null) {
+                                                // cancalled //.. do nothing
+                                            } else {
+                                                if (folderPaths.filter((folderPath) => folderPath === selectedFolders)) {
+                                                    let pathName = selectedFolders.replaceAll("\\", " ").split(" ").pop();
                                                     toast({
                                                         title: `${pathName} already exists!`,
                                                         description: `You already have a folder with the name ${pathName} in your library.`,
                                                         duration: 2000,
                                                     })
-                                                    return;
+                                                    // user selected one folder
+                                                    addFolder({ userId: currentUser?.id, folderPath: selectedFolders.toString(), expanded: false, asChild: false }).then(() => {
+                                                        setFolderPaths(prevPaths => [...prevPaths, selectedFolders] as string[]);
+                                                    });
                                                 }
                                             }
 
-                                            addFolder({ userId: currentUser?.id, folderPath: res.toString(), expanded: false, asChild: false }).then(() => {
-                                                setFolderPaths(prevPaths => [...prevPaths, res] as string[]);
-                                            });
+
+
+
 
                                         }
                                     })
@@ -849,9 +871,9 @@ export default function Dashboard() {
                     )}
                     {/* Add Folder Button */}
                 </AnimatePresence>
-            </motion.div>
+            </motion.div >
 
-        </main>
+        </main >
 
     )
 
