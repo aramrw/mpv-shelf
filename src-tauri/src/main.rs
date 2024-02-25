@@ -288,4 +288,3 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
         std::thread::sleep(std::time::Duration::from_millis(500));
     }
 }
-// ! DONT TOUCH THESE FUNCTIONS ! //
