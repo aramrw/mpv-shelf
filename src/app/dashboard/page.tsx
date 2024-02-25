@@ -122,8 +122,7 @@ export default function Dashboard() {
                     console.log("scrolling to: ", userY);
                     if (userY > 0 && userY !== null && userY !== undefined)
                         setScrollPosition(userY)
-                }, 300)
-
+                }, 260)
             })
     }, [isLoading]);
 
