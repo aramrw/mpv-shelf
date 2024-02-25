@@ -155,7 +155,6 @@ export default function Dashboard() {
 
 
 
-
                     setFiles(filteredVideos as FileEntry[]);
                     setFolders(folders as FileEntry[]);
                     setSubtitleFiles(subtitleFiles as FileEntry[]);
