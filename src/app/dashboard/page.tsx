@@ -30,8 +30,8 @@ export default function Dashboard() {
     const [parentFolderPaths, setParentFolderPaths] = useState<string[]>([]);
     const [currentUser, setCurrentUser] = useState<User>();
     const [userSettings, setUserSettings] = useState<SettingSchema>();
-    const domLoadedRef = useRef<HTMLDivElement>(null);
     const scrolledDiv = useRef<HTMLDivElement>(null);
+    const [isLoading, setIsLoading] = useState(false);
     //const { scrollYProgress } = useScroll();
     const router = useRouter();
     const { scrollY } = useScroll({
@@ -75,34 +75,10 @@ export default function Dashboard() {
         })
     }, [])
 
-    // get the user's scroll position from the db once currentUser is set
-    useEffect(() => {
-        if (currentUser)
-            getUserScrollY({ userId: currentUser?.id }).then((userY: any) => {
-                if (userY !== 0 && userY !== null && userY !== undefined)
-                    console.log("User scroll: ", userY)
-
-
-
-                // TODO : This needs to be changed. The timeout needs to be referenced to an element.
-                setTimeout(() => {
-                    console.log("scrolling to: ", userY);
-
-                    setTimeout(() => {
-                        if (userY > 0 && userY !== null && userY !== undefined)
-                            setScrollPosition(userY);
-                    }, 200);
-
-
-
-                })
-
-            })
-    }, [currentUser, domLoadedRef]);
-
 
     // get all the folder paths from the folder table with user id on startup
     useEffect(() => {
+        setIsLoading(true);
         console.log(currentUser);
         if (currentUser?.id)
             getFolders({ userId: currentUser?.id as number }).then((folders) => {
@@ -114,7 +90,9 @@ export default function Dashboard() {
                         }
                     }
                 }
-            });
+            }).finally(() => {
+                setIsLoading(false);
+            })
 
     }, [currentUser])
 
@@ -131,6 +109,26 @@ export default function Dashboard() {
         }
     }, [currentUser])
 
+
+    // get the user's scroll position from the db once currentUser is set
+    useEffect(() => {
+        if (currentUser && !isLoading)
+            getUserScrollY({ userId: currentUser?.id }).then((userY: any) => {
+                if (userY !== 0 && userY !== null && userY !== undefined)
+                    console.log("User scroll: ", userY)
+
+                // TODO : This needs to be changed. The timeout needs to be referenced to an element.
+                setTimeout(() => {
+                    console.log("scrolling to: ", userY);
+                    if (userY > 0 && userY !== null && userY !== undefined)
+                        setScrollPosition(userY + 25)
+
+                }, 150)
+
+
+
+            })
+    }, [currentUser, isLoading]);
 
     const FolderList = ({ folderPath, asChild }: { folderPath: string, asChild?: boolean | undefined }) => {
 
@@ -234,7 +232,7 @@ export default function Dashboard() {
         return (
             <main className='my-1 h-full w-full rounded-b-md'
                 key={folderPath + "main-parent-folder"}
-                ref={domLoadedRef}
+
             >
                 <ContextMenu
                     key={folderPath + "main-parent-context-menu"}
@@ -780,7 +778,6 @@ export default function Dashboard() {
         <main className={cn('pl-3 lg:px-16 xl:px-36 2xl:px-48 mt-3 max-h-screen overflow-auto',
         )}
             ref={scrolledDiv}
-            style={{ scrollbarGutter: "stable", }}
         >
 
             {/* Render Parent Folders */}

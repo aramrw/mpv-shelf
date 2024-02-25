@@ -32,7 +32,9 @@ export default function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${noto.className} subpixel-antialiased overflow-y-hidden`}  >
+      <body className={`${noto.className} subpixel-antialiased overflow-y-hidden`}
+        style={{ scrollbarGutter: "stable", }}
+      >
         <ThemeProvider defaultTheme="light" forcedTheme="light" >
           <Navbar />
 

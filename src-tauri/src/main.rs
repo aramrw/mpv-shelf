@@ -7,12 +7,13 @@ use random_color::color_dictionary::{ColorDictionary, ColorInformation};
 use random_color::{Color, Luminosity, RandomColor};
 use serde::{Deserialize, Serialize};
 //use tauri_plugin_oauth::start;
+//use env_file_reader::read_file;
 
 use std::collections::HashMap;
 use std::io::{stdout, Write};
 use std::process::Command;
 // use std::os::windows::process;
-use std::vec;
+use std::{env, vec};
 use sysinfo::System;
 #[allow(unused_imports)]
 use tauri::{
@@ -55,6 +56,7 @@ fn main() {
                     }
                     None => return Ok(()),
                 };
+
                 Ok(())
             })
             .system_tray(tray.clone())
