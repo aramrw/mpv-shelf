@@ -91,23 +91,21 @@ export default function Dashboard() {
                     }
                 }
             }).finally(() => {
+                //console.log(`parent folder paths: ${folderPaths}`);
+                if (currentUser?.id) {
+                    getUserSettings({ userId: currentUser?.id }).then((settings) => {
+                        if (settings) {
+                            console.log("user settings:", settings);
+                            setUserSettings(settings);
+                        }
+                    })
+                }
                 setIsLoading(false);
             })
 
     }, [currentUser])
 
-    // fetch the settings object from db on start
-    useEffect(() => {
-        //console.log(`parent folder paths: ${folderPaths}`);
-        if (currentUser?.id) {
-            getUserSettings({ userId: currentUser?.id }).then((settings) => {
-                if (settings) {
-                    console.log("user settings:", settings);
-                    setUserSettings(settings);
-                }
-            })
-        }
-    }, [currentUser])
+
 
 
     // get the user's scroll position from the db once currentUser is set
@@ -151,9 +149,7 @@ export default function Dashboard() {
                     const subtitleFiles = res.filter(file => file.path.split('.').pop() === 'srt');
                     const folders = res.filter(file => file.children);
 
-                    let uniqueFolders: FileEntry[] = [];
-
-
+                    //let uniqueFolders: FileEntry[] = [];
 
                     setFiles(filteredVideos as FileEntry[]);
                     setFolders(folders as FileEntry[]);
