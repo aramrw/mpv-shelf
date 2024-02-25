@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useRef, useState } from 'react'
 import { open } from '@tauri-apps/api/dialog';
-import { addFolder, deleteFolder, getCurrentUserGlobal, getFolders, getUserScrollY, getUserSettings, getUsers, getVideo, unwatchVideo, updateFolderExpanded, updateUserScrollY, updateVideoWatched } from '../../../lib/prisma-commands';
+import { addFolder, deleteFolder, getCurrentUserGlobal, getFolders, getUserScrollY, getUserSettings, getUsers, getVideo, unwatchVideo, updateFolderExpanded, updateUserScrollY, updateVideoWatched, userGetAllVideos } from '../../../lib/prisma-commands';
 import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
 import { Captions, ChevronDown, ChevronUp, CornerLeftDown, Eye, EyeOff, Film, Folder, FolderInput, FolderPlus, Folders, Trash2, VideoIcon, } from 'lucide-react';
 import { FileEntry, readDir } from '@tauri-apps/api/fs'
@@ -136,6 +136,7 @@ export default function Dashboard() {
         const [finishedSettingFiles, setFinishedSettingFiles] = useState(false);
         const [isInvoking, setIsInvoking] = useState(false);
         const [currentFolderColor, setCurrentFolderColor] = useState<string>();
+        const [isRecentlyWatched, setIsRecentlyWatched] = useState(false);
 
 
         // Reading directory contents
@@ -146,29 +147,24 @@ export default function Dashboard() {
                 if (res) {
                     //console.log("res:", res);
                     const videoFiles = res.filter(file => supportedVideoFormats.includes(file.path.replace(/^.*\./, '')) && !file.children);
-                    let filtered = videoFiles.filter(video => video !== null && video !== undefined) as Video[];
+                    let filteredVideos = videoFiles.filter(video => video !== null && video !== undefined) as FileEntry[];
                     const subtitleFiles = res.filter(file => file.path.split('.').pop() === 'srt');
                     const folders = res.filter(file => file.children);
 
                     let uniqueFolders: FileEntry[] = [];
 
-                    for (const folder of folders) {
-                        for (const uniqueFolder of uniqueFolders) {
-                            if (uniqueFolder.path !== folder.path) {
-                                uniqueFolders.push(folder);
-                            }
-                        }
-                    }
 
 
-                    setFiles(filtered as FileEntry[]);
+
+                    setFiles(filteredVideos as FileEntry[]);
                     setFolders(folders as FileEntry[]);
                     setSubtitleFiles(subtitleFiles as FileEntry[]);
 
                     setFinishedSettingFiles(true);
 
                 }
-            });
+            }
+            )
         }, [folderPath]); // Added folderPath as a dependency
 
         // check if folders are expanded on startup
@@ -188,8 +184,6 @@ export default function Dashboard() {
                         }
                     }
                 }).finally(() => {
-
-
                     setIsInvoking(false)
 
                 });
@@ -221,6 +215,49 @@ export default function Dashboard() {
 
         }, [expanded, isInvoking]);
 
+        // Check if any videos in this folder were watched recently
+        useEffect(() => {
+            if (currentUser) {
+                userGetAllVideos({ userId: currentUser?.id }).then((videos) => {
+                    if (videos && videos.length > 0) {
+                        let sortedVideos = videos.sort((a, b) => {
+                            const dateA = a.lastWatchedAt ? new Date(a.lastWatchedAt).getTime() : 0;
+                            const dateB = b.lastWatchedAt ? new Date(b.lastWatchedAt).getTime() : 0;
+                            return dateB - dateA; // Most recent videos first
+                        }).slice(0, 5); // Get the top 5 most recent videos
+
+                        let recentlyWatchedCount = 0;
+                        for (const video of sortedVideos) {
+                            if (video.userId === currentUser.id && video.path.includes(folderPath) && video.watched && video.lastWatchedAt) {
+                                let dateNow = new Date().getTime();
+                                let lastWatched = new Date(video.lastWatchedAt).getTime();
+                                const difference = dateNow - lastWatched;
+                                const daysDifference = difference / (1000 * 60 * 60 * 24);
+
+                                if (daysDifference < 1 && recentlyWatchedCount < 3) {
+                                    console.log("Video was watched less than a day ago");
+                                    recentlyWatchedCount += 1; // Increment if this video was watched less than a day ago
+                                }
+                            }
+                        }
+
+
+                        if (recentlyWatchedCount > 0 && recentlyWatchedCount < 5) {
+                            setIsRecentlyWatched(true);
+                        } else {
+                            setIsRecentlyWatched(false);
+                        }
+                    } else {
+                        // Set to false if there are no videos
+                        setIsRecentlyWatched(false);
+                    }
+                }).catch((err) => {
+                    console.error(err);
+                    setIsRecentlyWatched(false); // Set to false in case of error
+                });
+            }
+        }, [currentUser]); // Add folderPath to dependency array if its value changes outside this effect
+
         // Check if video is watched
         const handleCheckWatched = (file: FileEntry) => {
             const video = prismaVideos.find(v => v.path === file.path && v.watched);
@@ -245,13 +282,13 @@ export default function Dashboard() {
                                 transition={{ duration: 0.5, damping: 0.5 }}
                                 key={"main-parent-folder+folder"}
                                 style={{
-                                    ...((currentFolderColor) ? { backgroundColor: `${currentFolderColor}` } : {}),
+                                    ...((currentFolderColor) ? { backgroundColor: `${currentFolderColor}`, borderBottom: `1px solid ${currentFolderColor}` } : {}),
                                     ...(expanded && !asChild ? { padding: "6.5px" } : {}),
                                     // Add more conditions as needed
                                 }}
                                 className={cn(
-                                    'flex cursor-pointer flex-row items-center justify-between rounded-sm p-1 bg-muted break-keep',
-                                    (expanded && files.length > 0 && !asChild) && 'rounded-b-none border-b-4 border-tertiary',
+                                    'flex cursor-pointer flex-row items-center justify-between border-tertiary rounded-sm p-1 bg-muted break-keep',
+                                    (expanded && files.length > 0 && !asChild) && 'rounded-b-none border-b-4',
                                     (expanded && folders.length > 0 && !asChild) && 'rounded-b-none border-b-4',
                                     (expanded && asChild) && 'border-none rounded-sm',
                                     (asChild && expanded) && 'p-1 border-none rounded-b-none',
@@ -477,11 +514,16 @@ export default function Dashboard() {
                                     <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 py-1.5 px-4 cursor-pointer overflow-hidden',
                                         (index === files.length - 1) && 'rounded-b-md border-none',
                                         userSettings?.animations === "Off" && 'hover:opacity-50',
-                                        prismaVideos.some((video) => video.path === file.path && video.watched) && 'bg-accent brightness-100 drop-shadow-sm',
-                                        (currentFolderColor) && index % 2 && 'brightness-110'
+                                        prismaVideos.some((video) => video.path === file.path && video.watched) && ' drop-shadow-sm ',
+                                        index % 2 && 'brightness-125',
+                                        (!(index % 2)) && ' brightness-110'
                                     )}
                                         style={{
                                             ...((currentFolderColor) && index % 2 ? { backgroundColor: `${currentFolderColor}` } : {}),
+                                            ...((currentFolderColor) && (!(index % 2)) ? { backgroundColor: `${currentFolderColor}`, filter: "brightness(1.5)" } : {}),
+                                            ...((currentFolderColor) && prismaVideos.some((video) => video.path === file.path && video.watched) && {
+                                                filter: "brightness(1.2) drop-shadow(0 0 5px rgba(0,0,0,0.2))"
+                                            })
                                         }}
                                         onClick={(e) => {
                                             if (!isInvoking && finishedSettingFiles) {
@@ -505,10 +547,9 @@ export default function Dashboard() {
 
                                         <motion.div className={cn('text-base flex flex-row items-start justify-center gap-1 font-medium select-none text-center',
                                             (file.name && file.name?.length > 20) && 'overflow-hidden whitespace-nowrap',
-
                                         )}
                                             key={"current-video-file-name-motion-div" + file.name + index}
-                                            whileHover={userSettings?.animations === "On" && (file.name && file.name?.length > 40) ? { width: "-100%" } : undefined}
+                                            whileHover={userSettings?.animations === "On" && (file.name && file.name?.length > 65) ? { width: "-100%" } : undefined}
                                             transition={{ duration: 1, damping: 0.2 }}
                                         >
                                             <Film className={cn('h-auto w-3',
@@ -530,7 +571,9 @@ export default function Dashboard() {
                                                 <motion.div style={
                                                     currentUser?.color ? {
                                                         textShadow: "0 0 5px rgba(0,0,0,0.2)"
-                                                    } : {}} className={(`flex flex-row items-center justify-center gap-1 rounded-sm px-0.5 font-bold`)}
+                                                    } : {}} className={cn(`flex flex-row items-center justify-center gap-1 rounded-sm px-0.5 font-bold`,
+                                                        isRecentlyWatched && 'animate-pulse'
+                                                    )}
                                                     key={"watched-video-file-name" + file.name + index}
                                                     initial={userSettings?.animations === "On" ? { opacity: 0, x: -20 } : undefined}
                                                     animate={userSettings?.animations === "On" ? { opacity: 1, x: 0 } : undefined}
@@ -725,7 +768,7 @@ export default function Dashboard() {
                                                         if (currentUser) {
                                                             files.slice(0, index + 1).reverse().map((file) => {
                                                                 updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).then(() => {
-
+                                                                    setIsRecentlyWatched(true);
                                                                 }).finally(() => setFinishedSettingFiles(true));
                                                             });
 
@@ -773,6 +816,14 @@ export default function Dashboard() {
                                 asChild && 'rounded-b-md border-none border-tertiary',
 
                             )}
+                                style={{
+                                    ...((currentFolderColor) ?
+                                        {
+                                            borderBottom: `8px solid ${currentFolderColor}`
+                                        } : {}),
+                                    ...(expanded && !asChild ? { padding: "6.5px" } : {}),
+                                    // Add more conditions as needed
+                                }}
                                 key={folder.name + "current-child" + index}
                                 initial={userSettings?.animations === "On" ? { y: -40 } : undefined}
                                 animate={userSettings?.animations === "On" ? { opacity: 1, y: 0 } : undefined}

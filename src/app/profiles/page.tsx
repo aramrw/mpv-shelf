@@ -72,26 +72,26 @@ export default function Profiles() {
         setInitialDragY(info.point.y); // Store the initial Y position at drag start
     };
 
-    const handleDrag = (event: MouseEvent, info: PanInfo) => {
-        // Only proceed if we have an initial X position
-        if (initialDragX !== 0) {
-            const currentDragX = info.point.x;
-            const currentDragY = info.point.y;
-            const draggedRight = currentDragX > initialDragX.valueOf() + 20;
-            const draggedLeft = currentDragX < initialDragX.valueOf() - 20;
-            const draggedUp = currentDragY > initialDragY.valueOf() + 50;
-            const draggedDown = currentDragY > initialDragY.valueOf() - 100;
+    // const handleDrag = (event: MouseEvent, info: PanInfo) => {
+    //     // Only proceed if we have an initial X position
+    //     if (initialDragX !== 0) {
+    //         const currentDragX = info.point.x;
+    //         const currentDragY = info.point.y;
+    //         // const draggedRight = currentDragX > initialDragX.valueOf() + 20;
+    //         // const draggedLeft = currentDragX < initialDragX.valueOf() - 20;
+    //         // const draggedUp = currentDragY > initialDragY.valueOf() + 50;
+    //         // const draggedDown = currentDragY > initialDragY.valueOf() - 100;
 
-            // Logic to determine if we should switch sides
-            // Example: If on the left (switchedSide is false) and dragged left, don't switch.
-            if ((switchedSide && draggedRight) || (!switchedSide && draggedLeft)) {
-                if (draggedUp || draggedDown) {
-                    setSwitchedSide(!switchedSide);
-                }
+    //         // Logic to determine if we should switch sides
+    //         // Example: If on the left (switchedSide is false) and dragged left, don't switch.
+    //         // if ((switchedSide && draggedRight) || (!switchedSide && draggedLeft)) {
+    //         //     if (draggedUp || draggedDown) {
+    //         //         setSwitchedSide(!switchedSide);
+    //         //     }
 
-            }
-        }
-    };
+    //         // }
+    //     }
+    // };
 
     const handleDragEnd = () => {
         setIsGrabbing(false);
@@ -147,7 +147,7 @@ export default function Profiles() {
                         dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
                         dragElastic={0.5}
                         onDragStart={handleDragStart}
-                        onDrag={handleDrag}
+                        //onDrag={handleDrag}
                         onDragEnd={handleDragEnd}
                         transition={{ duration: 0.5, bounce: 0.5, type: "spring", damping: 100 }}
                     >

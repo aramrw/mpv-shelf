@@ -206,9 +206,6 @@ export async function updateFolderExpanded({
 
     })
 
-
-
-
     //await db.close();
     return true;
 }
@@ -233,6 +230,7 @@ export async function updateVideoWatched({
                 path TEXT NOT NULL, 
                 userId INTEGER,
                 watched BOOLEAN NOT NULL DEFAULT 0,
+                lastWatchedAt TIMESTAMP DEFAULT (datetime('now')),
                 FOREIGN KEY (userId) REFERENCES user(id)
             )
         `);
@@ -242,10 +240,10 @@ export async function updateVideoWatched({
 
         if (videos.length === 0) {
             // Insert new video record if it does not exist
-            await db.execute("INSERT INTO video (path, watched, userId) VALUES ($1, $2, $3)", [videoPath, watched ? 1 : 0, user.id]);
+            await db.execute("INSERT INTO video (path, userId, watched, lastWatchedAt) VALUES ($1, $2, $3, (datetime('now')))", [videoPath, user.id, watched ? 1 : 0]);
         } else {
             // Update existing video record
-            await db.execute("UPDATE video SET watched = $3 WHERE path = $1 AND userId = $2", [videoPath, user.id, watched ? 1 : 0]);
+            await db.execute("UPDATE video SET watched = $3, lastWatchedAt = (datetime('now')) WHERE path = $1 AND userId = $2", [videoPath, user.id, watched ? 1 : 0]);
         }
     } catch (e) {
         await db.close();
@@ -291,6 +289,7 @@ export async function getVideo({
                 path TEXT NOT NULL, 
                 userId INTEGER,
                 watched BOOLEAN NOT NULL DEFAULT 0,
+                lastWatchedAt TIMESTAMP DEFAULT (datetime('now')),
                 FOREIGN KEY (userId) REFERENCES user(id)
             )
         `);
@@ -547,6 +546,8 @@ export async function deleteProfile({
         // Delete all settings associated with the user
         await db.execute(`DELETE FROM settings WHERE userId = $1`, [userId]);
 
+        await db.execute(`DELETE FROM video WHERE userId = $1`, [userId]);
+
         // Finally, delete the user
         await db.execute(`DELETE FROM user WHERE id = $1`, [userId]);
 
@@ -596,4 +597,26 @@ export async function getUserScrollY({
 export async function closeDatabase() {
     const db = await Database.load("sqlite:main.db");
     await db.close();
+}
+
+export async function userGetAllVideos({
+    userId
+}: {
+    userId: number
+}) {
+    const db = await Database.load("sqlite:main.db");
+
+    try {
+        const folders: Video[] = await db.select("SELECT * from video WHERE userId = $1", [userId])
+
+        if (folders.length !== 0) {
+            return folders;
+        } else {
+            return [];
+        }
+    } catch (e) {
+        console.log(e);
+        await db.close();
+        return null;
+    }
 }

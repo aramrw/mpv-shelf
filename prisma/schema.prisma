@@ -32,11 +32,12 @@ model Folder {
 }
 
 model Video {
-  id      Int     @id @default(autoincrement())
-  path    String
-  watched Boolean @default(false)
-  user    User    @relation(fields: [userId], references: [id])
-  userId  Int
+  id            Int       @id @default(autoincrement())
+  path          String
+  watched       Boolean   @default(false)
+  user          User      @relation(fields: [userId], references: [id])
+  userId        Int
+  lastWatchedAt DateTime? @default(now())
 }
 
 model Settings {

@@ -70,7 +70,7 @@ export default function NewUser() {
                     <UserPlus className={cn("h-auto w-24 md:w-[7rem] lg:w-32 xl:w-36 text-primary",
 
                     )} />
-                    <h1 className="text-4xl font-medium md:text-5xl lg:text-[3.25rem] xl:text-6xl">Create New Profile</h1>
+                    <h1 className="mb-3 text-4xl font-bold md:text-4xl lg:text-[3.25rem] xl:text-5xl">Create New Profile</h1>
                     <div className="my-4 flex space-x-2">
                         {pins.map((pin, index) => (
                             <input
@@ -81,14 +81,14 @@ export default function NewUser() {
                                 value={pin}
                                 onChange={(e) => handleChange(e.target.value, index)}
                                 onKeyDown={(e) => handleBackspace(e, index)}
-                                className={cn("h-20 w-20 rounded border-2 border-muted text-center text-4xl md:h-28 md:w-28 md:text-6xl lg:h-36 lg:w-36 lg:text-8xl xl:h-40 xl:w-40 xl:text-8xl shadow-md font-bold",
+                                className={cn("h-20 w-20 rounded border-2 border-muted text-center text-4xl md:h-28 md:w-28 md:text-5xl lg:h-36 lg:w-36 lg:text-7xl xl:h-40 xl:w-40 xl:text-7xl shadow-md font-bold",
                                 )}
                                 pattern="[0-9]*" // Ensure only numbers can be inputted
                             />
                         ))}
                     </div>
                     <h2 className="mb-1 text-xl font-medium md:text-2xl lg:text-3xl xl:text-4xl">Enter a <b>pin #</b> to protect your account.</h2>
-                    <h3 className='mt-1 rounded-sm bg-accent px-1 text-base font-medium md:text-lg lg:text-xl xl:text-2xl'>
+                    <h3 className='mt-1 rounded-sm bg-accent px-1 text-base font-medium md:text-xl lg:text-2xl xl:text-2xl'>
                         <b>Note:</b> You can change / turn this off later.
                     </h3>
                 </motion.main>
