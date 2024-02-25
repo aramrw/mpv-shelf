@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect } from 'react'
-import { setCurrentUserGlobal } from '../../../lib/prisma-commands';
+import { closeDatabase, setCurrentUserGlobal } from '../../../lib/prisma-commands';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -12,9 +12,15 @@ export default function ResetUserOnLoad() {
     useEffect(() => {
         console.log('resetting user on load');
         //router.prefetch('/login');
-        setCurrentUserGlobal({ userId: -1 }).then(() => {
-            router.push('/login', { scroll: false });
+        closeDatabase().then(() => {
+            setCurrentUserGlobal({ userId: -1 }).then(() => {
+                closeDatabase().then(() => {
+                    router.push('/login', { scroll: false });
+                });
+
+            })
         })
+
     }, [])
 
 

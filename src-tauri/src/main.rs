@@ -110,6 +110,7 @@ fn main() {
                 open_video,
                 show_in_folder,
                 generate_random_color,
+                generate_random_mono_color,
                 //start_server
             ])
             .build(tauri::generate_context!())
@@ -129,10 +130,20 @@ fn main() {
 #[command]
 fn generate_random_color() -> String {
     let color = RandomColor::new()
-        .luminosity(Luminosity::Light) // Ensuring the color is light, for a pastel-like effect
+        .luminosity(Luminosity::Light)
         .alpha(0.2)
         .to_hex()
-        .to_string(); // Output as an HSL string for finer control over the appearance
+        .to_string();
+    color
+}
+
+#[command]
+fn generate_random_mono_color() -> String {
+    let color = RandomColor::new()
+        .luminosity(Luminosity::Light)
+        .alpha(1.2)
+        .to_hex()
+        .to_string();
 
     color
 }

@@ -28,6 +28,7 @@ model Folder {
   expanded Boolean @default(false)
   asChild  Boolean @default(false)
   user     User    @relation(fields: [userId], references: [id], name: "UserFolders")
+  color    String
 }
 
 model Video {

@@ -110,15 +110,20 @@ export async function addFolder({
     let db = await Database.load("sqlite:main.db");
 
     // create a new folder table if it doesnt exist
-    await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0, asChild BOOLEAN NOT NULL DEFAULT 0, FOREIGN KEY (userId) REFERENCES user(id))").catch((e) => {
+    await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0, asChild BOOLEAN NOT NULL DEFAULT 0, color TEXT, FOREIGN KEY (userId) REFERENCES user(id))").catch((e) => {
         console.log("error", e);
     });
 
-    await db.execute("INSERT into folder (userId, path, expanded, asChild) VALUES ($1, $2, $3, $4)", [userId, folderPath, expanded ? 1 : 0, asChild ? 1 : 0]);
+    await invoke("generate_random_mono_color").then(async (color: any) => {
+        await db.execute("INSERT into folder (expanded, path, userId, asChild, color) VALUES ($1, $2, $3, $4, $5)", [expanded ? 1 : 0, folderPath, userId, asChild ? 1 : 0, color]).then(() => {
+            console.log("Created New Folder: ", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
+        }).catch(async (e) => {
+            await db.close()
+            console.log(e)
+            return false;
+        });
+    });
 
-    if (expanded) {
-        console.log(`creating ${folderPath.split("\\").pop()}` + " as expanded for user " + userId);
-    }
 }
 
 export async function getFolders({
@@ -131,7 +136,7 @@ export async function getFolders({
 
     try {
         // create a new folder table if it doesnt exist
-        await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0, asChild BOOLEAN NOT NULL DEFAULT 0, FOREIGN KEY (userId) REFERENCES user(id))").catch((e) => {
+        await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0, asChild BOOLEAN NOT NULL DEFAULT 0, color TEXT, FOREIGN KEY (userId) REFERENCES user(id))").catch((e) => {
             console.log("error", e);
         });
 
@@ -175,7 +180,7 @@ export async function updateFolderExpanded({
     let db = await Database.load("sqlite:main.db");
 
     // create a new folder table if it doesnt exist
-    await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0, asChild BOOLEAN NOT NULL DEFAULT 0, FOREIGN KEY (userId) REFERENCES user(id))").catch((e) => {
+    await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0, asChild BOOLEAN NOT NULL DEFAULT 0, color TEXT, FOREIGN KEY (userId) REFERENCES user(id))").catch((e) => {
         console.log("error", e);
     });
 
@@ -185,13 +190,18 @@ export async function updateFolderExpanded({
             await db.execute("UPDATE folder SET expanded = $1 WHERE path = $2 AND userId = $3", [expanded ? 1 : 0, folderPath, userId])
             console.log("Updated", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
         } else {
-            await db.execute("INSERT into folder (expanded, path, userId, asChild) VALUES ($1, $2, $3, $4)", [expanded ? 1 : 0, folderPath, userId, asChild ? 1 : 0]).then(() => {
-                console.log("Created New Folder: ", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
-            }).catch(async (e) => {
-                await db.close()
-                console.log(e)
-                return false;
+
+            await invoke("generate_random_mono_color").then(async (color: any) => {
+                await db.execute("INSERT into folder (expanded, path, userId, asChild, color) VALUES ($1, $2, $3, $4, $5)", [expanded ? 1 : 0, folderPath, userId, asChild ? 1 : 0, color]).then(() => {
+                    console.log("Created New Folder: ", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
+                }).catch(async (e) => {
+                    await db.close()
+                    console.log(e)
+                    return false;
+                });
             });
+
+
         }
 
     })
@@ -531,9 +541,6 @@ export async function deleteProfile({
     const db = await Database.load("sqlite:main.db");
 
     try {
-        // Start a transaction
-        await db.execute(`BEGIN TRANSACTION;`);
-
         // Delete all folders associated with the user
         await db.execute(`DELETE FROM folder WHERE userId = $1`, [userId]);
 
@@ -543,13 +550,10 @@ export async function deleteProfile({
         // Finally, delete the user
         await db.execute(`DELETE FROM user WHERE id = $1`, [userId]);
 
-        // Commit the transaction
-        await db.execute(`COMMIT;`);
         console.log("deleteProfile() => Deleted user:", userId);
     } catch (e) {
+        await db.close();
         console.log(e);
-        // If an error occurs, rollback the transaction
-        await db.execute(`ROLLBACK;`);
     } finally {
         // Close the database connection
         await db.close();
@@ -587,4 +591,9 @@ export async function getUserScrollY({
         await db.close();
         return null;
     }
+}
+
+export async function closeDatabase() {
+    const db = await Database.load("sqlite:main.db");
+    await db.close();
 }

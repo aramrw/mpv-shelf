@@ -135,6 +135,7 @@ export default function Dashboard() {
         const [prismaVideos, setPrismaVideos] = useState<Video[]>([]);
         const [finishedSettingFiles, setFinishedSettingFiles] = useState(false);
         const [isInvoking, setIsInvoking] = useState(false);
+        const [currentFolderColor, setCurrentFolderColor] = useState<string>();
 
 
         // Reading directory contents
@@ -160,8 +161,6 @@ export default function Dashboard() {
                     }
 
 
-
-
                     setFiles(filtered as FileEntry[]);
                     setFolders(folders as FileEntry[]);
                     setSubtitleFiles(subtitleFiles as FileEntry[]);
@@ -181,16 +180,19 @@ export default function Dashboard() {
                         for (const folder of folders) {
                             if (folder.path === folderPath && folder.expanded) {
                                 console.log("setting expanded to true from useEffect on startup => ", folderPath);
+                                if (folder.color) {
+                                    setCurrentFolderColor(folder.color);
+                                }
                                 setExpanded(true);
-                                //break;
-                                // } else if (folder.path === folderPath && !folder.expanded) {
-                                //     console.log("setting expanded to false from useEffect on startup => ", folderPath);
-                                //     setExpanded(false);
-                                //break;
                             }
                         }
                     }
-                }).finally(() => setIsInvoking(false));
+                }).finally(() => {
+
+
+                    setIsInvoking(false)
+
+                });
             }
 
         }, [currentUser]);
@@ -233,7 +235,6 @@ export default function Dashboard() {
                 <ContextMenu
                     key={folderPath + "main-parent-context-menu"}
                 >
-
                     <ContextMenuTrigger>
                         <AnimatePresence >
                             {/* Main Parent Folder */}
@@ -243,9 +244,13 @@ export default function Dashboard() {
                                 exit={userSettings?.animations === "On" ? { opacity: 0 } : undefined}
                                 transition={{ duration: 0.5, damping: 0.5 }}
                                 key={"main-parent-folder+folder"}
-                                style={expanded && !asChild ? { padding: "6.5px" } : {}}
+                                style={{
+                                    ...((currentFolderColor) ? { backgroundColor: `${currentFolderColor}` } : {}),
+                                    ...(expanded && !asChild ? { padding: "6.5px" } : {}),
+                                    // Add more conditions as needed
+                                }}
                                 className={cn(
-                                    'flex cursor-pointer flex-row items-center justify-between rounded-sm bg-secondary p-1 break-keep',
+                                    'flex cursor-pointer flex-row items-center justify-between rounded-sm p-1 bg-muted break-keep',
                                     (expanded && files.length > 0 && !asChild) && 'rounded-b-none border-b-4 border-tertiary',
                                     (expanded && folders.length > 0 && !asChild) && 'rounded-b-none border-b-4',
                                     (expanded && asChild) && 'border-none rounded-sm',
@@ -263,7 +268,9 @@ export default function Dashboard() {
                             >
                                 {/* Displays all the tags for main parent folder. */}
                                 < div className={cn('flex flex-row items-center justify-start gap-1 font-medium text-primary text-sm text-center w-full pb-1.5 drop-shadow-md ',
-                                )}>
+                                )}
+
+                                >
 
 
                                     {(asChild && !expanded) ? (
@@ -273,6 +280,7 @@ export default function Dashboard() {
                                             animate={userSettings?.animations === "On" ? { y: 0, opacity: 1 } : undefined}
                                             exit={userSettings?.animations === "On" ? { y: -20, opacity: 0 } : undefined}
                                             transition={{ duration: 0.3, damping: 0.3 }}
+
                                         >
                                             <Folder className={cn('h-auto w-4',
                                                 userSettings?.fontSize === "Medium" && 'h-auto w-5',
@@ -287,6 +295,7 @@ export default function Dashboard() {
                                             animate={userSettings?.animations === "On" ? { y: 0, opacity: 1 } : undefined}
                                             exit={userSettings?.animations === "On" ? { y: -50, opacity: 0 } : undefined}
                                             transition={{ duration: 0.7, bounce: 0.2, type: 'spring' }}
+
                                         >
                                             {(asChild && expanded) && (
                                                 <CornerLeftDown className={cn('h-auto w-5 px-0.5',
@@ -327,7 +336,10 @@ export default function Dashboard() {
                                         <div className={cn('flex flex-row items-center justify-center gap-0.5 rounded-md bg-tertiary px-0.5',
                                             asChild && 'p-0.5 brightness-[1.15]'
                                         )}
+                                            style={{
+                                                ...(currentFolderColor ? { backgroundColor: `${currentFolderColor} ` } : {}),
 
+                                            }}
                                         >
                                             <Folders className={cn('h-auto w-4',
                                                 userSettings?.fontSize === "Medium" && !asChild && 'h-auto w-4',
@@ -349,7 +361,12 @@ export default function Dashboard() {
                                         <div className={cn('flex flex-row items-center justify-center text-sm rounded-md bg-tertiary px-0.5 gap-0.5 ',
                                             asChild && 'p-0.5 brightness-[1.15]'
 
-                                        )}>
+                                        )}
+                                            style={{
+                                                ...(currentFolderColor ? { backgroundColor: `${currentFolderColor} ` } : {}),
+
+                                            }}
+                                        >
                                             <VideoIcon className={cn('h-auto w-4',
                                                 userSettings?.fontSize === "Medium" && !asChild && 'h-auto w-4',
                                                 userSettings?.fontSize === "Large" && !asChild && 'h-auto w-5',
@@ -370,7 +387,12 @@ export default function Dashboard() {
                                     {subtitleFiles.length > 0 && (
                                         <div className={cn('flex flex-row items-center justify-center text-xs rounded-md bg-tertiary px-0.5 gap-0.5',
                                             asChild && 'p-0.5 brightness-[1.15]'
-                                        )}>
+                                        )}
+                                            style={{
+                                                ...(currentFolderColor ? { backgroundColor: `${currentFolderColor} ` } : {}),
+
+                                            }}
+                                        >
                                             <Captions className={cn('h-auto w-4',
                                                 userSettings?.fontSize === "Medium" && !asChild && 'h-auto w-4',
                                                 userSettings?.fontSize === "Large" && !asChild && 'h-auto w-5',
@@ -414,7 +436,6 @@ export default function Dashboard() {
                                         }} />
                                     </motion.span>
                                 )}
-
                             </motion.div>
                             {/* END Main Parent Folder END */}
                         </AnimatePresence>
@@ -457,8 +478,11 @@ export default function Dashboard() {
                                         (index === files.length - 1) && 'rounded-b-md border-none',
                                         userSettings?.animations === "Off" && 'hover:opacity-50',
                                         prismaVideos.some((video) => video.path === file.path && video.watched) && 'bg-accent brightness-100 drop-shadow-sm',
+                                        (currentFolderColor) && index % 2 && 'brightness-110'
                                     )}
-
+                                        style={{
+                                            ...((currentFolderColor) && index % 2 ? { backgroundColor: `${currentFolderColor}` } : {}),
+                                        }}
                                         onClick={(e) => {
                                             if (!isInvoking && finishedSettingFiles) {
                                                 setIsInvoking(true);
@@ -484,7 +508,7 @@ export default function Dashboard() {
 
                                         )}
                                             key={"current-video-file-name-motion-div" + file.name + index}
-                                            whileHover={userSettings?.animations === "On" && (file.name && file.name?.length > 65) ? { width: "100%" } : undefined}
+                                            whileHover={userSettings?.animations === "On" && (file.name && file.name?.length > 40) ? { width: "-100%" } : undefined}
                                             transition={{ duration: 1, damping: 0.2 }}
                                         >
                                             <Film className={cn('h-auto w-3',
@@ -496,7 +520,6 @@ export default function Dashboard() {
 
                                             />
                                             {/* Check if the file's path matches any video's path in prismaVideos to render an eye next to the film */}
-
                                             {prismaVideos.some((video) => {
                                                 if (video?.path === file?.path && video?.watched) {
                                                     return true;
@@ -756,6 +779,7 @@ export default function Dashboard() {
                                 exit={(userSettings?.animations === "On") ? { y: -40, opacity: 0 } : undefined}
                                 whileHover={(userSettings?.animations === "On") ? { x: 1 } : undefined}
                                 transition={{ duration: 0.3, stiffness: 30 }}
+
                             >
 
                                 <FolderList folderPath={folder.path} asChild />

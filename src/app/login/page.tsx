@@ -132,18 +132,17 @@ export default function Home() {
         useEffect(() => {
             if (pins.join('').length === pinLength && isLoading === false) {
                 if (pins.join('') === userPin) {
-                    //router.prefetch('/dashboard');
+                    router.prefetch('/dashboard');
                     setIsLoading(true);
                     setCurrentUserGlobal({ userId: userId }).then((res) => {
                         if (res == true) {
                             setIsLoading(false);
                             router.push('/dashboard', { scroll: false });
                         }
-
                     });
                 }
             } else if (userPin === "disabled" && !isLoading) {
-                //router.prefetch('/dashboard');
+                router.prefetch('/dashboard');
                 setIsLoading(true);
                 setCurrentUserGlobal({ userId: userId }).then((res) => {
                     if (res == true) {
