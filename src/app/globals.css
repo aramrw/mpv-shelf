@@ -22,7 +22,6 @@ html,
 :root {
   height: 100%;
   width: 100%;
-  padding-bottom: 40%;
 }
 
 @layer base {

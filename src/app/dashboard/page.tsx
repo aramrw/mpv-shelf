@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useRef, useState } from 'react'
 import { open } from '@tauri-apps/api/dialog';
-import { addFolder, deleteFolder, getCurrentUserGlobal, getFolders, getUserScrollY, getUserSettings, getUsers, getVideo, unwatchVideo, updateFolderExpanded, updateUserScrollY, updateVideoWatched, userGetAllVideos } from '../../../lib/prisma-commands';
+import { addFolder, closeDatabase, deleteFolder, getCurrentUserGlobal, getFolders, getUserScrollY, getUserSettings, getUsers, getVideo, unwatchVideo, updateFolderExpanded, updateUserScrollY, updateVideoWatched, userGetAllVideos } from '../../../lib/prisma-commands';
 import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
 import { Captions, ChevronDown, ChevronUp, CornerLeftDown, Eye, EyeOff, Film, Folder, FolderInput, FolderPlus, Folders, Trash2, VideoIcon, } from 'lucide-react';
 import { FileEntry, readDir } from '@tauri-apps/api/fs'
@@ -21,7 +21,7 @@ import { SettingSchema } from '../settings/page';
 import { ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent } from '@radix-ui/react-context-menu';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
-import { string } from 'zod';
+import { number, set, string } from 'zod';
 // import { WebviewWindow, appWindow } from "@tauri-apps/api/window"
 
 
@@ -38,19 +38,73 @@ export default function Dashboard() {
         container: scrolledDiv
     })
 
+    useMotionValueEvent(scrollY, "change", (latest) => {
+        if (currentUser && latest > 0)
+            updateUserScrollY({ userId: currentUser?.id, scrollY: latest });
+    })
+
     const setScrollPosition = (userYPos: any) => {
         (scrolledDiv.current as HTMLElement | null)?.scrollTo({
-            top: userYPos > 200 ? userYPos + 50 : userYPos, // test offset
+            top: userYPos,
             behavior: "smooth"
         });
     };
 
-    useMotionValueEvent(scrollY, "change", (latest) => {
-        if (currentUser && latest > 0)
-            updateUserScrollY({ userId: currentUser?.id, scrollY: latest }).then(() => {
-                //console.log("Page scroll: ", latest);
-            });
-    })
+    const calculateDelay = (userY: any) => {
+        let numberY = Number(userY);
+        console.log("userY: ", userY);
+        // Base delay
+        const baseDelay = 100;
+
+        // Additional delay per 1000 pixels
+        let delayPerThousandPixels = 0;
+
+        if (numberY > 5000) {
+            delayPerThousandPixels = 40;
+        } else if (numberY > 10000) {
+            delayPerThousandPixels = 60;
+        } else if (numberY > 15000) {
+            delayPerThousandPixels = 70;
+        } else if (numberY > 30000) {
+            delayPerThousandPixels = 100;
+        } else {
+            delayPerThousandPixels = 20;
+        }
+
+
+        // Calculate additional delay based on userY
+        const additionalDelay = Math.floor(userY / 1000) * delayPerThousandPixels;
+
+        // Total delay is the sum of the base delay and the additional delay
+        return baseDelay + additionalDelay;
+    };
+
+    // get and set the user's scroll position from the db once currentUser is set
+    useEffect(() => {
+        if (scrolledDiv.current) { // dont let the user be able to scroll while its loadinh
+            scrolledDiv.current.style.maxHeight = "0px";
+        }
+        if (currentUser && !isLoading)
+            getUserScrollY({ userId: currentUser?.id }).then((userY: any) => {
+                if (userY !== 0 && userY !== null && userY !== undefined)
+                    console.log("User scroll: ", userY)
+
+                // TODO : This should to be changed but it works fine. Position should be referenced to an element somehow instead of a debounce. 
+
+
+
+                if (scrolledDiv.current)
+                    setTimeout(() => {
+                        if (userY > 0 && userY !== null && userY !== undefined)
+                            setScrollPosition(userY);
+                        if (scrolledDiv.current)
+                            if (scrolledDiv.current) {
+                                scrolledDiv.current.style.maxHeight = "100vh";
+                            }
+                        console.log("scrolling to ", userY);
+                    }, calculateDelay(userY));
+            })
+    }, [currentUser, isLoading]);
 
     // fetch the user object from db on start and set the current user
     useEffect(() => {
@@ -73,8 +127,7 @@ export default function Dashboard() {
                 router.push('/profiles/createUser');
             }
         })
-    }, [])
-
+    }, [router])
 
     // get all the folder paths from the folder table with user id on startup
     useEffect(() => {
@@ -106,23 +159,6 @@ export default function Dashboard() {
     }, [currentUser])
 
 
-
-
-    // get the user's scroll position from the db once currentUser is set
-    useEffect(() => {
-        if (currentUser && !isLoading)
-            getUserScrollY({ userId: currentUser?.id }).then((userY: any) => {
-                if (userY !== 0 && userY !== null && userY !== undefined)
-                    console.log("User scroll: ", userY)
-
-                // TODO : This needs to be changed but it works. position to be referenced to an element, or do math.
-                setTimeout(() => {
-                    console.log("scrolling to: ", userY);
-                    if (userY > 0 && userY !== null && userY !== undefined)
-                        setScrollPosition(userY)
-                }, 260)
-            })
-    }, [isLoading]);
 
     const FolderList = ({ folderPath, asChild }: { folderPath: string, asChild?: boolean | undefined }) => {
 
@@ -158,11 +194,10 @@ export default function Dashboard() {
                     setFinishedSettingFiles(true);
 
                 }
-            }
-            )
-        }, [folderPath]); // Added folderPath as a dependency
+            })
+        }, [folderPath]);
 
-        // check if folders are expanded on startup
+        // Get the current folder color from the db 
         useEffect(() => {
             if (currentUser) {
                 setIsInvoking(true);
@@ -170,7 +205,7 @@ export default function Dashboard() {
                     if (folders && folders.length > 0) {
                         for (const folder of folders) {
                             if (folder.path === folderPath && folder.expanded) {
-                                console.log("setting expanded to true from useEffect on startup => ", folderPath);
+                                console.log("SET expanded to TRUE from UE on START => ", folderPath);
                                 if (folder.color) {
                                     setCurrentFolderColor(folder.color);
                                 }
@@ -180,35 +215,9 @@ export default function Dashboard() {
                     }
                 }).finally(() => {
                     setIsInvoking(false)
-
                 });
             }
-
         }, [currentUser]);
-
-        // Fetching videos information
-        useEffect(() => {
-            if (currentUser && files.length > 0 && finishedSettingFiles) {
-                setIsInvoking(true);
-                Promise.all(files.map(file => getVideo({ videoPath: file.path, userId: currentUser.id })))
-                    .then(videos => {
-                        setPrismaVideos(videos.filter(video => video !== null && video !== undefined) as Video[]);
-                        //console.log("set prismaVideos => ", videos);
-                    }).finally(() => {
-                        setIsInvoking(false);
-                    });
-
-            }
-        }, [currentUser, files, finishedSettingFiles]);
-
-        // Update the folder expanded state in the db
-        useEffect(() => {
-            if (currentUser && finishedSettingFiles && !isInvoking && expanded !== undefined) {
-
-                updateFolderExpanded({ folderPath: folderPath, expanded: expanded, userId: currentUser?.id, asChild: asChild || false })
-            }
-
-        }, [expanded, isInvoking]);
 
         // Check if any videos in this folder were watched recently
         useEffect(() => {
@@ -251,7 +260,36 @@ export default function Dashboard() {
                     setIsRecentlyWatched(false); // Set to false in case of error
                 });
             }
-        }, [currentUser]); // Add folderPath to dependency array if its value changes outside this effect
+        }, [currentUser, folderPath]);
+
+        // Update the folder expanded state in the db when the user expands or collapses a folder
+        useEffect(() => {
+            if (currentUser && finishedSettingFiles && expanded !== undefined) {
+                updateFolderExpanded({ folderPath: folderPath, expanded: expanded, userId: currentUser?.id, asChild: asChild || false }).then(() => {
+                });
+            }
+        }, [asChild, expanded]);
+
+        // Fetching videos information
+        useEffect(() => {
+            console.log("Fetching videos information");
+            let newVideosArray: Video[] = [];
+            if (currentUser && files.length > 0 && finishedSettingFiles) {
+                setIsInvoking(true);
+                Promise.all(files.map(file => getVideo({ videoPath: file.path, userId: currentUser.id })))
+                    .then(videos => {
+                        for (const video of videos) {
+                            if (video) {
+                                newVideosArray.push(video);
+                            }
+                        }
+                    })
+                    .finally(() => {
+                        setPrismaVideos(newVideosArray);
+                        setIsInvoking(false);
+                    });
+            }
+        }, [files, finishedSettingFiles, currentUser]);
 
         // Check if video is watched
         const handleCheckWatched = (file: FileEntry) => {
@@ -509,27 +547,22 @@ export default function Dashboard() {
                                     <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 py-1.5 px-4 cursor-pointer overflow-hidden',
                                         (index === files.length - 1) && 'rounded-b-md border-none',
                                         userSettings?.animations === "Off" && 'hover:opacity-50',
-                                        prismaVideos.some((video) => video.path === file.path && video.watched) && ' drop-shadow-sm ',
-                                        index % 2 && 'brightness-125',
-                                        (!(index % 2)) && ' brightness-110'
+                                        index % 2 && 'brightness-110',
+                                        (!(index % 2)) && 'brightness-125',
+                                        prismaVideos.some((video) => video.path === file.path && video.watched) && 'animate-pulse shadow-lg brightness-95',
                                     )}
                                         style={{
                                             ...((currentFolderColor) && index % 2 ? { backgroundColor: `${currentFolderColor}` } : {}),
-                                            ...((currentFolderColor) && (!(index % 2)) ? { backgroundColor: `${currentFolderColor}`, filter: "brightness(1.5)" } : {}),
-                                            ...((currentFolderColor) && prismaVideos.some((video) => video.path === file.path && video.watched) && {
-                                                filter: "brightness(1.2) drop-shadow(0 0 5px rgba(0,0,0,0.2))"
-                                            })
+                                            ...((currentFolderColor) && (!(index % 2)) ? { backgroundColor: `${currentFolderColor}` } : {}),
                                         }}
-                                        onClick={(e) => {
+                                        onClick={(_e) => {
                                             if (!isInvoking && finishedSettingFiles) {
-                                                setIsInvoking(true);
-                                                setFinishedSettingFiles(false);
                                                 if (currentUser)
                                                     updateVideoWatched({ videoPath: file.path, user: currentUser, watched: true }).then(() => {
+                                                        return closeDatabase()
+                                                    }).finally(() => {
                                                         invoke('open_video', { path: file.path, userId: string });
-                                                        setFinishedSettingFiles(true);
-                                                        setIsInvoking(false);
-                                                    });
+                                                    })
                                             }
                                         }}
                                         key={file.name + "current-video" + index}
@@ -563,12 +596,9 @@ export default function Dashboard() {
                                                     return false;
                                                 }
                                             }) ? (
-                                                <motion.div style={
-                                                    currentUser?.color ? {
-                                                        textShadow: "0 0 5px rgba(0,0,0,0.2)"
-                                                    } : {}} className={cn(`flex flex-row items-center justify-center gap-1 rounded-sm px-0.5 font-bold`,
-                                                        isRecentlyWatched && 'animate-pulse'
-                                                    )}
+                                                <motion.div className={cn(`flex flex-row items-center justify-center gap-1 rounded-sm px-0.5 font-bold`,
+                                                    isRecentlyWatched && 'animate-pulse'
+                                                )}
                                                     key={"watched-video-file-name" + file.name + index}
                                                     initial={userSettings?.animations === "On" ? { opacity: 0, x: -20 } : undefined}
                                                     animate={userSettings?.animations === "On" ? { opacity: 1, x: 0 } : undefined}
@@ -588,11 +618,14 @@ export default function Dashboard() {
                                                         whileHover={userSettings?.animations === "On" ? { scale: 1.15 } : undefined}
                                                         whileTap={userSettings?.animations === "On" ? { scale: 0.9 } : undefined}
                                                         onClick={(e) => {
-                                                            // set the video as unwatched when the user clicks on the eye icon
                                                             e.stopPropagation();
+                                                            //set unwatched when user clicks on eye
                                                             if (currentUser) {
                                                                 setFinishedSettingFiles(false);
-                                                                unwatchVideo({ videoPath: file.path, userId: currentUser?.id }).finally(() => setFinishedSettingFiles(true));
+                                                                updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: false }).finally(() => {
+                                                                    setFinishedSettingFiles(true);
+                                                                    setIsInvoking(false);
+                                                                });
                                                             }
                                                         }}
                                                     >
@@ -700,13 +733,13 @@ export default function Dashboard() {
                                                 ) : (
                                                     <ContextMenuItem className='flex cursor-pointer gap-1'
                                                         onClick={(e) => {
-
                                                             if (currentUser) {
                                                                 setFinishedSettingFiles(false);
-                                                                unwatchVideo({ videoPath: file.path, userId: currentUser?.id }).finally(() => setFinishedSettingFiles(true));
+                                                                updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: false }).finally(() => {
+                                                                    setFinishedSettingFiles(true);
+                                                                    setIsInvoking(false);
+                                                                });
                                                             }
-
-
                                                         }}
                                                     >
                                                         <span className={cn("",
@@ -725,12 +758,15 @@ export default function Dashboard() {
                                                 <ContextMenuSeparator className='my-1 h-[1px] bg-accent' />
                                                 <ContextMenuItem className='cursor-pointer'
                                                     onClick={(e) => {
-                                                        setFinishedSettingFiles(false);
-                                                        if (currentUser) {
+                                                        if (currentUser?.id) {
                                                             files.slice(index, files.length).map((file) => {
-                                                                setFinishedSettingFiles(false);
-                                                                unwatchVideo({ videoPath: file.path, userId: currentUser?.id }).finally(() => setFinishedSettingFiles(true));
-
+                                                                if (currentUser) {
+                                                                    setFinishedSettingFiles(false);
+                                                                    updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: false }).finally(() => {
+                                                                        setFinishedSettingFiles(true);
+                                                                        setIsInvoking(false);
+                                                                    });
+                                                                }
                                                             })
                                                         }
                                                     }}
@@ -759,12 +795,13 @@ export default function Dashboard() {
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         setFinishedSettingFiles(false);
-                                                        setIsInvoking(true);
                                                         if (currentUser) {
                                                             files.slice(0, index + 1).reverse().map((file) => {
                                                                 updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).then(() => {
-                                                                    setIsRecentlyWatched(true);
-                                                                }).finally(() => setFinishedSettingFiles(true));
+                                                                    return setIsRecentlyWatched(true);
+                                                                }).finally(() => {
+                                                                    setFinishedSettingFiles(true);
+                                                                });
                                                             });
 
 
@@ -846,8 +883,7 @@ export default function Dashboard() {
             ref={scrolledDiv}
             style={{ scrollbarGutter: "stable", }}
         >
-
-            {/* Render Parent Folders */}
+            {/* Render Top-Level-Parent Folders */}
             <motion.div className='mb-16 flex h-full w-full flex-col items-center justify-center gap-2 rounded-b-sm drop-shadow-sm'
                 key={"main-parent-folder" + folderPaths.length + 1}
             >
@@ -943,7 +979,6 @@ export default function Dashboard() {
             </motion.div >
 
         </main >
-
     )
 
 }

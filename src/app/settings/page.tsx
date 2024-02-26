@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
 import { set, z } from 'zod'
-import { deleteProfile, getCurrentUserGlobal, getUserSettings, getUsers, setCurrentUserGlobal, turnOnPin, updateProfilePicture, updateSettings, updateUserPin } from '../../../lib/prisma-commands'
+import { closeDatabase, deleteProfile, getCurrentUserGlobal, getUserSettings, getUsers, setCurrentUserGlobal, turnOnPin, updateProfilePicture, updateSettings, updateUserPin } from '../../../lib/prisma-commands'
 import { useTheme } from 'next-themes'
 import { User } from '@prisma/client';
 import {
@@ -128,6 +128,8 @@ export default function Settings() {
                     setSavedChangesFormState(settings);
                     setSavedChanges(true);
                 }
+            }).finally(() => {
+                closeDatabase();
             })
         }
     }, [currentUser])
@@ -138,7 +140,7 @@ export default function Settings() {
         if (currentUser?.pin === "disabled" && formState.usePin === "On") {
             setLocked(false);
         }
-    }, [currentUser])
+    }, [currentUser, formState.usePin])
 
 
     // reset the savedChanges state when the formState updates
@@ -174,8 +176,8 @@ export default function Settings() {
     const handleUserGlobal = () => {
         //router.prefetch('/');
         setCurrentUserGlobal({ userId: -1 }).then(() => {
-            router.push('/');
-        })
+            return closeDatabase();
+        }).finally(() => { router.push('/') })
 
     }
 
@@ -315,6 +317,8 @@ export default function Settings() {
                                                                                     //router.prefetch('/');
                                                                                     deleteProfile({ userId: currentUser.id }).then(() => {
                                                                                         setCurrentUserGlobal({ userId: -1 }).then(() => {
+                                                                                            return closeDatabase();
+                                                                                        }).finally(() => {
                                                                                             router.push('/');
                                                                                         });
                                                                                     });
@@ -398,7 +402,10 @@ export default function Settings() {
                                         formState?.fontSize === "XLarge" && 'text-2xl',
                                     )} onClick={() => {
                                         //router.prefetch('/');
-                                        router.push("/profiles/newUser")
+                                        closeDatabase().then(() => {
+                                            router.push("/profiles/newUser")
+                                        })
+
                                     }}>
                                         Add New Profile
                                         <UserPlus className={cn('h-auto w-4 cursor-pointer',

@@ -6,12 +6,14 @@ use random_color::color_dictionary::{ColorDictionary, ColorInformation};
 #[allow(unused_imports)]
 use random_color::{Color, Luminosity, RandomColor};
 use serde::{Deserialize, Serialize};
+//use sqlx::migrate::Migrate;
+use sqlx::{Connection, SqliteConnection};
 //use tauri_plugin_oauth::start;
 //use env_file_reader::read_file;
 
 use std::collections::HashMap;
 use std::io::{stdout, Write};
-use std::process::Command;
+use std::process::{exit, Command};
 // use std::os::windows::process;
 use std::{env, vec};
 use sysinfo::System;
@@ -56,7 +58,6 @@ fn main() {
                     }
                     None => return Ok(()),
                 };
-
                 Ok(())
             })
             .system_tray(tray.clone())
@@ -69,6 +70,7 @@ fn main() {
                             } else if !window.is_visible().unwrap() {
                                 window.center().unwrap();
                                 window.show().unwrap();
+                                window.set_focus().unwrap();
                             }
                         }
                         None => match app.get_window("main") {
@@ -78,6 +80,7 @@ fn main() {
                                 } else if !window.is_visible().unwrap() {
                                     window.center().unwrap();
                                     window.show().unwrap();
+                                    window.set_focus().unwrap();
                                 }
                             }
                             None => {
@@ -95,11 +98,18 @@ fn main() {
                         },
                     },
                     "restart" => {
-                        // TODO : Reset the global table in the database with sqlx
+                        let _ = app.emit_all("closing_app", ()).unwrap();
                         app.restart();
                     }
                     "quit" => {
-                        app.exit(1);
+                        if app.windows().len() > 0 {
+                            let _ = app.emit_all("quit_app", ());
+                            app.once_global("db_closed", |_e| {
+                                exit(0);
+                            });
+                        } else {
+                            // do nothing since mpv is running
+                        }
                     }
                     _ => {}
                 },
@@ -111,6 +121,7 @@ fn main() {
                 show_in_folder,
                 generate_random_color,
                 generate_random_mono_color,
+                close_database,
                 //start_server
             ])
             .build(tauri::generate_context!())
@@ -218,7 +229,11 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
 
     let screen_res = window.current_monitor().unwrap().unwrap();
 
-    window.close().expect("failed to close main window");
+    let result = close_database(handle.clone()).await;
+
+    if result == true {
+        window.close().expect("failed to close main window");
+    }
 
     let mut sys = System::new_all();
 
@@ -242,8 +257,6 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
     };
 
     let instant = std::time::Instant::now();
-
-    // variable to track the users screen resolution
 
     // Loop indefinitely until mpv.exe is not found.
     loop {
@@ -300,4 +313,24 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
         // Sleep for a bit before checking again to reduce CPU usage.
         std::thread::sleep(std::time::Duration::from_millis(500));
     }
+}
+
+#[tauri::command]
+async fn close_database(handle: tauri::AppHandle) -> bool {
+    let db_url = handle
+        .path_resolver()
+        .app_data_dir()
+        .unwrap()
+        .join("main.db");
+
+    let conn = SqliteConnection::connect(db_url.to_str().unwrap())
+        .await
+        .unwrap();
+
+    println!("Closing the database");
+    stdout().flush().unwrap();
+
+    conn.close().await.unwrap();
+
+    return true;
 }

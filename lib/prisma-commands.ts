@@ -3,6 +3,9 @@ import { User, Folder, Video } from "@prisma/client";
 import { SettingSchema } from "@/app/settings/page";
 import { Global } from "@prisma/client";
 import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
+import { emit, listen, once } from '@tauri-apps/api/event'
+import { confirm, message } from "@tauri-apps/api/dialog";
+import { appWindow } from "@tauri-apps/api/window";
 
 export async function getUsers() {
     const db = await Database.load("sqlite:main.db");
@@ -319,7 +322,7 @@ export async function unwatchVideo({
 }) {
     let db = await Database.load("sqlite:main.db");
 
-    console.log("videoPath", videoPath);
+    console.log("updating" + videoPath.split("\\").pop(), "as", "unwatched", "for user", userId, "in database");
 
     await db.execute("UPDATE video SET watched = 0 WHERE path = $1 AND userId = $2", [videoPath, userId]).catch((e) => {
         console.log("error", e);
@@ -594,11 +597,6 @@ export async function getUserScrollY({
     }
 }
 
-export async function closeDatabase() {
-    const db = await Database.load("sqlite:main.db");
-    await db.close();
-}
-
 export async function userGetAllVideos({
     userId
 }: {
@@ -620,3 +618,24 @@ export async function userGetAllVideos({
         return null;
     }
 }
+
+export async function closeDatabase() {
+    const db = await Database.load("sqlite:main.db");
+    await db.close();
+}
+
+// export async function appIsClosing() {
+//     const unlisten = await appWindow.onCloseRequested(async (event) => {
+//         confirm('Are you sure?').then((confirmed) => {
+//             // user did not confirm closing the window; let's prevent it
+//             if (!confirm) {
+//                 event.preventDefault();
+//             }
+
+//         });
+//     });
+
+//     return unlisten;
+// }
+
+

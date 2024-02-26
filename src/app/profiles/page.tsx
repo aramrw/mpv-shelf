@@ -37,7 +37,7 @@ export default function Profiles() {
                 }
             });
         }
-    }, []);
+    }, [allUsers.length]);
 
     useEffect(() => {
         const updateOffset = () => {

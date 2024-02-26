@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, createRef, useEffect, use } from 'react';
-import { getCurrentUserGlobal, getUsers, setCurrentUserGlobal } from '../../../lib/prisma-commands';
+import { closeDatabase, getCurrentUserGlobal, getUsers, setCurrentUserGlobal } from '../../../lib/prisma-commands';
 import type { User } from "@prisma/client";
 import { useRouter } from 'next/navigation';
 import { UserAvatar } from '../profiles/_components/user-avatar';
@@ -122,6 +122,7 @@ export default function Home() {
                         if (user.id === userId) {
                             setCurrentUser(user);
                             setIsLoading(false);
+                            break;
                         }
                     }
                 }
@@ -138,6 +139,8 @@ export default function Home() {
                         if (res == true) {
                             setIsLoading(false);
                             router.push('/dashboard', { scroll: false });
+                        } else {
+                            closeDatabase();
                         }
                     });
                 }
@@ -148,11 +151,13 @@ export default function Home() {
                     if (res == true) {
                         setIsLoading(false);
                         router.push('/dashboard', { scroll: false });
+                    } else {
+                        closeDatabase();
                     }
-                });
+                })
             }
 
-        }, [pins, isLoading]);
+        }, [pins, isLoading, userPin, userId, router]);
 
         const handleChange = (value: any, index: number) => {
             const newPins = [...pins];

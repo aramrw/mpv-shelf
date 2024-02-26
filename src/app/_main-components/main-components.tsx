@@ -6,44 +6,47 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useScrollTop } from '../../../lib/hooks/scroll-y-check';
-
+import { useEffect } from 'react';
+import { confirm } from '@tauri-apps/api/dialog';
+import { closeDatabase } from '../../../lib/prisma-commands';
+import { emit, listen, once } from '@tauri-apps/api/event';
 
 export function Navbar() {
+
     const router = useRouter();
     const pathname = usePathname();
     const scrolled = useScrollTop();
 
-    // useEffect(() => {
-    //     // if (pathname === "/profiles") {
-    //     //     if (pathname === "/profiles") {
 
-    //     //         isRegistered("CommandOrControl+Shift+C").then((res) => {
-    //     //             if (res === false) {
-    //     //                 register("CommandOrControl+Shift+C", () => {
-    //     //                     alert("CommandOrControl+Shift+C has been pressed");
-    //     //                 })
-    //     //             } else {
-    //     //                 console.log("CommandOrControl+Shift+C is already registered");
-    //     //             }
-    //     //         })
+    useEffect(() => {
+        const handleWindowClose = async () => {
+            const { appWindow } = await import('@tauri-apps/api/window');
+            const unlisten = appWindow.onCloseRequested((event) => {
+                event.preventDefault();
+                closeDatabase().then(() => {
+                    appWindow.close();
+                })
+            });
 
+            return () => {
+                unlisten.then((unlisten) => unlisten());
+            }
+        };
 
-    //     //     } else {
-    //     //         unregister("CommandOrControl+Shift+F11+3").then(() => {
-    //     //             console.log("Global shortcut has been unregistered");
-    //     //         });
-    //     //     }
-    //     // }
+        const close_db = listen("quit_app", () => {
+            console.log("quitting app");
+            closeDatabase().then(() => {
+                emit("db_closed");
+            })
+        });
 
+        handleWindowClose();
 
-    //     return () => {
-    //         unregister("CommandOrControl+Shift+F11+3").then(() => {
-    //             console.log("Global shortcut has been unregistered");
-    //         });
-    //     }
+        return () => {
+            close_db.then((unlisten) => unlisten());
+        }
 
-    // }, [pathname])
-
+    }, [])
 
 
     return (
