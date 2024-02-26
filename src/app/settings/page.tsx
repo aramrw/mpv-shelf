@@ -128,8 +128,6 @@ export default function Settings() {
                     setSavedChangesFormState(settings);
                     setSavedChanges(true);
                 }
-            }).finally(() => {
-                closeDatabase();
             })
         }
     }, [currentUser])

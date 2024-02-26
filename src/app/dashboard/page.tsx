@@ -22,6 +22,7 @@ import { ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent } from '@ra
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
 import { number, set, string } from 'zod';
+import { finished } from 'stream';
 // import { WebviewWindow, appWindow } from "@tauri-apps/api/window"
 
 
@@ -79,6 +80,38 @@ export default function Dashboard() {
         return baseDelay + additionalDelay;
     };
 
+    // fetch the user object from db on start and set the current user
+    useEffect(() => {
+        // first close the db
+        closeDatabase().then(() => {
+            getUsers().then((users) => {
+                if (users?.length !== 0 && users) {
+                    getCurrentUserGlobal().then((GLOBAL_USER) => {
+                        if (GLOBAL_USER && GLOBAL_USER?.userId !== -1) {
+                            for (const user of users) {
+                                if (user.id === Number(GLOBAL_USER?.userId)) {
+                                    setCurrentUser(user);
+                                    break;
+                                }
+                            }
+                        } else {
+                            //router.prefetch('/');
+                            closeDatabase().then(() => {
+                                router.push('/', { scroll: false });
+                            });
+
+                        }
+                    });
+                } else {
+                    closeDatabase().then(() => {
+                        router.push('/profiles/createUser', { scroll: false });
+                    });
+                }
+            })
+        });
+
+    }, [router]);
+
     // get and set the user's scroll position from the db once currentUser is set
     useEffect(() => {
         if (scrolledDiv.current) { // dont let the user be able to scroll while its loadinh
@@ -106,28 +139,7 @@ export default function Dashboard() {
             })
     }, [currentUser, isLoading]);
 
-    // fetch the user object from db on start and set the current user
-    useEffect(() => {
-        getUsers().then((users) => {
-            if (users?.length !== 0 && users) {
-                getCurrentUserGlobal().then((GLOBAL_USER) => {
-                    if (GLOBAL_USER && GLOBAL_USER?.userId !== -1) {
-                        for (const user of users) {
-                            if (user.id === Number(GLOBAL_USER?.userId)) {
-                                setCurrentUser(user);
-                                break;
-                            }
-                        }
-                    } else {
-                        //router.prefetch('/');
-                        router.push('/', { scroll: false });
-                    }
-                });
-            } else {
-                router.push('/profiles/createUser');
-            }
-        })
-    }, [router])
+
 
     // get all the folder paths from the folder table with user id on startup
     useEffect(() => {
@@ -217,7 +229,7 @@ export default function Dashboard() {
                     setIsInvoking(false)
                 });
             }
-        }, [currentUser]);
+        }, [folderPath]);
 
         // Check if any videos in this folder were watched recently
         useEffect(() => {
@@ -260,7 +272,7 @@ export default function Dashboard() {
                     setIsRecentlyWatched(false); // Set to false in case of error
                 });
             }
-        }, [currentUser, folderPath]);
+        }, [folderPath]);
 
         // Update the folder expanded state in the db when the user expands or collapses a folder
         useEffect(() => {
@@ -268,7 +280,7 @@ export default function Dashboard() {
                 updateFolderExpanded({ folderPath: folderPath, expanded: expanded, userId: currentUser?.id, asChild: asChild || false }).then(() => {
                 });
             }
-        }, [asChild, expanded]);
+        }, [asChild, expanded, finishedSettingFiles, folderPath]);
 
         // Fetching videos information
         useEffect(() => {
@@ -289,7 +301,7 @@ export default function Dashboard() {
                         setIsInvoking(false);
                     });
             }
-        }, [files, finishedSettingFiles, currentUser]);
+        }, [files, finishedSettingFiles]);
 
         // Check if video is watched
         const handleCheckWatched = (file: FileEntry) => {

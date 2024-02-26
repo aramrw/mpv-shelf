@@ -1,7 +1,7 @@
 "use client";
 
 import React, { lazy, useEffect, useMemo, useRef, useState } from 'react';
-import { getUsers, setCurrentUserGlobal } from '../../../lib/prisma-commands';
+import { closeDatabase, getUsers, setCurrentUserGlobal } from '../../../lib/prisma-commands';
 import { AnimatePresence, MotionValue, PanInfo, motion, motionValue, useDragControls, useMotionValue, useScroll } from 'framer-motion';
 import { User } from '@prisma/client';
 import { useRouter } from 'next/navigation'; // Corrected import for useRouter
@@ -18,24 +18,29 @@ export default function Profiles() {
     const [allUsers, setAllUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isGrabbing, setIsGrabbing] = useState(false);
-    const [switchedSide, setSwitchedSide] = useState(false);
-    const [initialDragX, setInitialDragX] = useState<Number>(0);
-    const [initialDragY, setInitialDragY] = useState<Number>(0);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const dragFieldRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
     const [offset, setOffset] = useState(0);
-    const [currentHeight, setCurrentHeight] = useState(0);
+
+    // const [switchedSide, setSwitchedSide] = useState(false);
+    // const [initialDragX, setInitialDragX] = useState<Number>(0);
+    // const [initialDragY, setInitialDragY] = useState<Number>(0);
+    // const [currentHeight, setCurrentHeight] = useState(0);
 
 
     useEffect(() => {
         if (allUsers.length === 0) {
-            getUsers().then((users) => {
-                if (users) {
-                    setAllUsers(users);
-                    setIsLoading(false);
-                }
-            });
+            closeDatabase().then(() => {
+                getUsers().then((users) => {
+                    if (users) {
+                        closeDatabase().then(() => {
+                            setAllUsers(users);
+                            setIsLoading(false);
+                        });
+                    }
+                });
+            })
         }
     }, [allUsers.length]);
 
@@ -45,8 +50,7 @@ export default function Profiles() {
                 const { width } = wrapperRef.current.getBoundingClientRect();
                 const { height } = wrapperRef.current.getBoundingClientRect();
                 const screenHeight = window.innerHeight;
-                setCurrentHeight(screenHeight);
-
+                //setCurrentHeight(screenHeight);
                 const offSetWidth = contentRef.current.clientWidth;
                 const newOffset = offSetWidth - width;
 
@@ -55,8 +59,8 @@ export default function Profiles() {
         };
 
         // Set Initial Value
-        updateOffset();
 
+        updateOffset();
         // Check for resizing Events.
         window.addEventListener("resize", updateOffset);
         return () => {
@@ -68,8 +72,8 @@ export default function Profiles() {
 
     const handleDragStart = (event: MouseEvent, info: PanInfo) => {
         setIsGrabbing(true);
-        setInitialDragX(info.point.x); // Store the initial X position at drag start
-        setInitialDragY(info.point.y); // Store the initial Y position at drag start
+        //setInitialDragX(info.point.x); // Store the initial X position at drag start
+        //setInitialDragY(info.point.y); // Store the initial Y position at drag start
     };
 
     // const handleDrag = (event: MouseEvent, info: PanInfo) => {
@@ -95,8 +99,8 @@ export default function Profiles() {
 
     const handleDragEnd = () => {
         setIsGrabbing(false);
-        setInitialDragX(0); // Reset initial X position
-        setInitialDragY(0);
+        //setInitialDragX(0); // Reset initial X position
+        //setInitialDragY(0);
     };
 
 
@@ -168,6 +172,8 @@ export default function Profiles() {
                                                 if (!isGrabbing) {
                                                     router.prefetch('/login');
                                                     setCurrentUserGlobal({ userId: user.id }).then(() => {
+                                                        return closeDatabase();
+                                                    }).finally(() => {
                                                         router.push('/login', { scroll: false });
                                                     });
                                                 }
@@ -195,8 +201,10 @@ export default function Profiles() {
                                             if (!isGrabbing) {
                                                 router.prefetch('/profiles/newUser');
                                                 setCurrentUserGlobal({ userId: -1 }).then(() => {
+                                                    return closeDatabase();
+                                                }).finally(() => {
                                                     router.push('/profiles/newUser', { scroll: false });
-                                                });
+                                                })
                                             }
 
                                         }}

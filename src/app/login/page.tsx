@@ -56,6 +56,7 @@ export default function Home() {
 
 
         if (!isLoading && users?.length === 1 && users[0].pin !== null) {
+
             return (
                 <main className="flex flex-col items-center justify-center">
                     <PinInputReturningUser userPin={users[0].pin} userId={users[0].id} />
@@ -116,6 +117,7 @@ export default function Home() {
 
         // get the user object to display the avatar
         useEffect(() => {
+            setIsLoading(true);
             getUsers().then((users) => {
                 if (users) {
                     for (const user of users) {
@@ -126,21 +128,24 @@ export default function Home() {
                         }
                     }
                 }
+            }).finally(() => {
+                setIsLoading(false);
             });
 
         }, [userId]);
 
         useEffect(() => {
             if (pins.join('').length === pinLength && isLoading === false) {
+
                 if (pins.join('') === userPin) {
                     router.prefetch('/dashboard');
                     setIsLoading(true);
                     setCurrentUserGlobal({ userId: userId }).then((res) => {
                         if (res == true) {
                             setIsLoading(false);
-                            router.push('/dashboard', { scroll: false });
-                        } else {
-                            closeDatabase();
+                            closeDatabase().then(() => {
+                                router.push('/dashboard', { scroll: false });
+                            });
                         }
                     });
                 }
@@ -150,11 +155,12 @@ export default function Home() {
                 setCurrentUserGlobal({ userId: userId }).then((res) => {
                     if (res == true) {
                         setIsLoading(false);
-                        router.push('/dashboard', { scroll: false });
-                    } else {
-                        closeDatabase();
+                        closeDatabase().then(() => {
+                            router.push('/dashboard', { scroll: false });
+                        });
                     }
                 })
+
             }
 
         }, [pins, isLoading, userPin, userId, router]);
