@@ -124,10 +124,10 @@ export default function Dashboard() {
 
                 // TODO : This should to be changed but it works fine. Position should be referenced to an element somehow instead of a debounce. 
 
+                let unlisten: NodeJS.Timeout;
 
-
-                if (scrolledDiv.current)
-                    setTimeout(() => {
+                if (scrolledDiv.current) {
+                    unlisten = setTimeout(() => {
                         if (userY > 0 && userY !== null && userY !== undefined)
                             setScrollPosition(userY);
                         if (scrolledDiv.current)
@@ -136,6 +136,12 @@ export default function Dashboard() {
                             }
                         console.log("scrolling to ", userY);
                     }, calculateDelay(userY));
+                }
+
+                return () => {
+                    clearTimeout(unlisten);
+                }
+
             })
     }, [currentUser, isLoading]);
 

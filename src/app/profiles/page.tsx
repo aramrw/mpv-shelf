@@ -48,8 +48,8 @@ export default function Profiles() {
         const updateOffset = () => {
             if (wrapperRef.current && contentRef.current) {
                 const { width } = wrapperRef.current.getBoundingClientRect();
-                const { height } = wrapperRef.current.getBoundingClientRect();
-                const screenHeight = window.innerHeight;
+                //const { height } = wrapperRef.current.getBoundingClientRect();
+                //const screenHeight = window.innerHeight;
                 //setCurrentHeight(screenHeight);
                 const offSetWidth = contentRef.current.clientWidth;
                 const newOffset = offSetWidth - width;
