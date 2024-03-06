@@ -55,7 +55,7 @@
         "writeText": true
       },
       "window": {
-        "all": false,
+        "all": true,
         "center": false,
         "close": true,
         "create": false,
@@ -96,7 +96,7 @@
         "assetScope": ["**"]
       },
       "globalShortcut": {
-        "all": false
+        "all": true
       }
     },
     "bundle": {
@@ -125,7 +125,7 @@
         "signingIdentity": null
       },
       "resources": [],
-      "shortDescription": "Cross platform Ffolder wrapper.",
+      "shortDescription": "Cross platform folder wrapper for mpv.",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,

@@ -18,7 +18,14 @@ tauri-build = { version = "1.5.1", features = [] }
 sqlx = { version = "0.7.3", features = ["runtime-tokio", "tls-native-tls"] }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.6.0", features = [ "window-close", "fs-create-dir", "fs-exists", "fs-read-file", "fs-read-dir", "fs-rename-file",
+tauri = { version = "1.6.0", features = [
+    "window-all",
+    "global-shortcut-all",
+    "fs-create-dir",
+    "fs-exists",
+    "fs-read-file",
+    "fs-read-dir",
+    "fs-rename-file",
     "protocol-all",
     "clipboard-write-text",
     "path-all",
@@ -30,15 +37,21 @@ open = { version = "5.0.1" }
 random_color = { version = "0.8.0" }
 sysinfo = { version = "0.30.5" }
 tokio = { version = "1.36.0" }
+mal-api = { version = "2.0.0" }
+# lib-mal = { version = "0.5.1" }
+# env-file-reader = { version = "0.3.0" }
 
 [dependencies.tauri-plugin-sql]
 git = "https://github.com/tauri-apps/plugins-workspace"
 branch = "v1"
 features = ["sqlite"]
 
+# [dependencies.tauri-plugin-oauth]
+# git = "https://github.com/FabianLars/tauri-plugin-oauth"
+# branch = "main"
+
 [profile.dev.package.sqlx-macros]
 opt-level = 3
-
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.

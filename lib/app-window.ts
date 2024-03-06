@@ -31,7 +31,7 @@ export async function settingsOnCloseListener() {
 export async function createNewWindow() {
 
     const webview = new WebviewWindow('main', {
-        url: '/home'
+        url: '/login'
     });
     webview.once('tauri://created', function () {
         console.log('webview window created');

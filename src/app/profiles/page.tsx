@@ -1,7 +1,7 @@
 "use client";
 
 import React, { lazy, useEffect, useMemo, useRef, useState } from 'react';
-import { getUsers, setCurrentUserGlobal } from '../../../lib/prisma-commands';
+import { closeDatabase, getUsers, setCurrentUserGlobal } from '../../../lib/prisma-commands';
 import { AnimatePresence, MotionValue, PanInfo, motion, motionValue, useDragControls, useMotionValue, useScroll } from 'framer-motion';
 import { User } from '@prisma/client';
 import { useRouter } from 'next/navigation'; // Corrected import for useRouter
@@ -18,35 +18,39 @@ export default function Profiles() {
     const [allUsers, setAllUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isGrabbing, setIsGrabbing] = useState(false);
-    const [switchedSide, setSwitchedSide] = useState(false);
-    const [initialDragX, setInitialDragX] = useState<Number>(0);
-    const [initialDragY, setInitialDragY] = useState<Number>(0);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const dragFieldRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
     const [offset, setOffset] = useState(0);
-    const [currentHeight, setCurrentHeight] = useState(0);
+
+    // const [switchedSide, setSwitchedSide] = useState(false);
+    // const [initialDragX, setInitialDragX] = useState<Number>(0);
+    // const [initialDragY, setInitialDragY] = useState<Number>(0);
+    // const [currentHeight, setCurrentHeight] = useState(0);
 
 
     useEffect(() => {
         if (allUsers.length === 0) {
-            getUsers().then((users) => {
-                if (users) {
-                    setAllUsers(users);
-                    setIsLoading(false);
-                }
-            });
+            closeDatabase().then(() => {
+                getUsers().then((users) => {
+                    if (users) {
+                        closeDatabase().then(() => {
+                            setAllUsers(users);
+                            setIsLoading(false);
+                        });
+                    }
+                });
+            })
         }
-    }, []);
+    }, [allUsers.length]);
 
     useEffect(() => {
         const updateOffset = () => {
             if (wrapperRef.current && contentRef.current) {
                 const { width } = wrapperRef.current.getBoundingClientRect();
-                const { height } = wrapperRef.current.getBoundingClientRect();
-                const screenHeight = window.innerHeight;
-                setCurrentHeight(screenHeight);
-
+                //const { height } = wrapperRef.current.getBoundingClientRect();
+                //const screenHeight = window.innerHeight;
+                //setCurrentHeight(screenHeight);
                 const offSetWidth = contentRef.current.clientWidth;
                 const newOffset = offSetWidth - width;
 
@@ -55,8 +59,8 @@ export default function Profiles() {
         };
 
         // Set Initial Value
-        updateOffset();
 
+        updateOffset();
         // Check for resizing Events.
         window.addEventListener("resize", updateOffset);
         return () => {
@@ -68,51 +72,48 @@ export default function Profiles() {
 
     const handleDragStart = (event: MouseEvent, info: PanInfo) => {
         setIsGrabbing(true);
-        setInitialDragX(info.point.x); // Store the initial X position at drag start
-        setInitialDragY(info.point.y); // Store the initial Y position at drag start
+        //setInitialDragX(info.point.x); // Store the initial X position at drag start
+        //setInitialDragY(info.point.y); // Store the initial Y position at drag start
     };
 
-    const handleDrag = (event: MouseEvent, info: PanInfo) => {
-        // Only proceed if we have an initial X position
-        if (initialDragX !== 0) {
-            const currentDragX = info.point.x;
-            const currentDragY = info.point.y;
-            const draggedRight = currentDragX > initialDragX.valueOf() + 20;
-            const draggedLeft = currentDragX < initialDragX.valueOf() - 20;
-            const draggedUp = currentDragY > initialDragY.valueOf() + 50;
-            const draggedDown = currentDragY > initialDragY.valueOf() - 100;
+    // const handleDrag = (event: MouseEvent, info: PanInfo) => {
+    //     // Only proceed if we have an initial X position
+    //     if (initialDragX !== 0) {
+    //         const currentDragX = info.point.x;
+    //         const currentDragY = info.point.y;
+    //         // const draggedRight = currentDragX > initialDragX.valueOf() + 20;
+    //         // const draggedLeft = currentDragX < initialDragX.valueOf() - 20;
+    //         // const draggedUp = currentDragY > initialDragY.valueOf() + 50;
+    //         // const draggedDown = currentDragY > initialDragY.valueOf() - 100;
 
-            // Logic to determine if we should switch sides
-            // Example: If on the left (switchedSide is false) and dragged left, don't switch.
-            if ((switchedSide && draggedRight) || (!switchedSide && draggedLeft)) {
-                if (draggedUp || draggedDown) {
-                    setSwitchedSide(!switchedSide);
-                }
+    //         // Logic to determine if we should switch sides
+    //         // Example: If on the left (switchedSide is false) and dragged left, don't switch.
+    //         // if ((switchedSide && draggedRight) || (!switchedSide && draggedLeft)) {
+    //         //     if (draggedUp || draggedDown) {
+    //         //         setSwitchedSide(!switchedSide);
+    //         //     }
 
-            }
-        }
-    };
+    //         // }
+    //     }
+    // };
 
     const handleDragEnd = () => {
         setIsGrabbing(false);
-        setInitialDragX(0); // Reset initial X position
-        setInitialDragY(0);
+        //setInitialDragX(0); // Reset initial X position
+        //setInitialDragY(0);
     };
 
 
     return (
         <AnimatePresence>
-            {/* <motion.video className="fixed left-0 top-0 z-[-1] h-full w-full object-cover"
+            {/* <video className="fixed left-0 top-0 z-[-1] h-full w-full object-cover"
                 autoPlay
                 muted
                 loop
                 src='video.mp4'
-                initial={{ opacity: 0, y: -50 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 50 }}
                 key={"video"}
             /> */}
-            <motion.main className={cn("flex w-full flex-col items-center justify-center gap-2 overflow-hidden relative select-none shadow-2xl",
+            <motion.main className={cn("flex w-full flex-col items-center justify-center gap-2 overflow-hidden relative select-none shadow-2xl ",
                 allUsers.length >= 3 && 'items-start',
             )}
                 ref={wrapperRef}
@@ -150,7 +151,7 @@ export default function Profiles() {
                         dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
                         dragElastic={0.5}
                         onDragStart={handleDragStart}
-                        onDrag={handleDrag}
+                        //onDrag={handleDrag}
                         onDragEnd={handleDragEnd}
                         transition={{ duration: 0.5, bounce: 0.5, type: "spring", damping: 100 }}
                     >
@@ -166,6 +167,17 @@ export default function Profiles() {
                                     {allUsers.map((user, index) => (
                                         <div className='flex flex-row items-center justify-center text-background'
                                             key={user.id * 1000 + index}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                if (!isGrabbing) {
+                                                    router.prefetch('/login');
+                                                    setCurrentUserGlobal({ userId: user.id }).then(() => {
+                                                        return closeDatabase();
+                                                    }).finally(() => {
+                                                        router.push('/login', { scroll: false });
+                                                    });
+                                                }
+                                            }}
                                         >
                                             <motion.button
                                                 className={cn('flex h-fit w-fit flex-row items-center justify-center',
@@ -175,15 +187,7 @@ export default function Profiles() {
                                                 whileHover={{ y: 10 }}
                                                 whileTap={{ scale: 0.95 }}
                                                 transition={{ duration: 0.5, bounce: 0.5, type: "spring" }}
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    if (!isGrabbing) {
-                                                        router.prefetch('/home');
-                                                        setCurrentUserGlobal({ userId: user.id }).then(() => {
-                                                            router.push('/home');
-                                                        });
-                                                    }
-                                                }}
+
                                             >
                                                 <UserAvatar userObject={user} />
                                             </motion.button>
@@ -192,6 +196,18 @@ export default function Profiles() {
                                     ))}
                                     <div className='flex flex-row items-center justify-center'
                                         key={"add profile"}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            if (!isGrabbing) {
+                                                router.prefetch('/profiles/newUser');
+                                                setCurrentUserGlobal({ userId: -1 }).then(() => {
+                                                    return closeDatabase();
+                                                }).finally(() => {
+                                                    router.push('/profiles/newUser', { scroll: false });
+                                                })
+                                            }
+
+                                        }}
                                     >
                                         <motion.button
                                             className={cn('flex h-fit w-fit flex-row items-center justify-center',
@@ -201,16 +217,7 @@ export default function Profiles() {
                                             whileHover={{ y: 10 }}
                                             whileTap={{ scale: 0.95 }}
                                             transition={{ duration: 0.5, bounce: 0.5, type: "spring" }}
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                if (!isGrabbing) {
-                                                    router.prefetch('/profiles/newUser');
-                                                    setCurrentUserGlobal({ userId: -1 }).then(() => {
-                                                        router.push('/profiles/newUser');
-                                                    });
-                                                }
 
-                                            }}
                                         >
                                             <UserAvatar userObject={allUsers[99]} />
                                         </motion.button>

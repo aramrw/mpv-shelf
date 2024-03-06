@@ -4,6 +4,7 @@ import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "./_main-components/main-components";
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/components/ui/theme-provider";
 
 const mplus = Poppins({
   subsets: ["latin", "latin-ext", "devanagari"],
@@ -31,10 +32,16 @@ export default function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${noto.className} subpixel-antialiased`} style={{ scrollbarGutter: "stable" }}  >
-        <Navbar />
-        {children}
-        <Toaster />
+      <body className={`${noto.className} subpixel-antialiased overflow-y-hidden`}
+        style={{ scrollbarGutter: "stable" }}
+      >
+        <ThemeProvider defaultTheme="light" forcedTheme="light" >
+          <Navbar />
+
+          {children}
+
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );
