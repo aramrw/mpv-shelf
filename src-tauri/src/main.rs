@@ -335,6 +335,7 @@ async fn close_database(handle: tauri::AppHandle) -> bool {
     return true;
 }
 
+// tray
 fn check_for_mpv() {
     let mut sys = System::new_all();
 
@@ -353,3 +354,8 @@ fn check_for_mpv() {
         exit(0);
     }
 }
+
+// mal
+// async fn my_anime_list() {
+
+// }
