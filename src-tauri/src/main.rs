@@ -108,7 +108,7 @@ fn main() {
                                 exit(0);
                             });
                         } else {
-                            // do nothing since mpv is running
+                            check_for_mpv();
                         }
                     }
                     _ => {}
@@ -333,4 +333,23 @@ async fn close_database(handle: tauri::AppHandle) -> bool {
     conn.close().await.unwrap();
 
     return true;
+}
+
+fn check_for_mpv() {
+    let mut sys = System::new_all();
+
+    sys.refresh_all();
+
+    let processes_hashmap = sys.processes().iter().collect::<HashMap<_, _>>();
+    let mut found = false;
+
+    processes_hashmap.iter().for_each(|(_pid, process)| {
+        if process.name().to_lowercase().contains("mpv.exe") {
+            found = true;
+        }
+    });
+
+    if !found {
+        exit(0);
+    }
 }
