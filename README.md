@@ -2,6 +2,8 @@
 - Mpv Shelf is a **cross-platform folder wrapper** to organize videos you would like to keep track of.
 - Compatible with **any video player out of the box** (no config required). *However*, it was created for **[mpv](https://mpv.io/)** in particular.
 
+ <img src="https://github.com/aramrw/mpv-shelf/assets/106574385/99c75696-5896-456a-a7f8-5a84da21952f" width="500">
+
   ## Features
 - Houses all your video/anime folders in one place.
 - Keeps track of which videos you have/haven't watched.
@@ -30,12 +32,3 @@ npm i
 ```
 npm run tauri dev
 ```
-
-- // _or to see front-end only_
-
-```
-npm run dev
-```
-
-- Open **[http://localhost:3000](http://localhost:3000)**.
-- _You can start editing the page by modifying the files in the `app` folder. The page auto-updates as you edit the file._

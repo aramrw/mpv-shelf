@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
 import { set, z } from 'zod'
-import { deleteProfile, getCurrentUserGlobal, getUserSettings, getUsers, setCurrentUserGlobal, turnOnPin, updateProfilePicture, updateSettings, updateUserPin } from '../../../lib/prisma-commands'
+import { closeDatabase, deleteProfile, getCurrentUserGlobal, getUserSettings, getUsers, setCurrentUserGlobal, turnOnPin, updateProfilePicture, updateSettings, updateUserPin } from '../../../lib/prisma-commands'
 import { useTheme } from 'next-themes'
 import { User } from '@prisma/client';
 import {
@@ -122,6 +122,7 @@ export default function Settings() {
     useEffect(() => {
         if (currentUser?.id) {
             getUserSettings({ userId: currentUser?.id }).then((settings) => {
+                console.log(settings);
                 if (settings) {
                     setFormState(settings);
                     setSavedChangesFormState(settings);
@@ -137,7 +138,7 @@ export default function Settings() {
         if (currentUser?.pin === "disabled" && formState.usePin === "On") {
             setLocked(false);
         }
-    }, [currentUser])
+    }, [currentUser, formState.usePin])
 
 
     // reset the savedChanges state when the formState updates
@@ -153,11 +154,15 @@ export default function Settings() {
             title: 'Pin Copied!',
             description: `Click to see pin.`,
             duration: 1500,
-
             onClick: () => {
                 if (currentUser?.pin) {
                     toast({
                         className: 'cursor-pointer',
+                        variant: 'destructive',
+                        style: {
+                            backdropFilter: 'blur(5px)',
+                            fontWeight: 'bold',
+                        },
                         description: `UserID: ${currentUser.id}・Pin: ${currentUser.pin}`,
                         duration: 1500,
                     });
@@ -166,11 +171,11 @@ export default function Settings() {
         })
     }
 
-    const handleUserGlobal = (userId: { userId: number }) => {
-
+    const handleUserGlobal = () => {
+        //router.prefetch('/');
         setCurrentUserGlobal({ userId: -1 }).then(() => {
-            router.push('/');
-        })
+            return closeDatabase();
+        }).finally(() => { router.push('/') })
 
     }
 
@@ -213,11 +218,11 @@ export default function Settings() {
                                                     <TooltipProvider>
                                                         <Tooltip delayDuration={1000}>
                                                             <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-center text-base'>
-                                                                <Button variant="outline" className={cn('select-none h-full w-3/4 p-0 flex gap-1',
+                                                                <Button variant="outline" className={cn('select-none h-full w-3/4 p-0 flex gap-1 pb-1',
                                                                     formState?.fontSize === "Medium" && 'text-lg',
                                                                     formState?.fontSize === "Large" && 'text-xl',
                                                                     formState?.fontSize === "XLarge" && 'text-2xl',
-                                                                )} onClick={() => { handleUserGlobal({ userId: currentUser.id }) }}>
+                                                                )} onClick={() => { handleUserGlobal() }}>
                                                                     Sign Out
                                                                     <UserMinus className={cn('h-auto w-4 cursor-pointer',
                                                                         formState?.fontSize === "Medium" && 'h-auto w-5',
@@ -244,7 +249,7 @@ export default function Settings() {
                                                     <TooltipProvider>
                                                         <Tooltip delayDuration={1000}>
                                                             <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-center text-base'>
-                                                                <Button variant="outline" className={cn('select-none  h-full w-3/4 p-0 flex gap-1',
+                                                                <Button variant="outline" className={cn('select-none  h-full w-3/4 p-0 flex gap-1 pb-1',
                                                                     formState?.fontSize === "Medium" && 'text-lg',
                                                                     formState?.fontSize === "Large" && 'text-xl',
                                                                     formState?.fontSize === "XLarge" && 'text-2xl',
@@ -297,9 +302,9 @@ export default function Settings() {
                                                     </TooltipProvider>
                                                     {hasMultipleProfiles && (
                                                         <TooltipProvider>
-                                                            <Tooltip delayDuration={300}>
+                                                            <Tooltip delayDuration={700}>
                                                                 <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-center text-base'>
-                                                                    <Button variant="destructive" className={cn('select-none w-3/4 py-[1px] h-fit  flex flex-row justify-center items-center rounded-sm gap-1',
+                                                                    <Button variant="destructive" className={cn('select-none w-3/4 py-[1px] h-fit  flex flex-row justify-center items-center rounded-sm gap-1 pb-1',
                                                                         formState?.fontSize === "Medium" && 'text-lg',
                                                                         formState?.fontSize === "Large" && 'text-xl',
                                                                         formState?.fontSize === "XLarge" && 'text-2xl',
@@ -307,8 +312,11 @@ export default function Settings() {
                                                                         ConfirmDeleteProfile().then((res) => {
                                                                             if (res) {
                                                                                 if (currentUser?.id) {
+                                                                                    //router.prefetch('/');
                                                                                     deleteProfile({ userId: currentUser.id }).then(() => {
                                                                                         setCurrentUserGlobal({ userId: -1 }).then(() => {
+                                                                                            return closeDatabase();
+                                                                                        }).finally(() => {
                                                                                             router.push('/');
                                                                                         });
                                                                                     });
@@ -325,9 +333,9 @@ export default function Settings() {
                                                                     </Button>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent align='center' side='bottom' className={cn('select-none flex gap-1',
-                                                                    formState?.fontSize === "Medium" && 'text-lg',
-                                                                    formState?.fontSize === "Large" && 'text-xl',
-                                                                    formState?.fontSize === "XLarge" && 'text-2xl',
+                                                                    formState?.fontSize === "Medium" && 'text-md',
+                                                                    formState?.fontSize === "Large" && 'text-lg',
+                                                                    formState?.fontSize === "XLarge" && 'text-xl',
                                                                 )}>
                                                                     <div className='font-medium'>
                                                                         <div className='flex flex-col items-center justify-center gap-1'>
@@ -342,10 +350,38 @@ export default function Settings() {
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         </TooltipProvider>
-
-
-
                                                     )}
+                                                    {/* <TooltipProvider>
+                                                        <Tooltip delayDuration={700}>
+                                                            <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-center text-base'>
+                                                                <Button variant="secondary" className={cn('select-none w-3/4 py-[1px] h-fit  flex flex-row justify-center items-center rounded-sm gap-1 pb-1 bg-blue-500 text-white transition-colors duration-200',
+                                                                    formState?.fontSize === "Medium" && 'text-lg',
+                                                                    formState?.fontSize === "Large" && 'text-xl',
+                                                                    formState?.fontSize === "XLarge" && 'text-2xl',
+                                                                )} onClick={() => {
+                                                                    // invoke to the backend to link the user to MAL  
+                                                                }}>
+                                                                    Link to MAL
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent align='center' side='bottom' className={cn('select-none flex gap-1',
+                                                                formState?.fontSize === "Medium" && 'text-md',
+                                                                formState?.fontSize === "Large" && 'text-lg',
+                                                                formState?.fontSize === "XLarge" && 'text-xl',
+                                                            )}>
+                                                                <div className='font-medium'>
+                                                                    <div className='flex flex-col items-center justify-center gap-1'>
+                                                                        <div className='flex flex-row gap-0.5'>
+                                                                            <span className='rounded-sm font-bold'> Link your profile to</span>
+                                                                            <b className='cursor-pointer text-blue-600 text-primary underline transition-colors duration-200 hover:text-blue-900'>
+                                                                                MyAnimeList
+                                                                            </b>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider> */}
                                                 </div>
                                             </>
                                         )}
@@ -363,7 +399,11 @@ export default function Settings() {
                                         formState?.fontSize === "Large" && 'text-xl',
                                         formState?.fontSize === "XLarge" && 'text-2xl',
                                     )} onClick={() => {
-                                        router.push("/profiles/newUser")
+                                        //router.prefetch('/');
+                                        closeDatabase().then(() => {
+                                            router.push("/profiles/newUser")
+                                        })
+
                                     }}>
                                         Add New Profile
                                         <UserPlus className={cn('h-auto w-4 cursor-pointer',
@@ -488,7 +528,7 @@ export default function Settings() {
                         <ul className='flex flex-col gap-3 p-2'>
                             <li className='flex h-fit w-full justify-between bg-muted'>
                                 <TooltipProvider>
-                                    <Tooltip delayDuration={200}>
+                                    <Tooltip delayDuration={400}>
                                         <div className='flex w-full flex-row gap-1'>
                                             <TooltipTrigger className='flex w-full flex-row items-center justify-start gap-1'>
                                                 <Info className={cn('h-auto w-4 cursor-pointer',
@@ -500,17 +540,21 @@ export default function Settings() {
                                                 <h1 className='select-none font-medium'>Auto Rename</h1>
                                             </TooltipTrigger>
                                         </div>
-                                        <TooltipContent align='start' side='bottom' className={cn('select-none flex gap-1',
-                                            formState?.fontSize === "Medium" && 'text-lg',
-                                            formState?.fontSize === "Large" && 'text-xl',
-                                            formState?.fontSize === "XLarge" && 'text-2xl',
+                                        <TooltipContent align='start' side='bottom' className={cn('select-none flex text-center',
+                                            formState?.fontSize === "Medium" && 'text-md',
+                                            formState?.fontSize === "Large" && 'text-lg',
+                                            formState?.fontSize === "XLarge" && 'text-xl',
                                         )}>
                                             <div className='font-medium'>
                                                 <span className='font-bold'>
                                                     Renames subtitle files to match video.
                                                 </span>
                                                 <br />
-                                                <span className='font-bold'>Note:</span> Subtitle files must be in the <b>same directory</b> as the video file,
+                                                <span className={cn('font-bold',
+                                                    formState?.fontSize === "Medium" && 'text-md',
+                                                    formState?.fontSize === "Large" && 'text-lg',
+                                                    formState?.fontSize === "XLarge" && 'text-xl',
+                                                )}>Note:</span> Subtitle files must be in the <b>same directory</b> as the video file,
                                                 <br />
                                                 as mpv auto loads subtitles if the names are the same.
                                             </div>

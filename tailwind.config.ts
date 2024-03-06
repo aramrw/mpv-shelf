@@ -78,8 +78,8 @@ const config = {
         'gradient-x': {
           to: { 'background-position': '200% center' },
         },
-        'gradient-y': {
-          to: { 'background-position': 'center 200%' },
+        'gradient-xr': {
+          to: { 'background-position': '200% center' },
         },
       },
       animation: {
@@ -87,7 +87,7 @@ const config = {
         "accordion-up": "accordion-up 0.2s ease-out",
         "spotlight": "spotlight 0.5s ease-in-out",
         "gradient-x": 'gradient-x 15s linear infinite',
-        "gradient-y": 'gradient-y 12s linear infinite',
+        "gradient-xr": 'gradient-xr 12s linear infinite',
       },
     },
   },

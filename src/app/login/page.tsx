@@ -1,12 +1,12 @@
 "use client"
 
 import React, { useState, createRef, useEffect, use } from 'react';
-import { getCurrentUserGlobal, getUsers, setCurrentUserGlobal } from '../../../lib/prisma-commands';
+import { closeDatabase, getCurrentUserGlobal, getUsers, setCurrentUserGlobal } from '../../../lib/prisma-commands';
 import type { User } from "@prisma/client";
 import { useRouter } from 'next/navigation';
 import { UserAvatar } from '../profiles/_components/user-avatar';
 import { Button } from '@/components/ui/button';
-import { Check, Loader2 } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -33,8 +33,9 @@ export default function Home() {
 
         useEffect(() => {
             if (!isLoading && (users?.length === 0 || users === undefined)) {
-                router.push('/profiles/newUser');
+                router.push('/profiles/newUser', { scroll: false });
             } else if (!isLoading && users && users?.length > 1) {
+
                 console.log("multiple users found");
                 getCurrentUserGlobal().then((GLOBAL_USER) => {
                     if (GLOBAL_USER && GLOBAL_USER?.userId !== -1 && users) {
@@ -42,10 +43,12 @@ export default function Home() {
                             if (user.id === GLOBAL_USER.userId) {
                                 setUsers([]);
                                 setUsers([user]);
+                                // ! reset the global user to -1
+                                setCurrentUserGlobal({ userId: -1 });
                             }
                         }
                     } else if (!isLoading) {
-                        router.push('/profiles');
+                        router.push('/profiles', { scroll: false });
                     }
                 })
             }
@@ -53,6 +56,7 @@ export default function Home() {
 
 
         if (!isLoading && users?.length === 1 && users[0].pin !== null) {
+
             return (
                 <main className="flex flex-col items-center justify-center">
                     <PinInputReturningUser userPin={users[0].pin} userId={users[0].id} />
@@ -105,7 +109,7 @@ export default function Home() {
 
         // focus on the first pin input on component mount
         useEffect(() => {
-            router.prefetch('/dashboard');
+
             if (inputRefs[0] && inputRefs[0].current) {
                 (inputRefs[0].current as HTMLInputElement).focus();
             }
@@ -113,37 +117,53 @@ export default function Home() {
 
         // get the user object to display the avatar
         useEffect(() => {
+            setIsLoading(true);
             getUsers().then((users) => {
                 if (users) {
                     for (const user of users) {
                         if (user.id === userId) {
                             setCurrentUser(user);
                             setIsLoading(false);
+                            break;
                         }
                     }
                 }
+            }).finally(() => {
+                setIsLoading(false);
             });
 
         }, [userId]);
 
         useEffect(() => {
             if (pins.join('').length === pinLength && isLoading === false) {
+
                 if (pins.join('') === userPin) {
+                    router.prefetch('/dashboard');
                     setIsLoading(true);
-                    setCurrentUserGlobal({ userId: userId }).then(() => {
-                        setIsLoading(false);
-                        router.push('/dashboard');
+                    setCurrentUserGlobal({ userId: userId }).then((res) => {
+                        if (res == true) {
+                            setIsLoading(false);
+                            closeDatabase().then(() => {
+                                router.push('/dashboard', { scroll: false });
+                            });
+                        }
                     });
                 }
             } else if (userPin === "disabled" && !isLoading) {
+                router.prefetch('/dashboard');
                 setIsLoading(true);
-                setCurrentUserGlobal({ userId: userId }).then(() => {
-                    setIsLoading(false);
-                    router.push('/dashboard');
-                });
+                setCurrentUserGlobal({ userId: userId }).then((res) => {
+                    if (res == true) {
+                        setIsLoading(false);
+                        closeDatabase().then(() => {
+                            router.push('/dashboard', { scroll: false });
+                        });
+                    }
+                })
+
             }
 
-        }, [pins, isLoading]);
+        }, [pins, isLoading, userPin, userId, router]);
 
         const handleChange = (value: any, index: number) => {
             const newPins = [...pins];
@@ -176,7 +196,7 @@ export default function Home() {
         return (
             <main className='mt-4 flex h-full w-full items-center justify-center'>
                 <AnimatePresence mode='wait' onExitComplete={() => {
-                    router.push('/dashboard');
+                    //router.prefetch('/dashboard');
                 }}>
                     {pins.join('') !== userPin ? (
                         <motion.div className="flex h-full w-full flex-col items-center justify-center gap-3"
@@ -186,7 +206,8 @@ export default function Home() {
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.5, bounce: 0.5, type: "spring" }}
                         >
-                            <h1 className="w=full h-full select-none py-4 text-center text-2xl font-bold drop-shadow-md md:text-3xl lg:text-4xl xl:text-5xl">
+                            <h1 className="w=full h-full select-none py-4 text-center text-4xl font-bold drop-shadow-sm md:text-5xl lg:text-[3.25rem] xl:text-6xl">
+
                                 {
                                     pins.join("").length === 3 && (
                                         finalQuotes[Math.floor(Math.random() * finalQuotes.length)]
@@ -232,16 +253,16 @@ export default function Home() {
                                         value={pin}
                                         onChange={(e) => handleChange(e.target.value, index)}
                                         onKeyDown={(e) => handleBackspace(e, index)}
-                                        className={cn("h-20 w-20 rounded border-2 border-secondary text-center text-4xl md:h-28 md:w-28 md:text-5xl shadow-md font-bold lg:text-6xl",
+                                        className={cn("h-20 w-20 rounded border-2 border-muted text-center text-4xl md:h-28 md:w-28 md:text-6xl lg:h-36 lg:w-36 lg:text-8xl xl:h-40 xl:w-40 xl:text-8xl shadow-md font-bold",
                                             (pins.join('').length === 4 && pins.join('') !== userPin) && "border-red-500 focus:outline-none focus:border-red-500",
                                         )}
                                         pattern="\d{4,4}"
                                     />
                                 ))}
                             </motion.div>
-                            <h2 className="select-none text-lg font-medium drop-shadow-md md:text-xl lg:text-2xl xl:text-3xl">Enter your <b>pin #</b> to get started.</h2>
+                            <h2 className="mb-1 text-xl font-medium md:text-2xl lg:text-3xl xl:text-4xl">Enter a <b>pin #</b> to protect your account.</h2>
                             <div className='flex w-full flex-row items-center justify-center'>
-                                <Button variant="outline" className='cursor-pointer rounded-lg px-2 py-0 text-base font-bold text-blue-500 underline underline-offset-2 shadow-sm md:text-xl lg:text-2xl xl:text-3xl'
+                                <Button variant="outline" className='cursor-pointer rounded-lg px-2 py-0 text-lg font-bold text-blue-500 underline underline-offset-2 shadow-sm md:text-2xl lg:text-3xl xl:text-4xl'
                                     onClick={() => {
                                         // create db function for resetting pin
                                     }}
