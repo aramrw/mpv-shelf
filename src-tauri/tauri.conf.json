@@ -7,14 +7,14 @@
     "distDir": "../out"
   },
   "package": {
-    "productName": "mpv-shelf",
-    "version": "0.2.0"
+    "productName": "Mpv Shelf",
+    "version": "0.4.2"
   },
   "tauri": {
     "systemTray": {
       "iconAsTemplate": true,
       "iconPath": "icons/icon.png",
-      "title": "mpv-shelf"
+      "title": "Mpv Shelf"
     },
     "allowlist": {
       "all": false,
@@ -102,7 +102,7 @@
     "bundle": {
       "active": true,
       "category": "Utility",
-      "publisher": "aramrw",
+      "publisher": "©aramrw",
       "copyright": "https://github.com/aramrw | ©aramrw",
       "deb": {
         "depends": []
