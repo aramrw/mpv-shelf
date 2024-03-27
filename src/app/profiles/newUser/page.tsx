@@ -12,7 +12,6 @@ import { cn } from '@/lib/utils';
 export default function NewUser() {
 
     const [defaultSettings, setDefaultSettings] = useState<SettingSchema>({
-        theme: 'Light',
         fontSize: 'Large',
         animations: 'On',
         autoRename: 'Off',

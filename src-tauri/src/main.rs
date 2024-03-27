@@ -51,14 +51,17 @@ fn main() {
     fn hack_builder(tray: SystemTray) {
         tauri::Builder::default()
             .setup(|app| {
-                close_open_mpv_shelf_instance();
-                match app.get_window("main") {
-                    Some(window) => {
-                        window.center().unwrap();
-                        window.set_focus().unwrap();
-                    }
-                    None => return Ok(()),
-                };
+                let result = close_open_mpv_shelf_instance();
+                if result {
+                    match app.get_window("main") {
+                        Some(window) => {
+                            window.center().unwrap();
+                            window.set_focus().unwrap();
+                        }
+                        None => return Ok(()),
+                    };
+                }
+
                 Ok(())
             })
             .system_tray(tray.clone())
@@ -356,7 +359,7 @@ fn check_for_mpv() {
     }
 }
 
-fn close_open_mpv_shelf_instance() {
+fn close_open_mpv_shelf_instance() -> bool {
     let mut sys = System::new_all();
 
     sys.refresh_all();
@@ -372,7 +375,9 @@ fn close_open_mpv_shelf_instance() {
 
     // If there is more than one process, kill the first one (with the lowest PID)
     if mpv_shelf_processes.len() > 1 {
-        let (pid, _process) = mpv_shelf_processes[0];
+        let (pid, _process) = mpv_shelf_processes[1];
         sys.process(*pid).unwrap().kill();
     }
+
+    return true;
 }
