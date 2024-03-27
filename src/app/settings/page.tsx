@@ -2,9 +2,8 @@
 
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
-import { set, z } from 'zod'
+import { z } from 'zod'
 import { closeDatabase, deleteProfile, getCurrentUserGlobal, getUserSettings, getUsers, setCurrentUserGlobal, turnOnPin, updateProfilePicture, updateSettings, updateUserPin } from '../../../lib/prisma-commands'
-import { useTheme } from 'next-themes'
 import { User } from '@prisma/client';
 import {
     Tooltip,
@@ -24,7 +23,6 @@ import { open } from '@tauri-apps/api/dialog'
 import { UserAvatar } from '../profiles/_components/user-avatar'
 
 const formSchema = z.object({
-    theme: z.enum(['Light', 'Dark']),
     fontSize: z.enum(['Small', 'Medium', 'Large', 'XLarge']),
     animations: z.enum(['On', 'Off']),
     autoRename: z.enum(['On', 'Off']),
@@ -37,10 +35,8 @@ export default function Settings() {
 
 
     const { toast } = useToast();
-    const { setTheme } = useTheme();
 
     const [formState, setFormState] = useState({
-        theme: 'Light',
         fontSize: 'Large',
         animations: 'On',
         autoRename: 'Off',
@@ -67,7 +63,6 @@ export default function Settings() {
         // Collect form data directly from the form elements
         const formData = new FormData(e.currentTarget);
         const formValues = {
-            theme: formData.get('theme'),
             fontSize: formData.get('fontSize'),
             animations: formData.get('animations'),
             autoRename: formData.get('autoRename'),
@@ -423,57 +418,6 @@ export default function Settings() {
                         <ul className='flex flex-col gap-3 p-2'>
                             <li className='flex h-fit w-full bg-muted'>
                                 <div className='flex w-1/2 items-center justify-start gap-1'>
-                                    <h1 className='select-none font-medium'>Theme</h1>
-                                    <AnimatePresence mode='wait'>
-                                        {formState.theme === "Light" ? (
-                                            <motion.div
-                                                key="light"
-                                                animate={formState.animations === "On" ? { scale: 1.05 } : undefined}
-                                                initial={formState.animations === "On" ? { scale: 0.95 } : undefined}
-                                                exit={formState.animations === "On" ? { scale: 0.95 } : undefined}
-                                                transition={formState.animations === "On" ? { duration: 0.5 } : undefined}
-                                            >
-                                                <Sun className={cn('h-auto w-4 cursor-pointer',
-                                                    formState?.fontSize === "Medium" && 'h-auto w-5',
-                                                    formState?.fontSize === "Large" && 'h-auto w-6',
-                                                    formState?.fontSize === "XLarge" && 'h-auto w-7'
-                                                )} />
-                                            </motion.div>
-                                        ) : (
-                                            <motion.div
-                                                animate={formState.animations === "On" ? { scale: 1.05 } : undefined}
-                                                initial={formState.animations === "On" ? { scale: 0.95 } : undefined}
-                                                exit={formState.animations === "On" ? { scale: 0.95 } : undefined}
-                                                transition={formState.animations === "On" ? { duration: 0.5 } : undefined}
-                                            >
-                                                <Moon className={cn('h-auto w-4 cursor-pointer',
-                                                    formState?.fontSize === "Medium" && 'h-auto w-5',
-                                                    formState?.fontSize === "Large" && 'h-auto w-6',
-                                                    formState?.fontSize === "XLarge" && 'h-auto w-7'
-                                                )} />
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-
-
-                                </div>
-                                <select className='w-1/2 cursor-pointer rounded-sm bg-accent font-medium' name='theme'
-                                    value={formState.theme}
-                                    onChange={(e) => {
-                                        setFormState({ ...formState, theme: e.target.value })
-                                        setTheme(e.target.value.toLowerCase());
-
-                                    }}
-                                    onLoad={(e) => {
-                                        setTheme(formState.theme);
-                                    }}
-                                >
-                                    <option className='font-medium'>Light</option>
-                                    <option className='font-medium'>Dark</option>
-                                </select>
-                            </li>
-                            <li className='flex h-fit w-full bg-muted'>
-                                <div className='flex w-1/2 items-center justify-start gap-1'>
                                     <h1 className='select-none font-medium'>Font Size</h1>
                                     <ALargeSmall className={cn('h-auto w-4 cursor-pointer',
                                         formState?.fontSize === "Medium" && 'h-auto w-5',
@@ -495,7 +439,7 @@ export default function Settings() {
                             </li>
                             <li className='flex h-fit w-full bg-muted'>
                                 <div className='flex w-1/2 items-center justify-start gap-1'>
-                                    <h1 className='select-none font-medium'>Animations</h1>
+                                    <h1 className='select-none font-medium'>Reduce Motion</h1>
                                     <motion.div
                                         whileHover={formState.animations === "On" ? { scale: 1.2 } : undefined}
                                         whileTap={formState.animations === "On" ? { scale: 0.8 } : undefined}

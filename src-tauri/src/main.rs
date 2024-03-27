@@ -51,6 +51,7 @@ fn main() {
     fn hack_builder(tray: SystemTray) {
         tauri::Builder::default()
             .setup(|app| {
+                close_open_mpv_shelf_instance();
                 match app.get_window("main") {
                     Some(window) => {
                         window.center().unwrap();
@@ -355,7 +356,23 @@ fn check_for_mpv() {
     }
 }
 
-// mal
-// async fn my_anime_list() {
+fn close_open_mpv_shelf_instance() {
+    let mut sys = System::new_all();
 
-// }
+    sys.refresh_all();
+
+    let mut mpv_shelf_processes: Vec<_> = sys
+        .processes()
+        .iter()
+        .filter(|(_pid, process)| process.name().to_lowercase().contains("mpv-shelf"))
+        .collect();
+
+    mpv_shelf_processes.sort_by_key(|(pid, _process)| *pid);
+    println!("{:?}", mpv_shelf_processes.len());
+
+    // If there is more than one process, kill the first one (with the lowest PID)
+    if mpv_shelf_processes.len() > 1 {
+        let (pid, _process) = mpv_shelf_processes[0];
+        sys.process(*pid).unwrap().kill();
+    }
+}

@@ -344,7 +344,6 @@ export async function updateSettings({
 
     await db.execute(`
     CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL UNIQUE, 
-    theme TEXT NOT NULL, 
     fontSize TEXT NOT NULL, 
     animations TEXT NOT NULL, 
     autoRename TEXT NOT NULL, 
@@ -354,15 +353,14 @@ export async function updateSettings({
     });
 
     await db.execute(`
-        INSERT INTO settings (userId, theme, fontSize, animations, autoRename, usePin)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO settings (userId, fontSize, animations, autoRename, usePin)
+        VALUES ($1, $2, $3, $4, $5)
         ON CONFLICT(userId) DO UPDATE SET
-        theme = excluded.theme,
         fontSize = excluded.fontSize,
         animations = excluded.animations,
         autoRename = excluded.autoRename,
         usePin = excluded.usePin
-    `, [userId, formData.theme, formData.fontSize, formData.animations, formData.autoRename, formData.usePin]).catch((e) => {
+    `, [userId, formData.fontSize, formData.animations, formData.autoRename, formData.usePin]).catch((e) => {
         console.log("error", e);
     });
 
@@ -391,13 +389,12 @@ export async function getUserSettings({
     try {
 
         await db.execute(`
-    CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL UNIQUE, 
-    theme TEXT NOT NULL, 
-    fontSize TEXT NOT NULL, 
-    animations TEXT NOT NULL, 
-    autoRename TEXT NOT NULL, 
-    usePin TEXT NOT NULL,
-    FOREIGN KEY (userId) REFERENCES user(id))`).catch((e) => {
+        CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL UNIQUE, 
+            fontSize TEXT NOT NULL, 
+            animations TEXT NOT NULL, 
+            autoRename TEXT NOT NULL, 
+            usePin TEXT NOT NULL,
+            FOREIGN KEY (userId) REFERENCES user(id))`).catch((e) => {
             console.log("error", e);
         });
 

@@ -35,13 +35,9 @@ export default function RootLayout({
       <body className={`${noto.className} subpixel-antialiased overflow-y-hidden`}
         style={{ scrollbarGutter: "stable" }}
       >
-        <ThemeProvider defaultTheme="light" forcedTheme="light" >
-          <Navbar />
-
-          {children}
-
-          <Toaster />
-        </ThemeProvider>
+        <Navbar />
+        {children}
+        <Toaster />
       </body>
     </html>
   );

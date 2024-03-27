@@ -1,7 +1,7 @@
 import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
 import { FileEntry, readDir } from "@tauri-apps/api/fs";
 import { useEffect, useState } from "react";
-import { addFolder, closeDatabase, deleteFolder, getCurrentUserGlobal, getFolders, getUserScrollY, getUserSettings, getUsers, getVideo, unwatchVideo, updateFolderExpanded, updateUserScrollY, updateVideoWatched, userGetAllVideos } from '../../../../lib/prisma-commands';
+import { closeDatabase, deleteFolder, getFolders, getVideo, updateFolderExpanded, updateUserScrollY, updateVideoWatched, userGetAllVideos } from '../../../../lib/prisma-commands';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -15,8 +15,8 @@ import {
 import { cn } from "@/lib/utils";
 import { Captions, ChevronDown, ChevronUp, CornerLeftDown, Eye, EyeOff, Film, Folder, FolderInput, FolderPlus, Folders, Trash2, VideoIcon, } from 'lucide-react';
 import { invoke } from "@tauri-apps/api/tauri";
-import { number, set, string } from 'zod';
-import { AnimatePresence, motion, useForceUpdate, useMotionValueEvent, useScroll } from 'framer-motion';
+import { string } from 'zod';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from "next/navigation";
 import { SettingSchema } from "@/app/settings/page";
 

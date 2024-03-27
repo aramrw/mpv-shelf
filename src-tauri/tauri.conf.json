@@ -7,14 +7,14 @@
     "distDir": "../out"
   },
   "package": {
-    "productName": "Mpv Shelf",
+    "productName": "mpv-shelf",
     "version": "0.4.2"
   },
   "tauri": {
     "systemTray": {
       "iconAsTemplate": true,
       "iconPath": "icons/icon.png",
-      "title": "Mpv Shelf"
+      "title": "mpv-shelf"
     },
     "allowlist": {
       "all": false,
@@ -125,7 +125,7 @@
         "signingIdentity": null
       },
       "resources": [],
-      "shortDescription": "Cross platform folder wrapper for mpv.",
+      "shortDescription": "",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,

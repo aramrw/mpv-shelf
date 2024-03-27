@@ -1,28 +1,16 @@
 "use client"
 
 import { Button } from '@/components/ui/button'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { open } from '@tauri-apps/api/dialog';
-import { addFolder, closeDatabase, deleteFolder, getCurrentUserGlobal, getFolders, getUserScrollY, getUserSettings, getUsers, getVideo, unwatchVideo, updateFolderExpanded, updateUserScrollY, updateVideoWatched, userGetAllVideos } from '../../../lib/prisma-commands';
-import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
-import { Captions, ChevronDown, ChevronUp, CornerLeftDown, Eye, EyeOff, Film, Folder, FolderInput, FolderPlus, Folders, Trash2, VideoIcon, } from 'lucide-react';
-import { FileEntry, readDir } from '@tauri-apps/api/fs'
+import { addFolder, closeDatabase, getCurrentUserGlobal, getFolders, getUserScrollY, getUserSettings, getUsers, updateUserScrollY } from '../../../lib/prisma-commands';
+import type { User } from "@prisma/client";
+import { FolderPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { invoke } from '@tauri-apps/api/tauri';
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'framer-motion';
-import {
-    ContextMenu,
-    ContextMenuContent,
-    ContextMenuItem,
-    ContextMenuSubTrigger,
-    ContextMenuTrigger,
-} from "@/components/ui/context-menu"
 import { SettingSchema } from '../settings/page';
-import { ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent } from '@radix-ui/react-context-menu';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/use-toast';
-import { number, set, string } from 'zod';
-import { finished } from 'stream';
 import FolderList from './_components/folder-list';
 // import { WebviewWindow, appWindow } from "@tauri-apps/api/window"
 
