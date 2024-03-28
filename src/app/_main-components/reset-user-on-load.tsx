@@ -10,7 +10,7 @@ export default function ResetUserOnLoad() {
     let router = useRouter();
 
     useEffect(() => {
-        console.log('resetting user on load');
+        //console.log('resetting user on load');
         //router.prefetch('/login');
         closeDatabase().then(() => {
             setCurrentUserGlobal({ userId: -1 }).then(() => {

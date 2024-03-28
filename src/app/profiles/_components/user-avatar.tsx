@@ -19,7 +19,7 @@ export function UserAvatar({
 }) {
     const pathname = usePathname();
 
-    console.log("userAvatar");
+    //console.log("userAvatar");
 
     return (
         <Avatar className={cn("h-auto w-40 text-xl font-medium rounded-sm md:w-52 lg:w-64 xl:w-80 flex justify-center items-center outline drop-shadow-lg shadow-md text-background",

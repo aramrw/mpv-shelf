@@ -22,6 +22,8 @@ import { SettingSchema } from "@/app/settings/page";
 
 let supportedVideoFormats = ['mp4', 'mkv', 'avi', 'mov', 'wmv', 'flv', 'webm', 'vob', 'ogv', 'ogg', 'drc', 'gif', 'gifv', 'mng', 'avi', 'mov', 'qt', 'wmv', 'yuv', 'rm', 'rmvb', 'asf', 'amv', 'mp4', 'm4p', 'm4v', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'mpg', 'mpeg', 'm2v', 'm4v', 'svi', '3gp', '3g2', 'mxf', 'roq', 'nsv', 'flv', 'f4v', 'f4p', 'f4a', 'f4b'];
 
+let supportedSubtitleFormats = ['srt', 'ass', 'vtt', 'stl', 'scc', 'ttml'];
+
 
 const FolderList = (
     { folderPath, asChild, userSettings, currentUser, folderPaths, parentFolderPaths, setFolderPathsHook, setParentFolderPathsHook }:
@@ -57,7 +59,7 @@ const FolderList = (
                 //console.log("res:", res);
                 const videoFiles = res.filter(file => supportedVideoFormats.includes(file.path.replace(/^.*\./, '')) && !file.children);
                 let filteredVideos = videoFiles.filter(video => video !== null && video !== undefined) as FileEntry[];
-                const subtitleFiles = res.filter(file => file.path.split('.').pop() === 'srt');
+                const subtitleFiles = res.filter(file => supportedSubtitleFormats.some(format => format === file.path.split('.').pop()));
                 const folders = res.filter(file => file.children);
 
                 //let uniqueFolders: FileEntry[] = [];
@@ -143,7 +145,23 @@ const FolderList = (
             updateFolderExpanded({ folderPath: folderPath, expanded: expanded, userId: currentUser?.id, asChild: asChild || false }).then(() => {
             });
         }
-    }, [asChild, expanded, finishedSettingFiles, folderPath]);
+    }, [asChild, expanded, finishedSettingFiles]);
+
+    useEffect(() => {
+        if (subtitleFiles.length > 0 && userSettings?.autoRename === "On") {
+            //console.log(folderPath);
+            const subPaths: string[] = [];
+            const vidPaths: string[] = [];
+            for (const sub of subtitleFiles) {
+                subPaths.push(sub.path);
+            }
+
+            for (const vid of prismaVideos) {
+                vidPaths.push(vid.path);
+            }
+            invoke("rename_subs", { subPaths: JSON.stringify(subPaths), vidPaths: JSON.stringify(vidPaths) });
+        }
+    }, [subtitleFiles, prismaVideos, userSettings?.autoRename]);
 
     // Fetching videos information
     useEffect(() => {

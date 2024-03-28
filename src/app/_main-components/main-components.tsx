@@ -34,7 +34,7 @@ export function Navbar() {
         };
 
         const close_db = listen("quit_app", () => {
-            console.log("quitting app");
+            //console.log("quitting app");
             closeDatabase().then(() => {
                 emit("db_closed");
             })
