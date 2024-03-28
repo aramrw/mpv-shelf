@@ -7,14 +7,12 @@ use random_color::color_dictionary::{ColorDictionary, ColorInformation};
 #[allow(unused_imports)]
 use random_color::{Color, Luminosity, RandomColor};
 use serde::{Deserialize, Serialize};
-use serde_json::{from_str, json};
 //use sqlx::migrate::Migrate;
 use sqlx::{Connection, SqliteConnection};
 //use tauri_plugin_oauth::start;
 //use env_file_reader::read_file;
 use mal_api::{oauth::RedirectResponse, prelude::*};
 use std::collections::HashMap;
-use std::fmt::format;
 use std::io;
 use std::io::{stdout, Write};
 use std::path::Path;
@@ -42,7 +40,7 @@ struct Global {
 
 #[derive(Debug, Deserialize)]
 struct StringPath {
-    path: String,
+    _path: String,
 }
 
 fn main() {

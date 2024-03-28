@@ -76,7 +76,7 @@ const FolderList = (
 
     // Get the current folder color from the db 
     useEffect(() => {
-        if (currentUser) {
+        if (currentUser && folderPath) {
             setIsInvoking(true);
             getFolders({ userId: currentUser.id }).then((folders: PrismaFolder[]) => {
                 if (folders && folders.length > 0) {
@@ -94,11 +94,11 @@ const FolderList = (
                 setIsInvoking(false)
             });
         }
-    }, [folderPath]);
+    }, [currentUser, folderPath]);
 
     // Check if any videos in this folder were watched recently
     useEffect(() => {
-        if (currentUser) {
+        if (currentUser && folderPath) {
             userGetAllVideos({ userId: currentUser?.id }).then((videos) => {
                 if (videos && videos.length > 0) {
                     let sortedVideos = videos.sort((a, b) => {
@@ -137,7 +137,7 @@ const FolderList = (
                 setIsRecentlyWatched(false); // Set to false in case of error
             });
         }
-    }, [folderPath]);
+    }, [currentUser, folderPath]);
 
     // Update the folder expanded state in the db when the user expands or collapses a folder
     useEffect(() => {
@@ -145,7 +145,7 @@ const FolderList = (
             updateFolderExpanded({ folderPath: folderPath, expanded: expanded, userId: currentUser?.id, asChild: asChild || false }).then(() => {
             });
         }
-    }, [asChild, expanded, finishedSettingFiles]);
+    }, [asChild, currentUser, folderPath, expanded, finishedSettingFiles]);
 
     // rename subtitles if the auto rename setting is on
     useEffect(() => {
@@ -183,7 +183,7 @@ const FolderList = (
                     setIsInvoking(false);
                 });
         }
-    }, [files, finishedSettingFiles]);
+    }, [currentUser, files, finishedSettingFiles]);
 
     // Check if video is watched
     const handleCheckWatched = (file: FileEntry) => {

@@ -492,15 +492,20 @@ export default function Settings() {
                                             formState?.fontSize === "XLarge" && 'text-xl',
                                         )}>
                                             <div className='font-medium'>
-                                                <span className='font-bold'>
-                                                    Renames subtitle files to match video.
+                                                <span className='rounded-sm bg-accent px-1 font-bold'>
+                                                    Renames subtitle files to match videos
                                                 </span>
                                                 <br />
                                                 <span className={cn('font-bold',
                                                     formState?.fontSize === "Medium" && 'text-md',
                                                     formState?.fontSize === "Large" && 'text-lg',
                                                     formState?.fontSize === "XLarge" && 'text-xl',
-                                                )}>Note:</span> Subtitle files must be in the <b>same directory</b> as the video file,
+                                                )}>
+                                                    <span className='pr-1 underline'>Note:</span>
+                                                </span>
+                                                <span className='font-semibold'>
+                                                    Subtitle files must be in the same directory as the video file
+                                                </span>,
                                                 <br />
                                                 as mpv auto loads subtitles if the names are the same.
                                             </div>
