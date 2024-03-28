@@ -185,6 +185,8 @@ fn rename_subs(sub_paths: String, vid_paths: String) {
     let mut current_path = "".to_string();
     let mut new_sub_names: Vec<String> = Vec::new();
 
+    //println!("{:?}", vid_v);
+
     vid_v.iter().for_each(|path| match path.rsplit_once("\\") {
         Some((dir, filename)) => {
             //println!("Directory: {}, Filename: {}", dir, filename)
@@ -199,22 +201,23 @@ fn rename_subs(sub_paths: String, vid_paths: String) {
 
     sub_v.iter().for_each(|path| match path.rsplit_once("\\") {
         Some((_dir, filename)) => {
-            //println!("Directory: {}, Filename: {}", dir, filename)
+            //println!("Directory: {}, Filename: {}", _dir, filename);
             sub_names.push(filename.to_string());
         }
         None => println!("Separator not found in path: {}", path),
     });
 
     if sub_names.len() > 0 && vid_names.len() > 0 {
-        let first_sub_name = sub_names[0].rsplit_once(".").unwrap();
-        let first_video_name = vid_names[0].rsplit_once(".").unwrap();
+        let first_sub_name = sub_names[sub_names.len() - 1].rsplit_once(".").unwrap();
+        let first_video_name = vid_names[vid_names.len() - 1].rsplit_once(".").unwrap();
         if first_sub_name.0 == first_video_name.0 {
             //println!("Names are the same!");
             return;
         }
     }
 
-    if vid_names.len() > 0 {
+    if sub_names.len() > 0 && vid_names.len() > 0 {
+        //println!("{:?}", vid_names);
         sub_names
             .iter()
             .enumerate()
@@ -224,28 +227,34 @@ fn rename_subs(sub_paths: String, vid_paths: String) {
                         let vid_name_without_type = &vid_names[index].split_once(".").unwrap();
                         new_sub_names.push(format!("{}.{}", vid_name_without_type.0, file_type));
                     } else {
-                        println!("Index {} is out of bounds for vid_names", index);
+                        println!(
+                            "Index {} is out of bounds for vid_names: {}",
+                            index,
+                            vid_names.len()
+                        );
                     }
                 }
                 None => println!("Separator `.` not found in sub: {}", sub),
             });
-    }
 
-    if new_sub_names.len() > 0 && new_sub_names[0] != sub_v[0] {
-        sub_v
-            .iter()
-            .enumerate()
-            .for_each(|(index, path)| match path.rsplit_once("\\") {
-                Some((path, _old_name)) => {
-                    let new_path = format!("{}\\{}", path, new_sub_names[index]);
-                    std::fs::rename(
-                        Path::new(sub_v[index].as_str()),
-                        Path::new(new_path.as_str()),
-                    )
-                    .expect(format!("Failed to rename file at {}", path).as_str());
-                }
-                None => println!("Seperator not found in sub path {}", path),
-            });
+        if new_sub_names.len() > 0 && new_sub_names[0] != sub_v[0] {
+            sub_v
+                .iter()
+                .enumerate()
+                .for_each(|(index, path)| match path.rsplit_once("\\") {
+                    Some((path, _old_name)) => {
+                        if index < new_sub_names.len() {
+                            let new_path = format!("{}\\{}", path, new_sub_names[index]);
+                            std::fs::rename(
+                                Path::new(sub_v[index].as_str()),
+                                Path::new(new_path.as_str()),
+                            )
+                            .expect(format!("Failed to rename file at {}", path).as_str());
+                        }
+                    }
+                    None => println!("Seperator not found in sub path {}", path),
+                });
+        }
     }
 
     //println!("{:?}", new_sub_names);

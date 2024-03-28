@@ -94,7 +94,7 @@ const FolderList = (
                 setIsInvoking(false)
             });
         }
-    }, [currentUser, folderPath]);
+    }, [folderPath]);
 
     // Check if any videos in this folder were watched recently
     useEffect(() => {
@@ -137,7 +137,7 @@ const FolderList = (
                 setIsRecentlyWatched(false); // Set to false in case of error
             });
         }
-    }, [currentUser, folderPath]);
+    }, [folderPath]);
 
     // Update the folder expanded state in the db when the user expands or collapses a folder
     useEffect(() => {
@@ -145,24 +145,7 @@ const FolderList = (
             updateFolderExpanded({ folderPath: folderPath, expanded: expanded, userId: currentUser?.id, asChild: asChild || false }).then(() => {
             });
         }
-    }, [asChild, currentUser, folderPath, expanded, finishedSettingFiles]);
-
-    // rename subtitles if the auto rename setting is on
-    useEffect(() => {
-        if (subtitleFiles.length > 0 && userSettings?.autoRename === "On") {
-            //console.log(folderPath);
-            const subPaths: string[] = [];
-            const vidPaths: string[] = [];
-            for (const sub of subtitleFiles) {
-                subPaths.push(sub.path);
-            }
-
-            for (const vid of prismaVideos) {
-                vidPaths.push(vid.path);
-            }
-            invoke("rename_subs", { subPaths: JSON.stringify(subPaths), vidPaths: JSON.stringify(vidPaths) });
-        }
-    }, [subtitleFiles, prismaVideos, userSettings?.autoRename]);
+    }, [asChild, folderPath, expanded, finishedSettingFiles]);
 
     // Fetching videos information
     useEffect(() => {
@@ -184,6 +167,23 @@ const FolderList = (
                 });
         }
     }, [currentUser, files, finishedSettingFiles]);
+
+    // rename subtitles if the auto rename setting is on
+    useEffect(() => {
+        if (subtitleFiles.length > 0 && files.length > 0 && userSettings?.autoRename === "On" && expanded) {
+            //console.log(files);
+            const subPaths: string[] = [];
+            const vidPaths: string[] = [];
+            for (const sub of subtitleFiles) {
+                subPaths.push(sub.path);
+            }
+
+            for (const vid of files) {
+                vidPaths.push(vid.path);
+            }
+            invoke("rename_subs", { subPaths: JSON.stringify(subPaths), vidPaths: JSON.stringify(vidPaths) });
+        }
+    }, [subtitleFiles, files, userSettings?.autoRename, expanded]);
 
     // Check if video is watched
     const handleCheckWatched = (file: FileEntry) => {
