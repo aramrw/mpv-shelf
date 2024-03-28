@@ -1,6 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use mal_api::oauth::Authenticated;
 #[allow(unused_imports)]
 use random_color::color_dictionary::{ColorDictionary, ColorInformation};
 #[allow(unused_imports)]
@@ -10,8 +11,9 @@ use serde::{Deserialize, Serialize};
 use sqlx::{Connection, SqliteConnection};
 //use tauri_plugin_oauth::start;
 //use env_file_reader::read_file;
-
+use mal_api::{oauth::RedirectResponse, prelude::*};
 use std::collections::HashMap;
+use std::io;
 use std::io::{stdout, Write};
 use std::process::{exit, Command};
 // use std::os::windows::process;
@@ -126,7 +128,7 @@ fn main() {
                 generate_random_color,
                 generate_random_mono_color,
                 close_database,
-                //start_server
+                check_mal_config //start_server
             ])
             .build(tauri::generate_context!())
             .expect("error while building tauri application")
@@ -319,7 +321,7 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
     }
 }
 
-#[tauri::command]
+#[command]
 async fn close_database(handle: tauri::AppHandle) -> bool {
     let db_url = handle
         .path_resolver()
@@ -337,6 +339,78 @@ async fn close_database(handle: tauri::AppHandle) -> bool {
     conn.close().await.unwrap();
 
     return true;
+}
+
+#[command]
+async fn check_mal_config() {
+    let authenticated_client = OauthClient::load_from_config("./mal.toml");
+    //let mal_client_id = std::env::var("MAL_CLIENT_ID").expect("MAL_CLIENT_ID is not set");
+    //println!("{}", mal_client_id);
+
+    match authenticated_client {
+        Ok(c) => {
+            println!("An existing authorized Oauth client already exists, updating one piece.");
+            update_anime(&c).await;
+        }
+        Err(e) => {
+            println!("{}", e);
+            link_my_anime_list().await;
+        }
+    }
+}
+
+async fn link_my_anime_list() {
+    let client_id = "".to_string();
+    let client_secret = "".to_string();
+    let redirect_url = "https://github.com/aramrw/mpv-shelf".to_string();
+    let mut oauth_client =
+        OauthClient::new(&client_id, Some(&client_secret), &redirect_url).unwrap();
+    println!("Visit this URL: {}\n", oauth_client.generate_auth_url());
+
+    let mut input = String::new();
+    println!("After authorizing, please enter the URL you were redirected to: ");
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Failed to read user input");
+
+    let response = RedirectResponse::try_from(input).unwrap();
+
+    // Authentication process
+    let result = oauth_client.authenticate(response).await;
+    let authenticated_oauth_client = match result {
+        Ok(t) => {
+            println!("Got token: {:?}\n", t.get_access_token_secret());
+
+            let t = t.refresh().await.unwrap();
+            println!("Refreshed token: {:?}", t.get_access_token_secret());
+            t
+        }
+        Err(e) => panic!("Failed: {}", e),
+    };
+
+    authenticated_oauth_client
+        .save_to_config("./mal.toml")
+        .unwrap();
+
+    //let anime_api_client = AnimeApiClient::from(&authenticated_oauth_client);
+    //let _manga_api_client = MangaApiClient::from(&authenticated_oauth_client);
+}
+
+async fn update_anime(oauth_client: &OauthClient<Authenticated>) {
+    let anime_api_client = AnimeApiClient::from(oauth_client);
+    //let manga_api_client = MangaApiClient::from(oauth_client);
+    //let user_api_client = UserApiClient::from(oauth_client);
+
+    // Update One Piece episodes watched
+    // Pass the anime id to the builder.
+    let query = UpdateMyAnimeListStatus::builder(21)
+        .num_watched_episodes(1070)
+        .build()
+        .unwrap();
+    let response = anime_api_client.update_anime_list_status(&query).await;
+    if let Ok(response) = response {
+        println!("Response: {}\n", response);
+    }
 }
 
 // tray
@@ -371,7 +445,7 @@ fn close_open_mpv_shelf_instance() -> bool {
         .collect();
 
     mpv_shelf_processes.sort_by_key(|(pid, _process)| *pid);
-    println!("{:?}", mpv_shelf_processes.len());
+    //println!("{:?}", mpv_shelf_processes.len());
 
     // If there is more than one process, kill the first one (with the lowest PID)
     if mpv_shelf_processes.len() > 1 {
