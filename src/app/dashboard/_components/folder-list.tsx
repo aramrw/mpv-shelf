@@ -147,6 +147,7 @@ const FolderList = (
         }
     }, [asChild, expanded, finishedSettingFiles]);
 
+    // rename subtitles if the auto rename setting is on
     useEffect(() => {
         if (subtitleFiles.length > 0 && userSettings?.autoRename === "On") {
             //console.log(folderPath);
@@ -442,9 +443,10 @@ const FolderList = (
                                 <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 py-1.5 px-4 cursor-pointer overflow-hidden',
                                     (index === files.length - 1) && 'rounded-b-md border-none',
                                     userSettings?.animations === "Off" && 'hover:opacity-50',
-                                    index % 2 && 'brightness-110',
-                                    (!(index % 2)) && 'brightness-125',
-                                    prismaVideos.some((video) => video.path === file.path && video.watched) && 'animate-pulse shadow-lg brightness-95',
+                                    index % 2 && 'brightness-150',
+                                    (!(index % 2)) && 'brightness-[1.35]',
+                                    {/* watched video notification  */ },
+                                    prismaVideos.some((video) => video.path === file.path && video.watched) && 'shadow-md brightness-105',
                                 )}
                                     style={{
                                         ...((currentFolderColor) && index % 2 ? { backgroundColor: `${currentFolderColor}` } : {}),
@@ -492,7 +494,8 @@ const FolderList = (
                                             }
                                         }) ? (
                                             <motion.div className={cn(`flex flex-row items-center justify-center gap-1 rounded-sm px-0.5 font-bold`,
-                                                isRecentlyWatched && 'animate-pulse'
+                                                {/* watched video notification */ },
+                                                isRecentlyWatched && ''
                                             )}
                                                 key={"watched-video-file-name" + file.name + index}
                                                 initial={userSettings?.animations === "On" ? { opacity: 0, x: -20 } : undefined}

@@ -207,6 +207,15 @@ fn rename_subs(sub_paths: String, vid_paths: String) {
         None => println!("Separator not found in path: {}", path),
     });
 
+    if sub_names.len() > 0 && vid_names.len() > 0 {
+        let first_sub_name = sub_names[0].rsplit_once(".").unwrap();
+        let first_video_name = vid_names[0].rsplit_once(".").unwrap();
+        if first_sub_name.0 == first_video_name.0 {
+            //println!("Names are the same!");
+            return;
+        }
+    }
+
     if vid_names.len() > 0 {
         sub_names
             .iter()
@@ -224,7 +233,7 @@ fn rename_subs(sub_paths: String, vid_paths: String) {
             });
     }
 
-    if new_sub_names.len() > 0 {
+    if new_sub_names.len() > 0 && new_sub_names[0] != sub_v[0] {
         sub_v
             .iter()
             .enumerate()

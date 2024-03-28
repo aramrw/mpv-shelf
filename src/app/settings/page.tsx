@@ -441,7 +441,7 @@ export default function Settings() {
                             </li>
                             <li className='flex h-fit w-full bg-muted'>
                                 <div className='flex w-1/2 items-center justify-start gap-1'>
-                                    <h1 className='select-none font-medium'>Reduce Motion</h1>
+                                    <h1 className='select-none font-medium'>Animations</h1>
                                     <motion.div
                                         whileHover={formState.animations === "On" ? { scale: 1.2 } : undefined}
                                         whileTap={formState.animations === "On" ? { scale: 0.8 } : undefined}
