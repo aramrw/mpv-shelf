@@ -401,7 +401,6 @@ async fn find_anime_from_title(episode_title: String, folder_path: String) -> St
     if let Some(data) = parsed_json.get("data").and_then(|v| v.as_array()) {
         //let matcher = skim::SkimMatcherV2::default();
         let clang_matcher = clangd::ClangdMatcher::default();
-        let skim_matcher = skim::SkimScoreConfig
         let mut _best_match = None;
         let mut _highest_score = 0;
         //let current = current_episode_title.trim().to_string();
