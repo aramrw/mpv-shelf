@@ -38,8 +38,8 @@ random_color = { version = "0.8.0" }
 sysinfo = { version = "0.30.5" }
 tokio = { version = "1.36.0" }
 mal-api = { version = "2.0.0" }
-# dotenvy = { version = "0.15.7" }
-# env-file-reader = { version = "0.3.0" }
+regex = { version = "1.10.4" }
+fuzzy-matcher = { version = "0.3.7" }
 
 [dependencies.tauri-plugin-sql]
 git = "https://github.com/tauri-apps/plugins-workspace"

@@ -19,6 +19,8 @@ import { string } from 'zod';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from "next/navigation";
 import { SettingSchema } from "@/app/settings/page";
+import { AnimeData } from "@/app/page";
+import { tree } from "next/dist/build/templates/app-page";
 
 let supportedVideoFormats = ['mp4', 'mkv', 'avi', 'mov', 'wmv', 'flv', 'webm', 'vob', 'ogv', 'ogg', 'drc', 'gif', 'gifv', 'mng', 'avi', 'mov', 'qt', 'wmv', 'yuv', 'rm', 'rmvb', 'asf', 'amv', 'mp4', 'm4p', 'm4v', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'mpg', 'mpeg', 'm2v', 'm4v', 'svi', '3gp', '3g2', 'mxf', 'roq', 'nsv', 'flv', 'f4v', 'f4p', 'f4a', 'f4b'];
 
@@ -168,7 +170,7 @@ const FolderList = (
         }
     }, [currentUser, files, finishedSettingFiles]);
 
-    // rename subtitles if the auto rename setting is on
+    // rename subtitles if the auto rename setting is on + expanded
     useEffect(() => {
         if (subtitleFiles.length > 0 && files.length > 0 && userSettings?.autoRename === "On" && expanded) {
             //console.log(files);
@@ -185,11 +187,98 @@ const FolderList = (
         }
     }, [subtitleFiles, files, userSettings?.autoRename, expanded]);
 
+    // update my anime list
+    useEffect(() => {
+        if (expanded && folderPath && prismaVideos.length > 0) {
+            // get the title of each episode that is watched to update it on mal
+            let episodeNames: string[] = [];
+            let episodeNumbers: number[] = [];
+            let highestNumberEpisode: String | undefined = "";
+            for (const v of prismaVideos) {
+                if (v.watched) {
+                    let episodeN = v.path.match(/\d+/);
+                    if (episodeN) {
+                        episodeNumbers.push(Number(episodeN[0]))
+                    }
+                    let split = v.path.split("\\");
+                    let name = split[split.length - 1].split(".");
+                    episodeNames.push(name[name.length - 2]);
+
+                }
+            }
+
+            if (episodeNumbers.length > 0) {
+                episodeNumbers.sort((a, b) => b - a);
+                highestNumberEpisode = episodeNames.find(name => name.includes(episodeNumbers[0].toString()))?.toString();
+                console.log(highestNumberEpisode);
+            }
+
+            console.log(episodeNames)
+            if (episodeNames.length > 0) {
+                // extract the episode number
+                if (highestNumberEpisode) {
+                    let episodeN = highestNumberEpisode.match(/\d+/);
+                    if (episodeN) {
+                        // console.log(Number(episodeN[0]));
+                        invoke("find_anime_from_title", { episodeTitle: highestNumberEpisode, folderPath: folderPath })
+                            .then((res: any) => {
+                                if (res.includes("Error")) {
+                                    console.log("🚀 ~ .then ~ res:", res)
+                                    return;
+                                } else {
+                                    let parsedData: AnimeData = JSON.parse(res as string);
+                                    invoke("check_mal_config", { animeData: res as string, episodeNumber: Number(episodeN[0]) })
+                                    //console.log(`Anime from title: ${parsed._sources}`)ii;
+                                }
+                            });
+
+                    } else {
+                        console.log("Episode N is glitchin! " + episodeN + highestNumberEpisode);
+                    }
+
+                }
+            }
+        }
+    }, [expanded, folderPath, prismaVideos])
+
     // Check if video is watched
     const handleCheckWatched = (file: FileEntry) => {
         const video = prismaVideos.find(v => v.path === file.path && v.watched);
         return video ? !video.watched : true; // Return true if video is not found or not watched
     };
+
+    // unwatch video hook 
+    const handleUnwatchVideo = (file: FileEntry) => {
+        if (currentUser) {
+            setFinishedSettingFiles(false);
+            updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: false })
+                .then(() => {
+                    // remove the file type
+                    let split = file.name?.split(".");
+                    if (split) {
+                        let episodeN = split[split.length - 2].match(/\d+/);
+                        if (episodeN) {
+                            console.log((Number(split[split.length - 2]) - 1).toString())
+                            invoke("find_anime_from_title", { episodeTitle: split[split.length - 2], folderPath: folderPath })
+                                .then((res: any) => {
+                                    if (res.includes("Error")) {
+                                        console.log("🚀 ~ .then ~ res:", res)
+                                        return;
+                                    } else {
+                                        let parsedData: AnimeData = JSON.parse(res as string);
+                                        invoke("check_mal_config", { animeData: res as string, episodeNumber: (Number(split[split.length - 2]) - 1) })
+                                        //console.log(`Anime from title: ${parsed._sources}`);
+                                    }
+                                });
+                        }
+                    }
+                })
+                .finally(() => {
+                    setFinishedSettingFiles(true);
+                    setIsInvoking(false);
+                });
+        }
+    }
 
     return (
         <main className='my-1 h-full w-full rounded-b-md'
@@ -518,13 +607,7 @@ const FolderList = (
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         //set unwatched when user clicks on eye
-                                                        if (currentUser) {
-                                                            setFinishedSettingFiles(false);
-                                                            updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: false }).finally(() => {
-                                                                setFinishedSettingFiles(true);
-                                                                setIsInvoking(false);
-                                                            });
-                                                        }
+                                                        handleUnwatchVideo(file);
                                                     }}
                                                 >
 
@@ -609,10 +692,11 @@ const FolderList = (
                                                     onClick={() => {
                                                         setIsInvoking(true);
                                                         setFinishedSettingFiles(false);
-                                                        updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true }).finally(() => {
-                                                            setFinishedSettingFiles(true);
-                                                            setIsInvoking(false);
-                                                        });
+                                                        updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true })
+                                                            .finally(() => {
+                                                                setFinishedSettingFiles(true);
+                                                                setIsInvoking(false);
+                                                            });
                                                     }}
                                                 >
                                                     <span className={cn("",
@@ -632,11 +716,7 @@ const FolderList = (
                                                 <ContextMenuItem className='flex cursor-pointer gap-1'
                                                     onClick={(e) => {
                                                         if (currentUser) {
-                                                            setFinishedSettingFiles(false);
-                                                            updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: false }).finally(() => {
-                                                                setFinishedSettingFiles(true);
-                                                                setIsInvoking(false);
-                                                            });
+                                                            handleUnwatchVideo(file);
                                                         }
                                                     }}
                                                 >

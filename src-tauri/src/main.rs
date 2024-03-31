@@ -1,23 +1,32 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use fuzzy_matcher::skim::SkimMatcherV2;
+use fuzzy_matcher::{clangd, skim, FuzzyMatcher};
+//use mal_api::anime;
 use mal_api::oauth::Authenticated;
 #[allow(unused_imports)]
 use random_color::color_dictionary::{ColorDictionary, ColorInformation};
 #[allow(unused_imports)]
 use random_color::{Color, Luminosity, RandomColor};
+use regex::Regex;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 //use sqlx::migrate::Migrate;
 use sqlx::{Connection, SqliteConnection};
 //use tauri_plugin_oauth::start;
 //use env_file_reader::read_file;
+use core::str;
 use mal_api::{oauth::RedirectResponse, prelude::*};
 use std::collections::HashMap;
-use std::io;
+use std::fs::File;
+use std::io::{self, BufRead};
 use std::io::{stdout, Write};
 use std::path::Path;
 use std::process::{exit, Command};
+use std::thread::current;
 // use std::os::windows::process;
+use std::io::Read;
 use std::{env, vec};
 use sysinfo::System;
 #[allow(unused_imports)]
@@ -25,7 +34,6 @@ use tauri::{
     command, CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem,
 };
 use tauri::{generate_handler, Manager, Window};
-
 #[derive(Serialize, Deserialize)]
 struct User {
     id: i64,
@@ -41,6 +49,45 @@ struct Global {
 #[derive(Debug, Deserialize)]
 struct StringPath {
     _path: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+struct AnimeSeason {
+    _season: String,
+    _year: String,
+}
+
+// #[derive(Debug, Deserialize)]
+// struct AnimeType {
+//     tv: String,
+//     movie: String,
+//     ova: String,
+//     ona: String,
+//     special: String,
+//     unkown: String,
+// }
+
+// #[derive(Debug, Deserialize)]
+// struct AnimeStatus {
+//     finished: String,
+//     ongoing: String,
+//     upcoming: String,
+//     unknown: String,
+// }
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+struct Anime {
+    _source: String,
+    _title: String,
+    _anime_type: String,
+    _episodes: String,
+    _status: String,
+    _anime_season: AnimeSeason,
+    _picture: String,
+    _thumbnail: String,
+    _synonyms: Vec<String>,
+    _related_anime: Vec<String>,
+    _tags: Vec<String>,
 }
 
 fn main() {
@@ -135,7 +182,8 @@ fn main() {
                 generate_random_mono_color,
                 close_database,
                 check_mal_config,
-                rename_subs
+                rename_subs,
+                find_anime_from_title
             ])
             .build(tauri::generate_context!())
             .expect("error while building tauri application")
@@ -305,28 +353,275 @@ fn close_open_mpv_shelf_instance() -> bool {
 }
 
 // My Anime List Integration
+#[command]
+async fn find_anime_from_title(episode_title: String, folder_path: String) -> String {
+    let mut file = File::open("./anime-database.json").unwrap();
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap();
+    let parsed_json: Value = serde_json::from_str(&contents).unwrap();
+    let mut best_match_data = None;
+
+    let main_anime_name = match folder_path.rsplit_once("\\") {
+        Some((_dir, filename)) => {
+            //println!("Directory: {}, Filename: {}", dir, filename)
+            filename.to_string()
+        }
+        None => return format!("Error: Separator not found in path: {}", folder_path),
+    };
+
+    //only get name of anime
+    let current_episode_title = match episode_title.rsplitn(2, ".").last() {
+        Some(title_part) => title_part,
+        None => return format!("Error: Could not split {}!", episode_title),
+    };
+
+    // if the current episode doesn't have the anime name in it, extract the episode number
+
+    let mut episode_number: &str = "";
+    if current_episode_title.chars().all(|c| c.is_numeric()) {
+        if !current_episode_title.contains(&main_anime_name) {
+            let re = Regex::new(r"\d+").unwrap();
+            if let Some(mat) = re.find(current_episode_title) {
+                episode_number = mat.as_str()
+            } else {
+                return format!(
+                    "Error: No episode number found in {}!",
+                    current_episode_title
+                );
+            }
+        }
+    }
+
+    // stitch together the folders main anime name and the episode number
+    let new_episode_title = format!("{} {}", main_anime_name, episode_number);
+
+    // println!("Episode Number: {}", episode_number);
+    let current = current_episode_title.trim().to_string();
+
+    if let Some(data) = parsed_json.get("data").and_then(|v| v.as_array()) {
+        //let matcher = skim::SkimMatcherV2::default();
+        let clang_matcher = clangd::ClangdMatcher::default();
+        let skim_matcher = skim::SkimScoreConfig
+        let mut _best_match = None;
+        let mut _highest_score = 0;
+        //let current = current_episode_title.trim().to_string();
+
+        for anime in data {
+            let title = anime["title"].as_str().unwrap();
+            //println!("{}", title);
+            let sources = anime["sources"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|s| s.as_str().unwrap().to_string())
+                .find(|s| s.contains("myanimelist"))
+                .unwrap_or("".to_string());
+            let anime_season_vec: AnimeSeason = AnimeSeason {
+                _season: anime["animeSeason"]["season"].to_string(),
+                _year: anime["animeSeason"]["year"].to_string(),
+            };
+            let synonyms_vec: Vec<String> = anime["synonyms"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|syn| syn.as_str().unwrap().to_string())
+                .collect();
+            let related_anime_vec: Vec<String> = anime["relatedAnime"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter_map(|url| {
+                    let url_str = url.as_str().unwrap();
+                    if url_str.contains("myanimelist") {
+                        Some(url_str.to_string())
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+            let anime_tags: Vec<String> = anime["tags"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|t| t.as_str().unwrap().to_string())
+                .collect();
+
+            let anime_vec: Anime = Anime {
+                _source: sources,
+                _title: anime["title"].to_string(),
+                _anime_type: anime["type"].to_string(),
+                _episodes: anime["episodes"].to_string(),
+                _status: anime["status"].to_string(),
+                _anime_season: anime_season_vec,
+                _picture: anime["picture"].to_string(),
+                _thumbnail: anime["thumbnail"].to_string(),
+                _synonyms: synonyms_vec,
+                _related_anime: related_anime_vec,
+                _tags: anime_tags,
+            };
+
+            if episode_number == "" {
+                if title.contains("Ju") {
+                    //println!("Matching '{}' with '{}'", title, current);
+                    let score =
+                        matcher.fuzzy_match(&title.to_lowercase(), "jujutsu kaisen 0 movie");
+                    if score.is_some() {
+                        println!("Score: {:?}, {:?}", score, title);
+                    }
+                    // match matcher
+                    //     .fuzzy_match(&title.to_lowercase(), &current_episode_title.to_lowercase())
+                    // {
+                    //     Some(score) => {
+                    //         println!("Score for '{}': {}", title, score);
+                    //         if score > _highest_score {
+                    //             _highest_score = score;
+                    //             _best_match = Some(title);
+                    //             best_match_data = Some(anime_vec);
+                    //         }
+                    //     }
+                    //     None => println!("No match for '{}'", title),
+                    // }
+                }
+            } else if episode_number != "" {
+                if let Some(score) = matcher.fuzzy_match(&title, &main_anime_name) {
+                    if score > _highest_score {
+                        _highest_score = score;
+                        _best_match = Some(title);
+                        best_match_data = Some(anime_vec);
+                        println!("{}", title);
+                    }
+                }
+            } else {
+                if episode_number != "" {
+                    println!("{:?}", _best_match);
+                    return format!(
+                        "Error: Could not find data for new_episode_title: {}",
+                        new_episode_title
+                    );
+                } else {
+                    println!("{:?}", _best_match);
+                    return format!(
+                        "Error: Could not find data for current_episode_title: {}",
+                        current_episode_title
+                    );
+                }
+            }
+        }
+        match _best_match {
+            Some(ref best_match) => {
+                //println!("{}", counter);
+                println!("{:?}", best_match_data)
+            }
+            None => {
+                return format!("Error: Could not find {}!", current_episode_title);
+            }
+        }
+    } else {
+        return format!(
+            "Error: An Error occurred trying to find {}!",
+            current_episode_title
+        );
+    }
+    let data = match best_match_data {
+        Some(ref anime) => {
+            let anime_json = serde_json::to_string_pretty(&anime);
+            match anime_json {
+                Ok(anime_json) => anime_json,
+                Err(e) => format!("{}", e),
+            }
+        }
+        None => return format!("Error: Anime Data is None!"),
+    };
+
+    data
+}
+
+async fn read_toml_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
+where
+    P: AsRef<Path>,
+{
+    let file = File::open(filename)?;
+    Ok(io::BufReader::new(file).lines())
+}
 
 #[command]
-async fn check_mal_config() {
-    let authenticated_client = OauthClient::load_from_config("./mal.toml");
-    //let mal_client_id = std::env::var("MAL_CLIENT_ID").expect("MAL_CLIENT_ID is not set");
-    //println!("{}", mal_client_id);
+async fn check_mal_config(anime_data: String, episode_number: u32) {
+    if anime_data.is_empty() {
+        println!("Error: anime_data was not specified!");
+        return;
+    }
 
-    match authenticated_client {
-        Ok(c) => {
-            println!("An existing authorized Oauth client already exists, updating one piece.");
-            update_anime(&c).await;
+    // parse the anime_data json as the Anime struct
+    let data: Anime = serde_json::from_str(&anime_data).unwrap();
+    let anime_id = match data._source.rsplit_once("/") {
+        Some((_url, id)) => id,
+        None => "",
+    };
+    //println!("{:?}", anime_id);
+
+    let mut lines_vec: Vec<String> = Vec::new();
+    if let Ok(lines) = read_toml_lines("./mal.toml").await {
+        for line in lines {
+            if let Ok(token) = line {
+                if token.contains(&"mal_access_token".to_string()) {
+                    let split = token.split("=").collect::<Vec<&str>>();
+                    lines_vec.push(split[1].trim().to_string());
+                }
+                if token.contains(&"mal_refresh_token".to_string()) {
+                    let split = token.split("=").collect::<Vec<&str>>();
+                    lines_vec.push(split[1].trim().to_string());
+                }
+                if token.contains(&"mal_token_expires_at".to_string()) {
+                    let split = token.split("=").collect::<Vec<&str>>();
+                    lines_vec.push(split[1].trim().to_string());
+                }
+            }
         }
-        Err(e) => {
-            println!("{}", e);
-            link_my_anime_list().await;
+    }
+
+    lines_vec.iter_mut().for_each(|line| {
+        *line = line.trim_matches('\"').to_string();
+    });
+
+    if lines_vec.len() > 0 {
+        // println!("{:?}", lines_vec);
+
+        let client_id = "7e2bbcc2ee9bd135cc6c0bca185132ac".to_string();
+        let client_secret =
+            "af749aa2e34194d2744c0c082a0e9d7bd71732ec226d67946d82c8167e80cdcc".to_string();
+        let redirect_url = "https://github.com/aramrw/mpv-shelf".to_string();
+
+        let authenticated_client = OauthClient::load_from_values(
+            lines_vec[0].clone(),
+            lines_vec[1].clone(),
+            client_id,
+            Some(client_secret),
+            redirect_url,
+            lines_vec[2]
+                .parse::<u64>()
+                .expect("Failed to parse string to u64"),
+        );
+
+        match authenticated_client {
+            Ok(client) => {
+                println!("An existing authorized Oauth client already exists, updating one piece.");
+                if !anime_id.is_empty() {
+                    println!("Updating Anime with id: {}", anime_id);
+                    update_anime(anime_id.parse::<u32>().unwrap(), episode_number, &client).await;
+                }
+            }
+            Err(e) => {
+                println!("{}", e);
+                link_my_anime_list().await;
+            }
         }
     }
 }
 
 async fn link_my_anime_list() {
-    let client_id = "".to_string();
-    let client_secret = "".to_string();
+    let client_id = "7e2bbcc2ee9bd135cc6c0bca185132ac".to_string();
+    let client_secret =
+        "af749aa2e34194d2744c0c082a0e9d7bd71732ec226d67946d82c8167e80cdcc".to_string();
     let redirect_url = "https://github.com/aramrw/mpv-shelf".to_string();
     let mut oauth_client =
         OauthClient::new(&client_id, Some(&client_secret), &redirect_url).unwrap();
@@ -361,15 +656,19 @@ async fn link_my_anime_list() {
     //let _manga_api_client = MangaApiClient::from(&authenticated_oauth_client);
 }
 
-async fn update_anime(oauth_client: &OauthClient<Authenticated>) {
+async fn update_anime(
+    anime_id: u32,
+    episode_number: u32,
+    oauth_client: &OauthClient<Authenticated>,
+) {
     let anime_api_client = AnimeApiClient::from(oauth_client);
     //let manga_api_client = MangaApiClient::from(oauth_client);
     //let user_api_client = UserApiClient::from(oauth_client);
 
-    // Update One Piece episodes watched
+    // Update Anime from anime_id
     // Pass the anime id to the builder.
-    let query = UpdateMyAnimeListStatus::builder(21)
-        .num_watched_episodes(1070)
+    let query = UpdateMyAnimeListStatus::builder(anime_id)
+        .num_watched_episodes(episode_number)
         .build()
         .unwrap();
     let response = anime_api_client.update_anime_list_status(&query).await;

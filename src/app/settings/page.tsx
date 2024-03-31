@@ -347,7 +347,7 @@ export default function Settings() {
                                                             </Tooltip>
                                                         </TooltipProvider>
                                                     )}
-                                                    {/* <TooltipProvider>
+                                                    <TooltipProvider>
                                                         <Tooltip delayDuration={700}>
                                                             <TooltipTrigger asChild className='flex w-full cursor-pointer flex-row items-center justify-center text-base'>
                                                                 <Button variant="secondary" className={cn('select-none w-3/4 py-[1px] h-fit flex flex-row justify-center items-center rounded-sm gap-1 pb-1 bg-blue-500 text-white hover:bg-blue-400',
@@ -378,7 +378,7 @@ export default function Settings() {
                                                                 </div>
                                                             </TooltipContent>
                                                         </Tooltip>
-                                                    </TooltipProvider> */}
+                                                    </TooltipProvider>
                                                 </div>
                                             </>
                                         )}
