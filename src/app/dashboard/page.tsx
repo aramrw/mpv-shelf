@@ -14,6 +14,25 @@ import { toast } from '@/components/ui/use-toast';
 import FolderList from './_components/folder-list';
 // import { WebviewWindow, appWindow } from "@tauri-apps/api/window"
 
+export type AnimeType = 'TV' | 'MOVIE' | 'OVA' | 'ONA' | 'SPECIAL' | 'UNKOWN';
+export type AnimeStatus = | "FINISHED" | "ONGOING" | "UPCOMING" | "UNKNOWN";
+
+export type AnimeData = {
+    _source: String,
+    _title: String,
+    _anime_type: AnimeType,
+    _episodes: String,
+    _status: AnimeStatus,
+    _anime_season: [
+        _season: String,
+        _year: String
+    ]
+    _picture: String,
+    _thumbnail: String,
+    _synonyms: String[],
+    _related_anime: String[]
+    _tags: String[],
+}
 
 export default function Dashboard() {
     const [folderPaths, setFolderPaths] = useState<string[]>([]);

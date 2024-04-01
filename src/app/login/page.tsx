@@ -36,7 +36,7 @@ export default function Home() {
                 router.push('/profiles/newUser', { scroll: false });
             } else if (!isLoading && users && users?.length > 1) {
 
-                console.log("multiple users found");
+                //console.log("multiple users found");
                 getCurrentUserGlobal().then((GLOBAL_USER) => {
                     if (GLOBAL_USER && GLOBAL_USER?.userId !== -1 && users) {
                         for (const user of users) {
@@ -185,7 +185,7 @@ export default function Home() {
 
             // if its the last pin and they didnt get it right, pressing backspace will clear them all and focus the first input
             if (event.key === 'Backspace' && index === 3 && pins[index]) {
-                console.log("backspace pressed");
+                //console.log("backspace pressed");
                 setPins(Array(pinLength).fill(''));
                 (inputRefs[0].current as HTMLInputElement).focus();
             }

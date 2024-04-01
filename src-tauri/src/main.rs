@@ -18,6 +18,7 @@ use sqlx::{Connection, SqliteConnection};
 //use env_file_reader::read_file;
 use core::str;
 use mal_api::{oauth::RedirectResponse, prelude::*};
+use std::any::Any;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead};
@@ -460,26 +461,32 @@ async fn find_anime_from_title(episode_title: String, folder_path: String) -> St
             };
 
             if episode_number == "" {
-                if title.contains("Ju") {
-                    //println!("Matching '{}' with '{}'", title, current);
-                    let score =
-                        matcher.fuzzy_match(&title.to_lowercase(), "jujutsu kaisen 0 movie");
-                    if score.is_some() {
-                        println!("Score: {:?}, {:?}", score, title);
+                // remove any numbers from the title
+                let re = Regex::new(r"\d+").unwrap();
+                let mut current_title_without_numbers: Option<String> = None;
+                if let Some(mat) = re.find(current_episode_title) {
+                    current_title_without_numbers = Some(
+                        current_episode_title
+                            .replace(&mat.as_str(), "")
+                            .trim()
+                            .to_string(),
+                    );
+                }
+
+                match matcher.fuzzy_match(
+                    &title.to_lowercase(),
+                    &current_title_without_numbers
+                        .unwrap_or((&current_episode_title).to_string().to_lowercase()),
+                ) {
+                    Some(score) => {
+                        println!("Score for '{}': {}", title, score);
+                        if score > _highest_score {
+                            _highest_score = score;
+                            _best_match = Some(title);
+                            best_match_data = Some(anime_vec);
+                        }
                     }
-                    // match matcher
-                    //     .fuzzy_match(&title.to_lowercase(), &current_episode_title.to_lowercase())
-                    // {
-                    //     Some(score) => {
-                    //         println!("Score for '{}': {}", title, score);
-                    //         if score > _highest_score {
-                    //             _highest_score = score;
-                    //             _best_match = Some(title);
-                    //             best_match_data = Some(anime_vec);
-                    //         }
-                    //     }
-                    //     None => println!("No match for '{}'", title),
-                    // }
+                    None => { /*println!("No match for '{}'", title) */ }
                 }
             } else if episode_number != "" {
                 if let Some(score) = matcher.fuzzy_match(&title, &main_anime_name) {
@@ -506,26 +513,30 @@ async fn find_anime_from_title(episode_title: String, folder_path: String) -> St
                 }
             }
         }
-        match _best_match {
-            Some(ref best_match) => {
-                //println!("{}", counter);
-                println!("{:?}", best_match_data)
-            }
-            None => {
-                return format!("Error: Could not find {}!", current_episode_title);
-            }
-        }
     } else {
         return format!(
             "Error: An Error occurred trying to find {}!",
             current_episode_title
         );
     }
+
+    let new_re = Regex::new(r#"\\""#).unwrap();
+    let arabic_re = Regex::new(r"[\u0600-\u06FF]").unwrap();
+
     let data = match best_match_data {
         Some(ref anime) => {
             let anime_json = serde_json::to_string_pretty(&anime);
             match anime_json {
-                Ok(anime_json) => anime_json,
+                Ok(anime_json) => {
+                    let lines: Vec<&str> = anime_json.lines().collect();
+                    let filtered_lines: Vec<&str> = lines
+                        .into_iter()
+                        .filter(|line| !arabic_re.is_match(&line))
+                        .collect();
+                    let joined_filtered_json = filtered_lines.join("\n");
+                    let cleaned_json = new_re.replace_all(&joined_filtered_json, ""); // Replace with an empty string
+                    cleaned_json.to_string()
+                }
                 Err(e) => format!("{}", e),
             }
         }
@@ -603,9 +614,11 @@ async fn check_mal_config(anime_data: String, episode_number: u32) {
 
         match authenticated_client {
             Ok(client) => {
-                println!("An existing authorized Oauth client already exists, updating one piece.");
+                println!(
+                    "Authorized OAuth. Updating: {}/{} to episode: {}",
+                    data._title, anime_id, episode_number
+                );
                 if !anime_id.is_empty() {
-                    println!("Updating Anime with id: {}", anime_id);
                     update_anime(anime_id.parse::<u32>().unwrap(), episode_number, &client).await;
                 }
             }
@@ -614,6 +627,27 @@ async fn check_mal_config(anime_data: String, episode_number: u32) {
                 link_my_anime_list().await;
             }
         }
+    }
+}
+
+async fn update_anime(
+    anime_id: u32,
+    episode_number: u32,
+    oauth_client: &OauthClient<Authenticated>,
+) {
+    let anime_api_client = AnimeApiClient::from(oauth_client);
+    //let manga_api_client = MangaApiClient::from(oauth_client);
+    //let user_api_client = UserApiClient::from(oauth_client);
+
+    // Update Anime from anime_id
+    // Pass the anime id to the builder.
+    let query = UpdateMyAnimeListStatus::builder(anime_id)
+        .num_watched_episodes(episode_number)
+        .build()
+        .unwrap();
+    let response = anime_api_client.update_anime_list_status(&query).await;
+    if let Ok(response) = response {
+        println!("Response: {}\n", response);
     }
 }
 
@@ -653,27 +687,6 @@ async fn link_my_anime_list() {
 
     //let anime_api_client = AnimeApiClient::from(&authenticated_oauth_client);
     //let _manga_api_client = MangaApiClient::from(&authenticated_oauth_client);
-}
-
-async fn update_anime(
-    anime_id: u32,
-    episode_number: u32,
-    oauth_client: &OauthClient<Authenticated>,
-) {
-    let anime_api_client = AnimeApiClient::from(oauth_client);
-    //let manga_api_client = MangaApiClient::from(oauth_client);
-    //let user_api_client = UserApiClient::from(oauth_client);
-
-    // Update Anime from anime_id
-    // Pass the anime id to the builder.
-    let query = UpdateMyAnimeListStatus::builder(anime_id)
-        .num_watched_episodes(episode_number)
-        .build()
-        .unwrap();
-    let response = anime_api_client.update_anime_list_status(&query).await;
-    if let Ok(response) = response {
-        println!("Response: {}\n", response);
-    }
 }
 
 // ! DONT TOUCH THESE FUNCTIONS ! //
