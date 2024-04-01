@@ -220,27 +220,26 @@ const FolderList = (
                     let episodeN = highestNumberEpisode.match(/\d+/);
                     if (episodeN) {
                         // console.log(Number(episodeN[0]));
-                        invoke("find_anime_from_title", { episodeTitle: highestNumberEpisode, folderPath: folderPath })
-                            .then((res: any) => {
-                                if (res.includes("Error")) {
-                                    console.log("🚀 ~ .then ~ res:", res)
-                                    return;
-                                } else {
-                                    try {
-                                        let parsedAnimeData: AnimeData = JSON.parse(res);
-                                        console.log(parsedAnimeData);
-                                        // TODO : If MOVIE = no episode number so set it to 1.
-                                        if (parsedAnimeData._anime_type == "MOVIE") {
-                                            console.log("anime is of type movie")
-                                            invoke("check_mal_config", { animeData: res as string, episodeNumber: 1 })
-                                        } else {
-                                            //invoke("check_mal_config", { animeData: res as string, episodeNumber: Number(episodeN[0]) })
-                                        }
-                                    } catch (e) {
-                                        console.log("🚀 ~ .then ~ e:", e)
-                                    }
-                                }
-                            });
+                        // invoke("find_anime_from_title", { episodeTitle: highestNumberEpisode, folderPath: folderPath })
+                        //     .then((res: any) => {
+                        //         if (res.includes("Error")) {
+                        //             console.log("🚀 ~ .then ~ res:", res)
+                        //             return;
+                        //         } else {
+                        //             try {
+                        //                 let parsedAnimeData: AnimeData = JSON.parse(res);
+                        //                 console.log(parsedAnimeData);
+                        //                 // If MOVIE = no episode number so set it to 1.
+                        //                 if (parsedAnimeData._anime_type == "MOVIE") {
+                        //                     invoke("check_mal_config", { animeData: res as string, episodeNumber: 1 })
+                        //                 } else {
+                        //                     invoke("check_mal_config", { animeData: res as string, episodeNumber: Number(episodeN[0]) })
+                        //                 }
+                        //             } catch (e) {
+                        //                 console.log("🚀 ~ .then ~ e:", e)
+                        //             }
+                        //         }
+                        //     });
 
                     } else {
                         console.log("Episode N is glitchin! " + episodeN + highestNumberEpisode);
@@ -268,7 +267,6 @@ const FolderList = (
                     if (split) {
                         let episodeN = split[split.length - 2].match(/\d+/);
                         if (episodeN) {
-                            console.log((Number(split[split.length - 2]) - 1).toString())
                             invoke("find_anime_from_title", { episodeTitle: split[split.length - 2], folderPath: folderPath })
                                 .then((res: any) => {
                                     if (res.includes("Error")) {
@@ -276,7 +274,7 @@ const FolderList = (
                                         return;
                                     } else {
                                         let parsedData: AnimeData = JSON.parse(res as string);
-                                        invoke("check_mal_config", { animeData: res as string, episodeNumber: (Number(split[split.length - 2]) - 1) })
+                                        invoke("check_mal_config", { animeData: res as string, episodeNumber: Number(episodeN[0]) })
                                         //console.log(`Anime from title: ${parsed._sources}`);
                                     }
                                 });
