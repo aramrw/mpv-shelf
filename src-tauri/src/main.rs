@@ -1,8 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use fuzzy_matcher::skim::SkimMatcherV2;
-use fuzzy_matcher::{clangd, skim, FuzzyMatcher};
+use fuzzy_matcher::{clangd, FuzzyMatcher};
 //use mal_api::anime;
 use mal_api::oauth::Authenticated;
 #[allow(unused_imports)]
@@ -18,14 +17,13 @@ use sqlx::{Connection, SqliteConnection};
 //use env_file_reader::read_file;
 use core::str;
 use mal_api::{oauth::RedirectResponse, prelude::*};
-use std::any::Any;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::io::{stdout, Write};
 use std::path::Path;
 use std::process::{exit, Command};
-use std::thread::current;
+
 // use std::os::windows::process;
 use std::io::Read;
 use std::{env, vec};
@@ -397,7 +395,7 @@ async fn find_anime_from_title(episode_title: String, folder_path: String) -> St
     let new_episode_title = format!("{} {}", main_anime_name, episode_number);
 
     // println!("Episode Number: {}", episode_number);
-    let current = current_episode_title.trim().to_string();
+    let _current = current_episode_title.trim().to_string();
 
     if let Some(data) = parsed_json.get("data").and_then(|v| v.as_array()) {
         //let matcher = skim::SkimMatcherV2::default();

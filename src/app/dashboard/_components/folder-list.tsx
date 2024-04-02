@@ -95,7 +95,7 @@ const FolderList = (
                 setIsInvoking(false)
             });
         }
-    }, [folderPath]);
+    }, [currentUser, folderPath]);
 
     // Check if any videos in this folder were watched recently
     useEffect(() => {
@@ -138,7 +138,7 @@ const FolderList = (
                 setIsRecentlyWatched(false); // Set to false in case of error
             });
         }
-    }, [folderPath]);
+    }, [currentUser, folderPath]);
 
     // Update the folder expanded state in the db when the user expands or collapses a folder
     useEffect(() => {
@@ -146,7 +146,7 @@ const FolderList = (
             updateFolderExpanded({ folderPath: folderPath, expanded: expanded, userId: currentUser?.id, asChild: asChild || false }).then(() => {
             });
         }
-    }, [asChild, folderPath, expanded, finishedSettingFiles]);
+    }, [asChild, folderPath, expanded, finishedSettingFiles, currentUser]);
 
     // Fetching videos information
     useEffect(() => {
