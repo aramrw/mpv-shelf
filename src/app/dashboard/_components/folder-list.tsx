@@ -1,7 +1,7 @@
 import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
 import { FileEntry, readDir } from "@tauri-apps/api/fs";
 import { useEffect, useState } from "react";
-import { closeDatabase, deleteFolder, getFolders, getVideo, updateFolderExpanded, updateUserScrollY, updateVideoWatched, userGetAllVideos } from '../../../../lib/prisma-commands';
+import { closeDatabase, deleteFolder, getFolders, getVideo, updateFolderExpanded, updateVideoWatched, userGetAllVideos } from '../../../../lib/prisma-commands';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -20,6 +20,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from "next/navigation";
 import { SettingSchema } from "@/app/settings/page";
 import { AnimeData } from "@/app/dashboard/page";
+import ParentTitleAndTags from "./parent-title-and-tags";
 
 let supportedVideoFormats = ['mp4', 'mkv', 'avi', 'mov', 'wmv', 'flv', 'webm', 'vob', 'ogv', 'ogg', 'drc', 'gif', 'gifv', 'mng', 'avi', 'mov', 'qt', 'wmv', 'yuv', 'rm', 'rmvb', 'asf', 'amv', 'mp4', 'm4p', 'm4v', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'mpg', 'mpeg', 'm2v', 'm4v', 'svi', '3gp', '3g2', 'mxf', 'roq', 'nsv', 'flv', 'f4v', 'f4p', 'f4a', 'f4b'];
 
@@ -187,66 +188,66 @@ const FolderList = (
     }, [subtitleFiles, files, userSettings?.autoRename, expanded]);
 
     // update my anime list
-    useEffect(() => {
-        if (expanded && folderPath && prismaVideos.length > 0) {
-            // get the title of each episode that is watched to update it on mal
-            let episodeNames: string[] = [];
-            let episodeNumbers: number[] = [];
-            let highestNumberEpisode: String | undefined = "";
-            for (const v of prismaVideos) {
-                if (v.watched) {
-                    let episodeN = v.path.match(/\d+/);
-                    if (episodeN) {
-                        episodeNumbers.push(Number(episodeN[0]))
-                    }
-                    let split = v.path.split("\\");
-                    let name = split[split.length - 1].split(".");
-                    episodeNames.push(name[name.length - 2]);
+    // useEffect(() => {
+    //     if (expanded && folderPath && prismaVideos.length > 0) {
+    //         // get the title of each episode that is watched to update it on mal
+    //         let episodeNames: string[] = [];
+    //         let episodeNumbers: number[] = [];
+    //         let highestNumberEpisode: String | undefined = "";
+    //         for (const v of prismaVideos) {
+    //             if (v.watched) {
+    //                 let episodeN = v.path.match(/\d+/);
+    //                 if (episodeN) {
+    //                     episodeNumbers.push(Number(episodeN[0]))
+    //                 }
+    //                 let split = v.path.split("\\");
+    //                 let name = split[split.length - 1].split(".");
+    //                 episodeNames.push(name[name.length - 2]);
 
-                }
-            }
+    //             }
+    //         }
 
-            if (episodeNumbers.length > 0) {
-                episodeNumbers.sort((a, b) => b - a);
-                highestNumberEpisode = episodeNames.find(name => name.includes(episodeNumbers[0].toString()))?.toString();
-                //console.log(highestNumberEpisode);
-            }
+    //         if (episodeNumbers.length > 0) {
+    //             episodeNumbers.sort((a, b) => b - a);
+    //             highestNumberEpisode = episodeNames.find(name => name.includes(episodeNumbers[0].toString()))?.toString();
+    //             //console.log(highestNumberEpisode);
+    //         }
 
-            //console.log(episodeNames)
-            if (episodeNames.length > 0) {
-                // extract the episode number
-                if (highestNumberEpisode) {
-                    let episodeN = highestNumberEpisode.match(/\d+/);
-                    if (episodeN) {
-                        console.log(Number(episodeN[0]));
-                        invoke("find_anime_from_title", { episodeTitle: highestNumberEpisode, folderPath: folderPath })
-                            .then((res: any) => {
-                                if (res.includes("Error")) {
-                                    console.log("🚀 ~ .then ~ res:", res)
-                                    return;
-                                } else {
-                                    try {
-                                        let parsedAnimeData: AnimeData = JSON.parse(res);
-                                        console.log(parsedAnimeData);
-                                        // If MOVIE = no episode number so set it to 1.
-                                        if (parsedAnimeData._anime_type == "MOVIE") {
-                                            invoke("check_mal_config", { animeData: res as string, episodeNumber: 1 })
-                                        } else {
-                                            invoke("check_mal_config", { animeData: res as string, episodeNumber: Number(episodeN[0]) })
-                                        }
-                                    } catch (e) {
-                                        console.log("🚀 ~ .then ~ e:", e)
-                                    }
-                                }
-                            });
-                    } else {
-                        console.log("Episode N is glitchin! " + episodeN + highestNumberEpisode);
-                    }
+    //         //console.log(episodeNames)
+    //         if (episodeNames.length > 0) {
+    //             // extract the episode number
+    //             if (highestNumberEpisode) {
+    //                 let episodeN = highestNumberEpisode.match(/\d+/);
+    //                 if (episodeN) {
+    //                     console.log(Number(episodeN[0]));
+    //                     invoke("find_anime_from_title", { episodeTitle: highestNumberEpisode, folderPath: folderPath })
+    //                         .then((res: any) => {
+    //                             if (res.includes("Error")) {
+    //                                 console.log("🚀 ~ .then ~ res:", res)
+    //                                 return;
+    //                             } else {
+    //                                 try {
+    //                                     let parsedAnimeData: AnimeData = JSON.parse(res);
+    //                                     console.log(parsedAnimeData);
+    //                                     // If MOVIE = no episode number so set it to 1.
+    //                                     if (parsedAnimeData._anime_type == "MOVIE") {
+    //                                         invoke("check_mal_config", { animeData: res as string, episodeNumber: 1 })
+    //                                     } else {
+    //                                         invoke("check_mal_config", { animeData: res as string, episodeNumber: Number(episodeN[0]) })
+    //                                     }
+    //                                 } catch (e) {
+    //                                     console.log("🚀 ~ .then ~ e:", e)
+    //                                 }
+    //                             }
+    //                         });
+    //                 } else {
+    //                     console.log("Episode N is glitchin! " + episodeN + highestNumberEpisode);
+    //                 }
 
-                }
-            }
-        }
-    }, [expanded, folderPath, prismaVideos])
+    //             }
+    //         }
+    //     }
+    // }, [expanded, folderPath, prismaVideos])
 
     // Check if video is watched
     const handleCheckWatched = (file: FileEntry) => {
@@ -288,8 +289,6 @@ const FolderList = (
     }
 
 
-
-
     return (
         <main className='my-1 h-full w-full rounded-b-md'
             key={folderPath + "main-parent-folder"}
@@ -329,154 +328,8 @@ const FolderList = (
 
                             whileHover={(userSettings?.animations === "On" && !asChild) ? { padding: "6.5px" } : undefined}
                         >
-                            {/* Displays all the tags for main parent folder. */}
-                            < div className={cn('flex flex-row items-center justify-start gap-1 font-medium text-primary text-sm text-center w-full pb-1.5 drop-shadow-md ',
-                            )}
-
-                            >
-
-
-                                {(asChild && !expanded) ? (
-                                    <motion.div className='flex items-start justify-center'
-                                        key={folderPath + "not expanded5"}
-                                        initial={userSettings?.animations === "On" ? { y: -20, opacity: 0 } : undefined}
-                                        animate={userSettings?.animations === "On" ? { y: 0, opacity: 1 } : undefined}
-                                        exit={userSettings?.animations === "On" ? { y: -20, opacity: 0 } : undefined}
-                                        transition={{ duration: 0.3, damping: 0.3 }}
-
-                                    >
-                                        <Folder className={cn('h-auto w-4',
-                                            userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                            userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                            userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                        )} />
-                                    </motion.div>
-                                ) : (
-                                    <motion.div className='flex items-start justify-center'
-                                        key={folderPath + "expanded1"}
-                                        initial={userSettings?.animations === "On" ? { y: -50, opacity: 0 } : undefined}
-                                        animate={userSettings?.animations === "On" ? { y: 0, opacity: 1 } : undefined}
-                                        exit={userSettings?.animations === "On" ? { y: -50, opacity: 0 } : undefined}
-                                        transition={{ duration: 0.7, bounce: 0.2, type: 'spring' }}
-
-                                    >
-                                        {(asChild && expanded) && (
-                                            <CornerLeftDown className={cn('h-auto w-5 px-0.5',
-                                                userSettings?.fontSize === "Medium" && 'h-auto w-6',
-                                                userSettings?.fontSize === "Large" && 'h-auto w-7',
-                                                userSettings?.fontSize === "XLarge" && 'h-auto w-8',
-                                                files.length < 0 || folders.length < 0 && "hidden"
-                                            )}
-                                            />
-                                        )}
-                                    </motion.div>
-                                )}
-
-
-                                {folders.length === 0 && files.length === 0 ?
-                                    <span className={cn('line-through',
-                                        userSettings?.fontSize === "Medium" && 'text-lg',
-                                        userSettings?.fontSize === "Large" && 'text-2xl',
-                                        userSettings?.fontSize === "XLarge" && 'text-3xl',
-                                        (userSettings?.fontSize === "Medium" && asChild) && 'text-lg',
-                                        (userSettings?.fontSize === "Large" && asChild) && 'text-xl',
-                                        (userSettings?.fontSize === "XLarge" && asChild) && 'text-2xl',
-                                    )}>{folderPath.replace(/\\/g, '/').split('/').pop()}
-                                    </span>
-                                    : (
-                                        <span className={cn('text-base font-bold',
-                                            userSettings?.fontSize === "Medium" && 'text-lg',
-                                            userSettings?.fontSize === "Large" && 'text-2xl',
-                                            userSettings?.fontSize === "XLarge" && 'text-3xl',
-                                            (userSettings?.fontSize === "Medium" && asChild) && 'text-lg',
-                                            (userSettings?.fontSize === "Large" && asChild) && 'text-xl',
-                                            (userSettings?.fontSize === "XLarge" && asChild) && 'text-2xl',
-                                        )}>
-                                            {folderPath.replace(/\\/g, '/').split('/').pop()}
-                                        </span>
-                                    )}
-                                {folders.length > 0 && (
-                                    <div className={cn('flex flex-row items-center justify-center gap-0.5 rounded-md bg-tertiary px-0.5',
-                                        asChild && 'p-0.5 brightness-[1.15]'
-                                    )}
-                                        style={{
-                                            ...(currentFolderColor ? { backgroundColor: `${currentFolderColor} ` } : {}),
-
-                                        }}
-                                    >
-                                        <Folders className={cn('h-auto w-4',
-                                            userSettings?.fontSize === "Medium" && !asChild && 'h-auto w-4',
-                                            userSettings?.fontSize === "Large" && !asChild && 'h-auto w-5',
-                                            userSettings?.fontSize === "XLarge" && !asChild && 'h-auto w-6'
-                                        )}
-
-                                        />
-                                        <span className={cn('text-xs lg:text-sm font-bold',
-                                            userSettings?.fontSize === "Medium" && !asChild && 'text-sm',
-                                            userSettings?.fontSize === "Large" && !asChild && 'text-base',
-                                            userSettings?.fontSize === "XLarge" && !asChild && 'text-lg',
-                                        )}>
-                                            {folders.length > 0 && folders.length}
-                                        </span>
-                                    </div>
-                                )}
-                                {files.length > 0 && (
-                                    <div className={cn('flex flex-row items-center justify-center text-sm rounded-md bg-tertiary px-0.5 gap-0.5 ',
-                                        asChild && 'p-0.5 brightness-[1.15]'
-
-                                    )}
-                                        style={{
-                                            ...(currentFolderColor ? { backgroundColor: `${currentFolderColor} ` } : {}),
-
-                                        }}
-                                    >
-                                        <VideoIcon className={cn('h-auto w-4',
-                                            userSettings?.fontSize === "Medium" && !asChild && 'h-auto w-4',
-                                            userSettings?.fontSize === "Large" && !asChild && 'h-auto w-5',
-                                            userSettings?.fontSize === "XLarge" && !asChild && 'h-auto w-6'
-                                        )}
-
-                                        />
-                                        <span className={cn('text-xs lg:text-sm font-bold',
-                                            userSettings?.fontSize === "Medium" && !asChild && 'text-sm',
-                                            userSettings?.fontSize === "Large" && !asChild && 'text-base',
-                                            userSettings?.fontSize === "XLarge" && !asChild && 'text-lg',
-                                        )}>
-                                            {files.length > 0 && files.length}
-                                        </span>
-
-                                    </div>
-                                )}
-                                {subtitleFiles.length > 0 && (
-                                    <div className={cn('flex flex-row items-center justify-center text-xs rounded-md bg-tertiary px-0.5 gap-0.5',
-                                        asChild && 'p-0.5 brightness-[1.15]'
-                                    )}
-                                        style={{
-                                            ...(currentFolderColor ? { backgroundColor: `${currentFolderColor} ` } : {}),
-
-                                        }}
-                                    >
-                                        <Captions className={cn('h-auto w-4',
-                                            userSettings?.fontSize === "Medium" && !asChild && 'h-auto w-4',
-                                            userSettings?.fontSize === "Large" && !asChild && 'h-auto w-5',
-                                            userSettings?.fontSize === "XLarge" && !asChild && 'h-auto w-6'
-                                        )}
-
-
-
-                                        />
-                                        <span className={cn('text-xs lg:text-sm font-bold',
-                                            userSettings?.fontSize === "Medium" && !asChild && 'text-sm',
-                                            userSettings?.fontSize === "Large" && !asChild && 'text-base',
-                                            userSettings?.fontSize === "XLarge" && !asChild && 'text-lg',
-                                        )}>
-                                            {subtitleFiles.length > 0 && subtitleFiles.length}
-                                        </span>
-                                    </div>
-                                )}
-
-
-                            </div>
+                            {/* Displays all the tags and name for main parent folder. */}
+                            <ParentTitleAndTags currentFolderColor={currentFolderColor} expanded={expanded} asChild={asChild} files={files} folderPath={folderPath} folders={folders} subtitleFiles={subtitleFiles} userSettings={userSettings} />
                             {/* Only display trashcan when its a main parent folder */}
                             {asChild !== true && (
                                 <motion.span
