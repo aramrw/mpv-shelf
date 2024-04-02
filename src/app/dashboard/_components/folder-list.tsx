@@ -20,7 +20,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter } from "next/navigation";
 import { SettingSchema } from "@/app/settings/page";
 import { AnimeData } from "@/app/dashboard/page";
-import { tree } from "next/dist/build/templates/app-page";
 
 let supportedVideoFormats = ['mp4', 'mkv', 'avi', 'mov', 'wmv', 'flv', 'webm', 'vob', 'ogv', 'ogg', 'drc', 'gif', 'gifv', 'mng', 'avi', 'mov', 'qt', 'wmv', 'yuv', 'rm', 'rmvb', 'asf', 'amv', 'mp4', 'm4p', 'm4v', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'mpg', 'mpeg', 'm2v', 'm4v', 'svi', '3gp', '3g2', 'mxf', 'roq', 'nsv', 'flv', 'f4v', 'f4p', 'f4a', 'f4b'];
 
@@ -219,28 +218,27 @@ const FolderList = (
                 if (highestNumberEpisode) {
                     let episodeN = highestNumberEpisode.match(/\d+/);
                     if (episodeN) {
-                        // console.log(Number(episodeN[0]));
-                        // invoke("find_anime_from_title", { episodeTitle: highestNumberEpisode, folderPath: folderPath })
-                        //     .then((res: any) => {
-                        //         if (res.includes("Error")) {
-                        //             console.log("🚀 ~ .then ~ res:", res)
-                        //             return;
-                        //         } else {
-                        //             try {
-                        //                 let parsedAnimeData: AnimeData = JSON.parse(res);
-                        //                 console.log(parsedAnimeData);
-                        //                 // If MOVIE = no episode number so set it to 1.
-                        //                 if (parsedAnimeData._anime_type == "MOVIE") {
-                        //                     invoke("check_mal_config", { animeData: res as string, episodeNumber: 1 })
-                        //                 } else {
-                        //                     invoke("check_mal_config", { animeData: res as string, episodeNumber: Number(episodeN[0]) })
-                        //                 }
-                        //             } catch (e) {
-                        //                 console.log("🚀 ~ .then ~ e:", e)
-                        //             }
-                        //         }
-                        //     });
-
+                        console.log(Number(episodeN[0]));
+                        invoke("find_anime_from_title", { episodeTitle: highestNumberEpisode, folderPath: folderPath })
+                            .then((res: any) => {
+                                if (res.includes("Error")) {
+                                    console.log("🚀 ~ .then ~ res:", res)
+                                    return;
+                                } else {
+                                    try {
+                                        let parsedAnimeData: AnimeData = JSON.parse(res);
+                                        console.log(parsedAnimeData);
+                                        // If MOVIE = no episode number so set it to 1.
+                                        if (parsedAnimeData._anime_type == "MOVIE") {
+                                            invoke("check_mal_config", { animeData: res as string, episodeNumber: 1 })
+                                        } else {
+                                            invoke("check_mal_config", { animeData: res as string, episodeNumber: Number(episodeN[0]) })
+                                        }
+                                    } catch (e) {
+                                        console.log("🚀 ~ .then ~ e:", e)
+                                    }
+                                }
+                            });
                     } else {
                         console.log("Episode N is glitchin! " + episodeN + highestNumberEpisode);
                     }
@@ -261,32 +259,36 @@ const FolderList = (
         if (currentUser) {
             setFinishedSettingFiles(false);
             updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: false })
-                .then(() => {
-                    // remove the file type
-                    let split = file.name?.split(".");
-                    if (split) {
-                        let episodeN = split[split.length - 2].match(/\d+/);
-                        if (episodeN) {
-                            invoke("find_anime_from_title", { episodeTitle: split[split.length - 2], folderPath: folderPath })
-                                .then((res: any) => {
-                                    if (res.includes("Error")) {
-                                        console.log("🚀 ~ .then ~ res:", res)
-                                        return;
-                                    } else {
-                                        let parsedData: AnimeData = JSON.parse(res as string);
-                                        invoke("check_mal_config", { animeData: res as string, episodeNumber: Number(episodeN[0]) })
-                                        //console.log(`Anime from title: ${parsed._sources}`);
-                                    }
-                                });
-                        }
-                    }
-                })
                 .finally(() => {
                     setFinishedSettingFiles(true);
                     setIsInvoking(false);
                 });
         }
     }
+
+    const handleUnwatchMalAnime = (file: File) => {
+        // remove the file type
+        let split = file.name?.split(".");
+        if (split) {
+            let episodeN = split[split.length - 2].match(/\d+/);
+            if (episodeN) {
+                invoke("find_anime_from_title", { episodeTitle: split[split.length - 2], folderPath: folderPath })
+                    .then((res: any) => {
+                        if (res.includes("Error")) {
+                            console.log("🚀 ~ .then ~ res:", res)
+                            return;
+                        } else {
+                            let parsedData: AnimeData = JSON.parse(res as string);
+                            invoke("check_mal_config", { animeData: res as string, episodeNumber: Number(episodeN[0]) })
+                            //console.log(`Anime from title: ${parsed._sources}`);
+                        }
+                    });
+            }
+        }
+    }
+
+
+
 
     return (
         <main className='my-1 h-full w-full rounded-b-md'

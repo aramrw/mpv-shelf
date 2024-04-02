@@ -122,7 +122,7 @@ export default function Dashboard() {
 
     // get and set the user's scroll position from the db once currentUser is set
     useEffect(() => {
-        if (scrolledDiv.current) { // dont let the user be able to scroll while its loadinh
+        if (scrolledDiv.current) { // dont let the user be able to scroll while its loading
             scrolledDiv.current.style.maxHeight = "0px";
         }
         if (currentUser && !isLoading)
