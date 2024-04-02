@@ -21,6 +21,7 @@ import { useRouter } from "next/navigation";
 import { SettingSchema } from "@/app/settings/page";
 import { AnimeData } from "@/app/dashboard/page";
 import ParentTitleAndTags from "./parent-title-and-tags";
+import Trashcan from "./trashcan";
 
 let supportedVideoFormats = ['mp4', 'mkv', 'avi', 'mov', 'wmv', 'flv', 'webm', 'vob', 'ogv', 'ogg', 'drc', 'gif', 'gifv', 'mng', 'avi', 'mov', 'qt', 'wmv', 'yuv', 'rm', 'rmvb', 'asf', 'amv', 'mp4', 'm4p', 'm4v', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'mpg', 'mpeg', 'm2v', 'm4v', 'svi', '3gp', '3g2', 'mxf', 'roq', 'nsv', 'flv', 'f4v', 'f4p', 'f4a', 'f4b'];
 
@@ -331,29 +332,7 @@ const FolderList = (
                             {/* Displays all the tags and name for main parent folder. */}
                             <ParentTitleAndTags currentFolderColor={currentFolderColor} expanded={expanded} asChild={asChild} files={files} folderPath={folderPath} folders={folders} subtitleFiles={subtitleFiles} userSettings={userSettings} />
                             {/* Only display trashcan when its a main parent folder */}
-                            {asChild !== true && (
-                                <motion.span
-                                    whileHover={userSettings?.animations === "On" ? { scale: 1.1 } : undefined}
-                                    whileTap={userSettings?.animations === "On" ? { scale: 0.9 } : undefined}
-                                    className='drop-shadow-md'
-                                >
-                                    <Trash2 className={cn('rounded-lg p-0.5 text-primary hover:bg-background h-auto w-6 drop-shadow-md',
-                                        userSettings?.fontSize === "Medium" && 'h-auto w-7',
-                                        userSettings?.fontSize === "Large" && 'h-auto w-8',
-                                        userSettings?.fontSize === "XLarge" && 'h-auto w-9'
-                                    )} onClick={(e) => {
-                                        e.stopPropagation();
-                                        // trigger the delete folder db command
-                                        if (folderPaths && parentFolderPaths) {
-                                            deleteFolder({ folderPath }).then(() => {
-                                                setFolderPathsHook(folderPaths.filter(path => path !== folderPath));
-                                                setParentFolderPathsHook(parentFolderPaths.filter(path => path !== folderPath));
-                                            });
-                                        }
-
-                                    }} />
-                                </motion.span>
-                            )}
+                            <Trashcan asChild={asChild} folderPath={folderPath} folderPaths={folderPaths} parentFolderPaths={parentFolderPaths} setFolderPathsHook={setFolderPathsHook} setParentFolderPathsHook={setParentFolderPathsHook} userSettings={userSettings} />
                         </motion.div>
                         {/* END Main Parent Folder END */}
                     </AnimatePresence>
