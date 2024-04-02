@@ -1,7 +1,7 @@
 import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
 import { FileEntry, readDir } from "@tauri-apps/api/fs";
 import { useEffect, useState } from "react";
-import { closeDatabase, deleteFolder, getFolders, getVideo, updateFolderExpanded, updateVideoWatched, userGetAllVideos } from '../../../../lib/prisma-commands';
+import { closeDatabase, getFolders, getVideo, updateFolderExpanded, updateVideoWatched, userGetAllVideos } from '../../../../lib/prisma-commands';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -13,7 +13,7 @@ import {
     ContextMenuSubContent
 } from "@/components/ui/context-menu"
 import { cn } from "@/lib/utils";
-import { Captions, ChevronDown, ChevronUp, CornerLeftDown, Eye, EyeOff, Film, Folder, FolderInput, FolderPlus, Folders, Trash2, VideoIcon, } from 'lucide-react';
+import { ChevronDown, ChevronUp, Eye, EyeOff, Film, FolderInput, } from 'lucide-react';
 import { invoke } from "@tauri-apps/api/tauri";
 import { string } from 'zod';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -21,7 +21,7 @@ import { useRouter } from "next/navigation";
 import { SettingSchema } from "@/app/settings/page";
 import { AnimeData } from "@/app/dashboard/page";
 import ParentTitleAndTags from "./parent-title-and-tags";
-import Trashcan from "./trashcan";
+import ParentTrashcan from "./trashcan";
 
 let supportedVideoFormats = ['mp4', 'mkv', 'avi', 'mov', 'wmv', 'flv', 'webm', 'vob', 'ogv', 'ogg', 'drc', 'gif', 'gifv', 'mng', 'avi', 'mov', 'qt', 'wmv', 'yuv', 'rm', 'rmvb', 'asf', 'amv', 'mp4', 'm4p', 'm4v', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'mpg', 'mpeg', 'm2v', 'm4v', 'svi', '3gp', '3g2', 'mxf', 'roq', 'nsv', 'flv', 'f4v', 'f4p', 'f4a', 'f4b'];
 
@@ -332,7 +332,7 @@ const FolderList = (
                             {/* Displays all the tags and name for main parent folder. */}
                             <ParentTitleAndTags currentFolderColor={currentFolderColor} expanded={expanded} asChild={asChild} files={files} folderPath={folderPath} folders={folders} subtitleFiles={subtitleFiles} userSettings={userSettings} />
                             {/* Only display trashcan when its a main parent folder */}
-                            <Trashcan asChild={asChild} folderPath={folderPath} folderPaths={folderPaths} parentFolderPaths={parentFolderPaths} setFolderPathsHook={setFolderPathsHook} setParentFolderPathsHook={setParentFolderPathsHook} userSettings={userSettings} />
+                            <ParentTrashcan asChild={asChild} folderPath={folderPath} folderPaths={folderPaths} parentFolderPaths={parentFolderPaths} setFolderPathsHook={setFolderPathsHook} setParentFolderPathsHook={setParentFolderPathsHook} userSettings={userSettings} />
                         </motion.div>
                         {/* END Main Parent Folder END */}
                     </AnimatePresence>

@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { deleteFolder } from '../../../../lib/prisma-commands';
 
 
-export default function Trashcan({ asChild, userSettings, folderPaths, parentFolderPaths, folderPath, setFolderPathsHook, setParentFolderPathsHook }: { asChild: boolean | undefined, userSettings: SettingSchema | undefined, folderPaths: string[] | undefined, parentFolderPaths: string[] | undefined, folderPath: string, setFolderPathsHook: (folderPaths: string[]) => void, setParentFolderPathsHook: (folderPaths: string[]) => void }) {
+export default function ParentTrashcan({ asChild, userSettings, folderPaths, parentFolderPaths, folderPath, setFolderPathsHook, setParentFolderPathsHook }: { asChild: boolean | undefined, userSettings: SettingSchema | undefined, folderPaths: string[] | undefined, parentFolderPaths: string[] | undefined, folderPath: string, setFolderPathsHook: (folderPaths: string[]) => void, setParentFolderPathsHook: (folderPaths: string[]) => void }) {
     return (
         <motion.span
             whileHover={userSettings?.animations === "On" ? { scale: 1.1 } : undefined}
