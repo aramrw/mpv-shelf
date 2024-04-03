@@ -7,7 +7,7 @@ import { ChevronDown, ChevronUp, Eye, EyeOff, Film, FolderInput } from 'lucide-r
 import { SettingSchema } from '@/app/settings/page'
 import { FileEntry } from '@tauri-apps/api/fs'
 import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
-import { closeDatabase, updateVideoWatched } from '../../../../lib/prisma-commands'
+import { closeDatabase, updateVideoWatched } from '../../../../../lib/prisma-commands'
 import { invoke } from '@tauri-apps/api/tauri'
 import { string } from 'zod';
 import { useRouter } from 'next/navigation'
