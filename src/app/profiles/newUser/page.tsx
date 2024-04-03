@@ -46,7 +46,7 @@ export default function NewUser() {
 
         useEffect(() => {
             (inputRefs[0].current as HTMLInputElement).focus();
-        }, []);
+        }, [inputRefs]);
 
         useEffect(() => {
             console.log(pins.join(''));

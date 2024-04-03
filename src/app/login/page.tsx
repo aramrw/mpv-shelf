@@ -113,7 +113,7 @@ export default function Home() {
             if (inputRefs[0] && inputRefs[0].current) {
                 (inputRefs[0].current as HTMLInputElement).focus();
             }
-        }, []);
+        }, [inputRefs]);
 
         // get the user object to display the avatar
         useEffect(() => {
