@@ -1,7 +1,7 @@
 import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
 import { FileEntry, readDir } from "@tauri-apps/api/fs";
 import { useEffect, useState } from "react";
-import { getCurrentFolderColor, getFolderColor, getFolders, getVideo, randomizeFolderColor, updateFolderExpanded, updateVideoWatched } from '../../../../lib/prisma-commands';
+import { getFolderColor, getFolders, getVideo, randomizeFolderColor, updateFolderExpanded, updateVideoWatched } from '../../../../lib/prisma-commands';
 import {
     ContextMenu,
     ContextMenuContent,

@@ -3,7 +3,7 @@ import { ContextMenu } from '@/components/ui/context-menu'
 import React from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { ChevronDown, ChevronUp, Eye, EyeOff, Film, FolderInput } from 'lucide-react'
+import { Eye, Film, } from 'lucide-react'
 import { SettingSchema } from '@/app/settings/page'
 import { FileEntry } from '@tauri-apps/api/fs'
 import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
@@ -11,6 +11,7 @@ import { closeDatabase, updateVideoWatched } from '../../../../../lib/prisma-com
 import { invoke } from '@tauri-apps/api/tauri'
 import { string } from 'zod';
 import { useRouter } from 'next/navigation'
+import VideoContextMenu from './video-context-menu'
 
 export default function VideoFile({ userSettings, file, files, currentFolderColor, prismaVideos, currentUser, index, handleUnwatchVideo, handleCheckWatched, handleWatchVideo, handleSliceToWatchVideo, handleSliceToUnwatchVideo }:
     { userSettings: SettingSchema | undefined, file: FileEntry, files: FileEntry[], currentFolderColor: string | undefined, prismaVideos: Video[], currentUser: User | undefined, index: number, handleUnwatchVideo: (file: FileEntry) => void, handleCheckWatched: (file: FileEntry) => boolean, handleWatchVideo: (file: FileEntry) => void, handleSliceToWatchVideo: (index: number) => void, handleSliceToUnwatchVideo: (index: number) => void }) {
@@ -137,149 +138,14 @@ export default function VideoFile({ userSettings, file, files, currentFolderColo
                             )}
                         </motion.div>
 
-
+                        <VideoContextMenu file={file} index={index} userSettings={userSettings} currentUser={currentUser} handleUnwatchVideo={handleUnwatchVideo} handleCheckWatched={handleCheckWatched} handleWatchVideo={handleWatchVideo} handleSliceToWatchVideo={handleSliceToWatchVideo} handleSliceToUnwatchVideo={handleSliceToUnwatchVideo} key={index + 700} />
 
                     </motion.li>
 
-                    <ContextMenuContent className={cn(``,
-                        userSettings?.animations === "Off" && ``
-                    )}
-                    >
-                        <ContextMenuItem className='cursor-pointer gap-1 font-medium'
-                            onClick={(e) => {
-                                if (e.button === 0) {
-                                    invoke('show_in_folder', { path: `${file.path}` }).then((res) => {
-                                    });
-                                }
-                            }}
-                        >
-                            <span className={cn("",
-                                userSettings?.fontSize === "Medium" && 'text-base',
-                                userSettings?.fontSize === "Large" && 'text-lg',
-                                userSettings?.fontSize === "XLarge" && 'text-xl',
-                            )}>Open In Explorer</span>
-                            <FolderInput className={cn('h-auto w-4',
-                                userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                            )} />
-                        </ContextMenuItem>
-                        <ContextMenuSeparator className='my-1 h-[1px] bg-accent' />
-                        <ContextMenuSub>
-                            <ContextMenuSubTrigger className={cn('cursor-pointer gap-1 font-medium',
-                                userSettings?.fontSize === "Medium" && 'text-base',
-                                userSettings?.fontSize === "Large" && 'text-lg',
-                                userSettings?.fontSize === "XLarge" && 'text-xl',
-                            )}
-                                inset>Watch</ContextMenuSubTrigger>
-                            <ContextMenuSubContent className="mx-2 overflow-hidden rounded-md border bg-popover p-1 font-medium text-popover-foreground shadow-md animate-in fade-in-80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
-                                {/* Renders the watched context menu sub */}
-                                {handleCheckWatched(file) ? (
-                                    <ContextMenuItem
-                                        className='flex cursor-pointer gap-1'
-                                        onClick={() => {
-                                            handleWatchVideo(file)
-                                        }}
-                                    >
-                                        <span className={cn("",
-                                            userSettings?.fontSize === "Medium" && 'text-base',
-                                            userSettings?.fontSize === "Large" && 'text-lg',
-                                            userSettings?.fontSize === "XLarge" && 'text-xl',
-                                        )}>Set Watched</span>
-
-                                        <Eye className={cn('h-auto w-4 ',
-                                            userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                            userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                            userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                        )} />
-
-                                    </ContextMenuItem>
-                                ) : (
-                                    <ContextMenuItem className='flex cursor-pointer gap-1'
-                                        onClick={(e) => {
-                                            if (currentUser) {
-                                                handleUnwatchVideo(file);
-                                            }
-                                        }}
-                                    >
-                                        <span className={cn("",
-                                            userSettings?.fontSize === "Medium" && 'text-base',
-                                            userSettings?.fontSize === "Large" && 'text-lg',
-                                            userSettings?.fontSize === "XLarge" && 'text-xl',
-                                        )}>Unwatch</span>
-
-                                        <EyeOff className={cn('h-auto w-4 ',
-                                            userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                            userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                            userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                        )} />
-                                    </ContextMenuItem>
-                                )}
-                                <ContextMenuSeparator className='my-1 h-[1px] bg-accent' />
-                                <ContextMenuItem className='cursor-pointer'
-                                    onClick={(e) => {
-                                        //e.stopPropagation();
-                                        if (currentUser?.id) {
-                                            handleSliceToUnwatchVideo(index);
-                                        }
-                                    }}
-                                >
-                                    <div className='flex gap-1'>
-                                        <span className={cn("",
-                                            userSettings?.fontSize === "Medium" && 'text-base',
-                                            userSettings?.fontSize === "Large" && 'text-lg',
-                                            userSettings?.fontSize === "XLarge" && 'text-xl',
-                                        )}>Unwatch To</span>
-                                        <div className='flex'>
-                                            <EyeOff className={cn('h-auto w-4 ',
-                                                userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                                userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                            )} />
-                                            <ChevronUp className={cn('h-auto w-4 ',
-                                                userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                                userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                            )} />
-                                        </div>
-                                    </div>
-                                </ContextMenuItem>
-                                <ContextMenuItem className='cursor-pointer'
-                                    onClick={(e) => {
-                                        //e.stopPropagation();
-                                        if (currentUser) {
-                                            handleSliceToWatchVideo(index);
-                                        }
-
-                                    }
-                                    }
-                                >
-                                    <div className='flex gap-1'>
-                                        <span className={cn("",
-                                            userSettings?.fontSize === "Medium" && 'text-base',
-                                            userSettings?.fontSize === "Large" && 'text-lg',
-                                            userSettings?.fontSize === "XLarge" && 'text-xl',
-                                        )}>Watch To</span>
-                                        <div className='flex'>
-                                            <Eye className={cn('h-auto w-4 ',
-                                                userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                                userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                            )} />
-                                            <ChevronDown className={cn('h-auto w-4 ',
-                                                userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                                                userSettings?.fontSize === "Large" && 'h-auto w-6',
-                                                userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-                                            )} />
-                                        </div>
-                                    </div>
-                                </ContextMenuItem>
-                            </ContextMenuSubContent>
-                        </ContextMenuSub>
-                    </ContextMenuContent>
                 </ContextMenuTrigger>
             </ContextMenu>
         </div>
     );
+
 }
 

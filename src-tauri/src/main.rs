@@ -18,7 +18,6 @@ use sqlx::{Connection, SqliteConnection};
 use core::str;
 use mal_api::{oauth::RedirectResponse, prelude::*};
 use std::collections::HashMap;
-use std::fmt::format;
 use std::fs::{self, File};
 use std::io::{self, BufRead};
 use std::io::{stdout, Write};
