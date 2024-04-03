@@ -51,9 +51,9 @@ const FolderList = (
         setFinishedSettingFiles(false);
         readDir(folderPath).then((res) => {
             if (res) {
-                //console.log("res:", res);
+                // console.log("res:", res);
                 const videoFiles = res.filter(file => supportedVideoFormats.includes(file.path.replace(/^.*\./, '')) && !file.children);
-                console.log(videoFiles.map(vid => vid.name));
+                // console.log(videoFiles.map(vid => vid.name));
                 let filteredVideos = videoFiles
                     .filter(video => video !== null && video !== undefined)
                     .sort((a, b) => {
@@ -61,11 +61,11 @@ const FolderList = (
                         const numB = parseInt(b.name!.replace(/[^0-9]/g, ""));
                         return numA - numB;
                     }) as FileEntry[];
-                console.log(filteredVideos.map(vid => vid.name));
+                // console.log(filteredVideos.map(vid => vid.name));
                 const subtitleFiles = res.filter(file => supportedSubtitleFormats.some(format => format === file.path.split('.').pop()));
                 const folders = res.filter(file => file.children);
 
-                //let uniqueFolders: FileEntry[] = [];
+                // let uniqueFolders: FileEntry[] = [];
 
                 setFiles(filteredVideos as FileEntry[]);
                 setFolders(folders as FileEntry[]);
@@ -155,11 +155,25 @@ const FolderList = (
     const handleWatchVideo = (file: FileEntry) => {
         updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true })
             .then(() => {
-                setPrismaVideos(prismaVideos.map(video =>
-                    video.path === file.path
-                        ? { ...video, watched: true }
-                        : video
-                ));
+                // Check if the video exists in prismaVideos
+                const videoExists = prismaVideos.some(video => video.path === file.path);
+
+                if (videoExists) {
+                    // If the video exists, update its watched property
+                    setPrismaVideos(prismaVideos.map(video =>
+                        video.path === file.path
+                            ? { ...video, watched: true }
+                            : video
+                    ));
+                } else {
+                    // If the video doesn't exist, add it to prismaVideos so it updates the ui
+                    setPrismaVideos([...prismaVideos, {
+                        path: file.path, watched: true,
+                        id: -1,
+                        userId: currentUser!.id,
+                        lastWatchedAt: null
+                    }]);
+                }
             })
     }
 
@@ -172,17 +186,32 @@ const FolderList = (
         })
     }
 
-    const handleSliceToWatchVideo = (index: number) => {
-        setPrismaVideos(prevPrismaVideos => {
-            return prevPrismaVideos.map(video => {
-                if (files.slice(0, index + 1)
-                    .some(file => file.path === video.path)) {
-                    updateVideoWatched({ videoPath: video.path, user: currentUser!, watched: true });
+    const handleSliceToWatchVideo = async (index: number) => {
+        const promises = files.slice(0, index + 1).map(file =>
+            updateVideoWatched({ videoPath: file.path, user: currentUser!, watched: true })
+        );
 
-                    // return a new video object with watched set to true back into the map of the prevPrismaVideos
+        await Promise.all(promises);
+
+        setPrismaVideos(prevPrismaVideos => {
+            const newVideos = files.slice(0, index + 1).map(file => ({
+                path: file.path, watched: true,
+                id: -1,
+                userId: currentUser!.id,
+                lastWatchedAt: null
+            }));
+
+            // Merge prevPrismaVideos and newVideos, removing duplicates
+            const mergedVideos = [...prevPrismaVideos, ...newVideos]
+                .filter((video, index, self) =>
+                    index === self.findIndex(v => v.path === video.path)
+                );
+
+            // Mark videos as watched
+            return mergedVideos.map(video => {
+                if (newVideos.some(newVideo => newVideo.path === video.path)) {
                     return { ...video, watched: true };
                 } else {
-                    // Return the video as is
                     return video;
                 }
             });
