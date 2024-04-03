@@ -195,9 +195,9 @@ export async function updateFolderExpanded({
         } else {
 
             await invoke("generate_random_mono_color").then(async (color: any) => {
-                await db.execute("INSERT into folder (expanded, path, userId, asChild, color) VALUES ($1, $2, $3, $4, $5)", [expanded ? 1 : 0, folderPath, userId, asChild ? 1 : 0, color]).then(() => {
+                await db.execute("INSERT into folder (expanded, path, userId, asChild, color) VALUES ($1, $2, $3, $4, $5)", [expanded ? 1 : 0, folderPath, userId, asChild ? 1 : 0, color])/*.then(() => {
                     // console.log ("Created New Folder: ", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
-                }).catch(async (e) => {
+                })*/.catch(async (e) => {
                     await db.close()
                     // console.log (e)
                     return false;
@@ -621,18 +621,11 @@ export async function closeDatabase() {
     await db.close();
 }
 
-// export async function appIsClosing() {
-//     const unlisten = await appWindow.onCloseRequested(async (event) => {
-//         confirm('Are you sure?').then((confirmed) => {
-//             // user did not confirm closing the window; let's prevent it
-//             if (!confirm) {
-//                 event.preventDefault();
-//             }
+export async function randomizeFolderColor({ folderPath }: { folderPath: String }) {
+    const db = await Database.load("sqlite:main.db");
 
-//         });
-//     });
-
-//     return unlisten;
-// }
-
-
+    return invoke("generate_random_mono_color").then(async (color: any) => {
+        await db.execute("UPDATE folder SET color = $1 WHERE path = $2 ", [color, folderPath]);
+        return color;
+    });
+}

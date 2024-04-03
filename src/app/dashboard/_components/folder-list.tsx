@@ -1,15 +1,16 @@
 import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
 import { FileEntry, readDir } from "@tauri-apps/api/fs";
 import { useEffect, useState } from "react";
-import { getFolders, getVideo, updateFolderExpanded, updateVideoWatched } from '../../../../lib/prisma-commands';
+import { getFolders, getVideo, randomizeFolderColor, updateFolderExpanded, updateVideoWatched } from '../../../../lib/prisma-commands';
 import {
     ContextMenu,
     ContextMenuContent,
     ContextMenuItem,
+    ContextMenuSeparator,
     ContextMenuTrigger,
 } from "@/components/ui/context-menu"
 import { cn } from "@/lib/utils";
-import { FolderInput, } from 'lucide-react';
+import { FolderInput, Palette, } from 'lucide-react';
 import { invoke } from "@tauri-apps/api/tauri";
 import { AnimatePresence, motion } from 'framer-motion';
 import { SettingSchema } from "@/app/settings/page";
@@ -393,6 +394,29 @@ const FolderList = (
                             userSettings?.fontSize === "XLarge" && 'h-auto w-7'
                         )} />
                     </ContextMenuItem>
+                    <ContextMenuSeparator />
+                    <ContextMenuItem className='flex cursor-pointer items-center gap-1 font-medium'
+                        onClick={(e) => {
+                            if (e.button === 0 && !isInvoking) {
+                                randomizeFolderColor({ folderPath: folderPath })
+                                    .then((color: any) => {
+                                        console.log(color);
+                                        setCurrentFolderColor(color);
+                                    })
+                            }
+                        }}
+                    >
+                        <span className={cn("",
+                            userSettings?.fontSize === "Medium" && 'text-base',
+                            userSettings?.fontSize === "Large" && 'text-lg',
+                            userSettings?.fontSize === "XLarge" && 'text-xl',
+                        )}>Randomize Color</span>
+                        <Palette className={cn('h-auto w-4',
+                            userSettings?.fontSize === "Medium" && 'h-auto w-5',
+                            userSettings?.fontSize === "Large" && 'h-auto w-6',
+                            userSettings?.fontSize === "XLarge" && 'h-auto w-7'
+                        )} />
+                    </ContextMenuItem>
                 </ContextMenuContent>
             </ContextMenu>
 
@@ -421,7 +445,6 @@ const FolderList = (
                                         borderBottom: `8px solid ${currentFolderColor}`
                                     } : {}),
                                 ...(expanded && !asChild ? { padding: "6.5px" } : {}),
-                                // Add more conditions as needed
                             }}
                             key={folder.name + "current-child" + index}
                             initial={userSettings?.animations === "On" ? { y: -40 } : undefined}
