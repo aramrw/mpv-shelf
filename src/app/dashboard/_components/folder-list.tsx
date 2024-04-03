@@ -1,7 +1,7 @@
 import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
 import { FileEntry, readDir } from "@tauri-apps/api/fs";
 import { useEffect, useState } from "react";
-import { getFolders, getVideo, randomizeFolderColor, updateFolderExpanded, updateVideoWatched } from '../../../../lib/prisma-commands';
+import { getCurrentFolderColor, getFolderColor, getFolders, getVideo, randomizeFolderColor, updateFolderExpanded, updateVideoWatched } from '../../../../lib/prisma-commands';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -106,7 +106,7 @@ const FolderList = (
             updateFolderExpanded({ folderPath: folderPath, expanded: expanded, userId: currentUser?.id, asChild: asChild || false }).then(() => {
             });
         }
-    }, [asChild, folderPath, expanded, finishedSettingFiles, currentUser]);
+    }, [asChild, folderPath, expanded, finishedSettingFiles, currentUser, currentFolderColor]);
 
     // Fetching videos information
     useEffect(() => {
@@ -356,7 +356,17 @@ const FolderList = (
                             )}
                             onClick={(e) => {
                                 if (files.length > 0 || folders.length > 0)
-                                    setExpanded(!expanded);
+                                    if (!expanded) {
+                                        getFolderColor({ folderPath: folderPath })
+                                            .then((color: any) => {
+                                                // console.log(color[0].color);
+                                                setCurrentFolderColor(color[0].color);
+                                            })
+
+                                    } else {
+                                        setCurrentFolderColor(undefined);
+                                    }
+                                setExpanded(!expanded);
                             }}
 
                             whileHover={(userSettings?.animations === "On" && !asChild) ? { padding: "6.5px" } : undefined}

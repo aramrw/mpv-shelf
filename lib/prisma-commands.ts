@@ -621,11 +621,17 @@ export async function closeDatabase() {
     await db.close();
 }
 
-export async function randomizeFolderColor({ folderPath }: { folderPath: String }) {
+export async function randomizeFolderColor({ folderPath }: { folderPath: string }) {
     const db = await Database.load("sqlite:main.db");
 
     return invoke("generate_random_mono_color").then(async (color: any) => {
         await db.execute("UPDATE folder SET color = $1 WHERE path = $2 ", [color, folderPath]);
         return color;
     });
+}
+
+export async function getFolderColor({ folderPath }: { folderPath: string }) {
+    const db = await Database.load("sqlite:main.db");
+
+    return await db.select("SELECT color FROM folder WHERE path = $1", [folderPath]);
 }
