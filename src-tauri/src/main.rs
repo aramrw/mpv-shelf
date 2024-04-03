@@ -744,7 +744,7 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
         .or_else(|| handle.clone().get_window("main"))
         .expect("failed to get any windows!");
 
-    let screen_res = window.current_monitor().unwrap().unwrap();
+    //let screen_res = window.current_monitor().unwrap().unwrap();
 
     let result = close_database(handle.clone()).await;
 
@@ -815,10 +815,7 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
                     .center()
                     .transparent(true)
                     .title("mpv-shelf")
-                    .inner_size(
-                        screen_res.size().width as f64,
-                        screen_res.size().height as f64,
-                    )
+                    .inner_size(800.0, 600.0)
                     .build()
                     .unwrap();
                 }
