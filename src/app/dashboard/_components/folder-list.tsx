@@ -53,7 +53,15 @@ const FolderList = (
             if (res) {
                 //console.log("res:", res);
                 const videoFiles = res.filter(file => supportedVideoFormats.includes(file.path.replace(/^.*\./, '')) && !file.children);
-                let filteredVideos = videoFiles.filter(video => video !== null && video !== undefined) as FileEntry[];
+                console.log(videoFiles.map(vid => vid.name));
+                let filteredVideos = videoFiles
+                    .filter(video => video !== null && video !== undefined)
+                    .sort((a, b) => {
+                        const numA = parseInt(a.name!.replace(/[^0-9]/g, ""));
+                        const numB = parseInt(b.name!.replace(/[^0-9]/g, ""));
+                        return numA - numB;
+                    }) as FileEntry[];
+                console.log(filteredVideos.map(vid => vid.name));
                 const subtitleFiles = res.filter(file => supportedSubtitleFormats.some(format => format === file.path.split('.').pop()));
                 const folders = res.filter(file => file.children);
 
@@ -133,13 +141,10 @@ const FolderList = (
             for (const vid of files) {
                 vidPaths.push(vid.path);
             }
-            invoke("rename_subs", { subPaths: JSON.stringify(subPaths), vidPaths: JSON.stringify(vidPaths) });
+            invoke("rename_subs", { subPaths: JSON.stringify(subPaths), vidPaths: JSON.stringify(vidPaths), folderPath: folderPath });
         }
-    }, [subtitleFiles, files, userSettings?.autoRename, expanded]);
+    }, [subtitleFiles, files, userSettings?.autoRename, expanded, folderPath]);
 
-    // update my anime list
-    useEffect(() => {
-    }, [expanded, folderPath, prismaVideos])
 
     // Check if video is watched
     const handleCheckWatched = (file: FileEntry) => {

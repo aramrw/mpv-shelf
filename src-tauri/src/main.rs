@@ -18,7 +18,8 @@ use sqlx::{Connection, SqliteConnection};
 use core::str;
 use mal_api::{oauth::RedirectResponse, prelude::*};
 use std::collections::HashMap;
-use std::fs::File;
+use std::fmt::format;
+use std::fs::{self, File};
 use std::io::{self, BufRead};
 use std::io::{stdout, Write};
 use std::path::Path;
@@ -224,91 +225,88 @@ fn generate_random_mono_color() -> String {
 
 // Subtitles
 #[command]
-fn rename_subs(sub_paths: String, vid_paths: String) {
+fn rename_subs(sub_paths: String, vid_paths: String, folder_path: String) {
     let sub_v: Vec<String> = serde_json::from_str(&sub_paths).unwrap();
     let vid_v: Vec<String> = serde_json::from_str(&vid_paths).unwrap();
-    let mut sub_names: Vec<String> = Vec::new();
-    let mut vid_names: Vec<String> = Vec::new();
-    let mut current_path = "".to_string();
-    let mut new_sub_names: Vec<String> = Vec::new();
+    let folder_name = Path::new(&folder_path)
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap();
 
-    //println!("{:?}", vid_v);
+    let first_video_file_name = Path::new(&vid_v[0])
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
 
-    vid_v.iter().for_each(|path| match path.rsplit_once("\\") {
-        Some((dir, filename)) => {
-            //println!("Directory: {}, Filename: {}", dir, filename)
-            if current_path != format!("{}\\", dir) {
-                current_path = format!("{}\\", dir);
-            }
+    let first_sub_file_name = Path::new(&vid_v[0])
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_string();
 
-            vid_names.push(filename.to_string());
-        }
-        None => println!("Separator not found in path: {}", path),
-    });
+    //println!("{}, {}", first_video_file_name, folder_name);
 
-    sub_v.iter().for_each(|path| match path.rsplit_once("\\") {
-        Some((_dir, filename)) => {
-            //println!("Directory: {}, Filename: {}", _dir, filename);
-            sub_names.push(filename.to_string());
-        }
-        None => println!("Separator not found in path: {}", path),
-    });
-
-    if sub_names.len() > 0 && vid_names.len() > 0 {
-        let first_sub_name = sub_names[sub_names.len() - 1].rsplit_once(".").unwrap();
-        let first_video_name = vid_names[vid_names.len() - 1].rsplit_once(".").unwrap();
-        if first_sub_name.0 == first_video_name.0 {
-            //println!("Names are the same!");
-            return;
-        }
+    if first_video_file_name.contains(&folder_name) && first_sub_file_name.contains(&folder_name) {
+        //println!("File's already renamed");1
+        return;
     }
 
-    if sub_names.len() > 0 && vid_names.len() > 0 {
-        //println!("{:?}", vid_names);
-        sub_names
-            .iter()
-            .enumerate()
-            .for_each(|(index, sub)| match sub.rsplit_once(".") {
-                Some((_name, file_type)) => {
-                    if index < vid_names.len() {
-                        let vid_name_without_type = &vid_names[index].split_once(".").unwrap();
-                        new_sub_names.push(format!("{}.{}", vid_name_without_type.0, file_type));
-                    } else {
-                        println!(
-                            "Index {} is out of bounds for vid_names: {}",
-                            index,
-                            vid_names.len()
-                        );
-                    }
-                }
-                None => println!("Separator `.` not found in sub: {}", sub),
-            });
+    //println!("{}", folder_path);
 
-        if new_sub_names.len() > 0 && new_sub_names[0] != sub_v[0] {
-            sub_v
-                .iter()
-                .enumerate()
-                .for_each(|(index, path)| match path.rsplit_once("\\") {
-                    Some((path, _old_name)) => {
-                        if index < new_sub_names.len() {
-                            let new_path = format!("{}\\{}", path, new_sub_names[index]);
-                            std::fs::rename(
-                                Path::new(sub_v[index].as_str()),
-                                Path::new(new_path.as_str()),
-                            )
-                            .expect(format!("Failed to rename file at {}", path).as_str());
-                        }
-                    }
-                    None => println!("Seperator not found in sub path {}", path),
-                });
-        }
+    for vid in vid_v {
+        let video_file_name = Path::new(&vid)
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string();
+        let (_video_file_name, video_file_type) = video_file_name
+            .rsplit_once(".")
+            .map(|(name, file_type)| (name.to_string(), file_type.to_string()))
+            .unwrap_or(("".to_string(), "".to_string()));
+        let video_episode = extract_episode_number(&vid).unwrap();
+        let new_video_path = format!(
+            "{}\\{} - {}.{}",
+            folder_path, folder_name, video_episode, video_file_type
+        );
+        //println!("{}", new_video_path);
+        fs::rename(vid, new_video_path).unwrap();
     }
 
-    //println!("{:?}", new_sub_names);
+    for sub in sub_v {
+        let sub_file_name = Path::new(&sub)
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string();
+        let (_sub_file_name, sub_file_type) = sub_file_name
+            .rsplit_once(".")
+            .map(|(name, file_type)| (name.to_string(), file_type.to_string()))
+            .unwrap_or(("".to_string(), "".to_string()));
+        let subtitle_episode = extract_episode_number(&sub).unwrap();
+        let new_subtitle_path = format!(
+            "{}\\{} - {}.{}",
+            folder_path, folder_name, subtitle_episode, sub_file_type
+        );
+        //println!("{}", new_subtitle_path);
+        fs::rename(sub, new_subtitle_path).unwrap();
+    }
+}
+
+fn extract_episode_number(title: &str) -> Option<u32> {
+    let re = Regex::new(r"(\d+)\D*$").unwrap();
+    re.captures_iter(title)
+        .last()
+        .and_then(|cap| cap.get(1).map(|m| m.as_str().parse::<u32>().ok()))
+        .flatten()
 }
 
 // Tray
-
 fn check_for_mpv() {
     let mut sys = System::new_all();
 
