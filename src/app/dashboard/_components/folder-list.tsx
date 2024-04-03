@@ -1,7 +1,7 @@
 import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
 import { FileEntry, readDir } from "@tauri-apps/api/fs";
 import { useEffect, useState } from "react";
-import { closeDatabase, getFolders, getVideo, updateFolderExpanded, updateVideoWatched, userGetAllVideos } from '../../../../lib/prisma-commands';
+import { getFolders, getVideo, updateFolderExpanded, updateVideoWatched } from '../../../../lib/prisma-commands';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -45,8 +45,6 @@ const FolderList = (
     const [finishedSettingFiles, setFinishedSettingFiles] = useState(false);
     const [isInvoking, setIsInvoking] = useState(false);
     const [currentFolderColor, setCurrentFolderColor] = useState<string>();
-
-    const router = useRouter();
 
     // reading directory contents
     useEffect(() => {
@@ -140,7 +138,6 @@ const FolderList = (
         }
     }, [subtitleFiles, files, userSettings?.autoRename, expanded]);
 
-
     // update my anime list
     useEffect(() => {
     }, [expanded, folderPath, prismaVideos])
@@ -204,7 +201,6 @@ const FolderList = (
             });
         });
     }
-
 
     const handleUnwatchMalAnime = (file: File) => {
         // remove the file type
@@ -371,7 +367,7 @@ const FolderList = (
                 })
             }
 
-            {/* Renders Child Files  */}
+            {/* Renders Child Folders */}
             {
                 expanded && folders.map((folder, index) => {
                     return (
