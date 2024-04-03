@@ -12,7 +12,6 @@ import { cn } from "@/lib/utils";
 import { FolderInput, } from 'lucide-react';
 import { invoke } from "@tauri-apps/api/tauri";
 import { AnimatePresence, motion } from 'framer-motion';
-import { useRouter } from "next/navigation";
 import { SettingSchema } from "@/app/settings/page";
 import { AnimeData } from "@/app/dashboard/page";
 import ParentTitleAndTags from "./parent-title-and-tags";
