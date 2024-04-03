@@ -13,7 +13,7 @@ import { FolderInput, } from 'lucide-react';
 import { invoke } from "@tauri-apps/api/tauri";
 import { AnimatePresence, motion } from 'framer-motion';
 import { SettingSchema } from "@/app/settings/page";
-import { AnimeData } from "@/app/dashboard/page";
+// import { AnimeData } from "@/app/dashboard/page";
 import ParentTitleAndTags from "./parent-title-and-tags";
 import ParentTrashcan from "./parentTrashcan";
 import VideoFile from "./_video-files/video-file";
