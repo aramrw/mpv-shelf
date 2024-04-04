@@ -36,7 +36,7 @@ export default function Home() {
                 router.push('/profiles/newUser', { scroll: false });
             } else if (!isLoading && users && users?.length > 1) {
 
-                //console.log("multiple users found");
+                console.log("multiple users found");
                 getCurrentUserGlobal().then((GLOBAL_USER) => {
                     if (GLOBAL_USER && GLOBAL_USER?.userId !== -1 && users) {
                         for (const user of users) {
@@ -113,7 +113,7 @@ export default function Home() {
             if (inputRefs[0] && inputRefs[0].current) {
                 (inputRefs[0].current as HTMLInputElement).focus();
             }
-        }, [inputRefs]);
+        }, []);
 
         // get the user object to display the avatar
         useEffect(() => {
@@ -185,7 +185,7 @@ export default function Home() {
 
             // if its the last pin and they didnt get it right, pressing backspace will clear them all and focus the first input
             if (event.key === 'Backspace' && index === 3 && pins[index]) {
-                //console.log("backspace pressed");
+                console.log("backspace pressed");
                 setPins(Array(pinLength).fill(''));
                 (inputRefs[0].current as HTMLInputElement).focus();
             }
@@ -253,10 +253,9 @@ export default function Home() {
                                         value={pin}
                                         onChange={(e) => handleChange(e.target.value, index)}
                                         onKeyDown={(e) => handleBackspace(e, index)}
-                                        className={cn("h-20 w-20 rounded border-2 border-muted text-center text-4xl md:h-28 md:w-28 md:text-6xl lg:h-36 lg:w-36 lg:text-8xl xl:h-40 xl:w-40 xl:text-8xl shadow-md font-bold",
-                                            (pins.join('').length === 4 && pins.join('') !== userPin) && "border-red-500 focus:outline-none focus:border-red-500",
+                                        className={cn("h-20 w-20 rounded border-2 border-muted text-center text-4xl md:h-[6rem] md:w-24 md:text-5xl lg:h-[6.5rem] lg:w-[6] lg:text-[3.5rem] xl:h-28 xl:w-28 xl:text-6xl shadow-md font-bold",
                                         )}
-                                        pattern="\d{4,4}"
+                                        pattern="[0-9]*" // Ensure only numbers can be inputted
                                     />
                                 ))}
                             </motion.div>

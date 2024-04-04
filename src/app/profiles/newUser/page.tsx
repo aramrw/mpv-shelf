@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createRef, useEffect, useState } from 'react'
+import React, { createRef, useEffect, useRef, useState } from 'react'
 import { createNewUser, updateSettings } from '../../../../lib/prisma-commands';
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from 'next/navigation';
@@ -46,7 +46,7 @@ export default function NewUser() {
 
         useEffect(() => {
             (inputRefs[0].current as HTMLInputElement).focus();
-        }, [inputRefs]);
+        }, []);
 
         useEffect(() => {
             console.log(pins.join(''));
@@ -66,10 +66,9 @@ export default function NewUser() {
                     exit={{ opacity: 0, y: 50 }}
                     key={1}
                 >
-                    <UserPlus className={cn("h-auto w-24 md:w-[7rem] lg:w-32 xl:w-36 text-primary",
+                    <UserPlus className={cn("h-auto w-20 md:w-[6.4rem] lg:w-[6.8rem] xl:w-28 text-primary",
 
                     )} />
-                    <h1 className="mb-3 text-4xl font-bold md:text-4xl lg:text-[3.25rem] xl:text-5xl">Create New Profile</h1>
                     <div className="my-4 flex space-x-2">
                         {pins.map((pin, index) => (
                             <input
@@ -80,7 +79,7 @@ export default function NewUser() {
                                 value={pin}
                                 onChange={(e) => handleChange(e.target.value, index)}
                                 onKeyDown={(e) => handleBackspace(e, index)}
-                                className={cn("h-20 w-20 rounded border-2 border-muted text-center text-4xl md:h-28 md:w-28 md:text-5xl lg:h-36 lg:w-36 lg:text-7xl xl:h-40 xl:w-40 xl:text-7xl shadow-md font-bold",
+                                className={cn("h-20 w-20 rounded border-2 border-muted text-center text-4xl md:h-[6rem] md:w-24 md:text-5xl lg:h-[6.5rem] lg:w-[6] lg:text-[3.5rem] xl:h-28 xl:w-28 xl:text-6xl shadow-md font-bold",
                                 )}
                                 pattern="[0-9]*" // Ensure only numbers can be inputted
                             />

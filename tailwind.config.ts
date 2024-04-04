@@ -81,6 +81,10 @@ const config = {
         'gradient-xr': {
           to: { 'background-position': '200% center' },
         },
+        "caret-blink": {
+          "0%,70%,100%": { opacity: "1" },
+          "20%,50%": { opacity: "0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -88,6 +92,7 @@ const config = {
         "spotlight": "spotlight 0.5s ease-in-out",
         "gradient-x": 'gradient-x 15s linear infinite',
         "gradient-xr": 'gradient-xr 12s linear infinite',
+        "caret-blink": "caret-blink 1.25s ease-out infinite",
       },
     },
   },
