@@ -138,10 +138,9 @@ export default function VideoFile({ userSettings, file, files, currentFolderColo
                             )}
                         </motion.div>
 
-                        <VideoContextMenu file={file} index={index} userSettings={userSettings} currentUser={currentUser} handleUnwatchVideo={handleUnwatchVideo} handleCheckWatched={handleCheckWatched} handleWatchVideo={handleWatchVideo} handleSliceToWatchVideo={handleSliceToWatchVideo} handleSliceToUnwatchVideo={handleSliceToUnwatchVideo} key={index + 700} />
-
                     </motion.li>
 
+                    <VideoContextMenu file={file} index={index} userSettings={userSettings} currentUser={currentUser} handleUnwatchVideo={handleUnwatchVideo} handleCheckWatched={handleCheckWatched} handleWatchVideo={handleWatchVideo} handleSliceToWatchVideo={handleSliceToWatchVideo} handleSliceToUnwatchVideo={handleSliceToUnwatchVideo} key={index + 700} />
                 </ContextMenuTrigger>
             </ContextMenu>
         </div>
