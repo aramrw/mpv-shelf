@@ -21,11 +21,11 @@ import { AlertNoChangesMade, ConfirmChangePin, ConfirmDeleteProfile, ConfirmExit
 import { useRouter } from 'next/navigation'
 import { open } from '@tauri-apps/api/dialog'
 import { UserAvatar } from '../profiles/_components/user-avatar'
-import { invoke } from '@tauri-apps/api/tauri'
 
 const formSchema = z.object({
     fontSize: z.enum(['Small', 'Medium', 'Large', 'XLarge']),
     animations: z.enum(['On', 'Off']),
+    autoPlay: z.enum(['On', 'Off']),
     autoRename: z.enum(['On', 'Off']),
     usePin: z.enum(['On', 'Off']),
 })
@@ -40,6 +40,7 @@ export default function Settings() {
     const [formState, setFormState] = useState({
         fontSize: 'Large',
         animations: 'On',
+        autoPlay: 'Off',
         autoRename: 'Off',
         usePin: 'On'
     });
@@ -66,6 +67,7 @@ export default function Settings() {
         const formValues = {
             fontSize: formData.get('fontSize'),
             animations: formData.get('animations'),
+            autoPlay: formData.get("autoPlay"),
             autoRename: formData.get('autoRename'),
             usePin: formData.get('usePin')
         };
@@ -473,16 +475,27 @@ export default function Settings() {
                         <h1 className='select-none rounded-t-sm bg-accent px-1 font-bold'>Application</h1>
                         <ul className='flex flex-col gap-3 p-2'>
                             <li className='flex h-fit w-full justify-between bg-muted'>
+                                <h1 className='w-full select-none font-medium'>Auto Play</h1>
+                                <select className='w-full cursor-pointer rounded-sm bg-accent font-medium' name='autoPlay'
+                                    value={formState.autoRename}
+                                    onChange={(e) => {
+                                        setFormState({ ...formState, autoRename: e.target.value });
+                                    }}
+                                >
+                                    <option className='font-medium'>On</option>
+                                    <option className='font-medium'>Off</option>
+                                </select>
+                            </li>
+                            <li className='flex h-fit w-full justify-between bg-muted'>
                                 <TooltipProvider>
                                     <Tooltip delayDuration={400}>
                                         <div className='flex w-full flex-row gap-1'>
                                             <TooltipTrigger className='flex w-full flex-row items-center justify-start gap-1'>
                                                 <Info className={cn('h-auto w-4 cursor-pointer',
-                                                    formState?.fontSize === "Medium" && 'h-auto w-5',
-                                                    formState?.fontSize === "Large" && 'h-auto w-6',
-                                                    formState?.fontSize === "XLarge" && 'h-auto w-7'
-                                                )}
-                                                />
+                                                    formState?.fontSize === "Medium" && 'h-auto w-4',
+                                                    formState?.fontSize === "Large" && 'h-auto w-4',
+                                                    formState?.fontSize === "XLarge" && 'h-auto w-5'
+                                                )} />
                                                 <h1 className='select-none font-medium'>Auto Rename</h1>
                                             </TooltipTrigger>
                                         </div>
@@ -492,22 +505,17 @@ export default function Settings() {
                                             formState?.fontSize === "XLarge" && 'text-xl',
                                         )}>
                                             <div className='font-medium'>
-                                                <span className='rounded-sm bg-accent px-1 font-bold'>
+                                                <span className='rounded-sm px-1 font-bold'>
                                                     Renames subtitle files to match videos
                                                 </span>
                                                 <br />
-                                                <span className={cn('font-bold',
-                                                    formState?.fontSize === "Medium" && 'text-md',
-                                                    formState?.fontSize === "Large" && 'text-lg',
-                                                    formState?.fontSize === "XLarge" && 'text-xl',
-                                                )}>
-                                                    <span className='pr-1 underline'>Note:</span>
+                                                <span className='text-base font-semibold'>
+                                                    Subtitle files must be in the same directory as the video files
                                                 </span>
-                                                <span className='font-semibold'>
-                                                    Subtitle files must be in the same directory as the video file
-                                                </span>,
                                                 <br />
-                                                as mpv auto loads subtitles if the names are the same.
+                                                <span className='text-base font-semibold'>
+                                                    for mpv to match them to the video.
+                                                </span>
                                             </div>
                                         </TooltipContent>
                                     </Tooltip>
@@ -522,7 +530,6 @@ export default function Settings() {
                                     <option className='font-medium'>Off</option>
                                 </select>
                             </li>
-
                         </ul>
                     </li>
                     <li className='flex h-fit flex-col justify-center rounded-b-sm bg-muted'>

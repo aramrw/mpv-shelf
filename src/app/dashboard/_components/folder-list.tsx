@@ -323,9 +323,8 @@ const FolderList = (
     // }
 
     return (
-        <main className='my-1 h-full w-full rounded-b-md'
+        <main className='mb-2 h-full w-full rounded-b-md'
             key={folderPath + "main-parent-folder"}
-
         >
             <ContextMenu
                 key={folderPath + "main-parent-context-menu"}
@@ -360,7 +359,9 @@ const FolderList = (
                                         getFolderColor({ folderPath: folderPath })
                                             .then((color: any) => {
                                                 // console.log(color[0].color);
-                                                setCurrentFolderColor(color[0].color);
+                                                if (color && color[0] && color[0].color) {
+                                                    setCurrentFolderColor(color[0].color);
+                                                }
                                             })
 
                                     } else {
@@ -371,12 +372,16 @@ const FolderList = (
 
                             whileHover={(userSettings?.animations === "On" && !asChild) ? { padding: "6.5px" } : undefined}
                         >
+
                             {/* Displays all the tags and name for main parent folder. */}
-                            <ParentTitleAndTags currentFolderColor={currentFolderColor} expanded={expanded} asChild={asChild} files={files} folderPath={folderPath} folders={folders} subtitleFiles={subtitleFiles} userSettings={userSettings} />
+                            <div className="w-full truncate">
+                                <ParentTitleAndTags currentFolderColor={currentFolderColor} expanded={expanded} asChild={asChild} files={files} folderPath={folderPath} folders={folders} subtitleFiles={subtitleFiles} userSettings={userSettings} />
+                            </div>
                             {/* Only display trashcan when its a main parent folder */}
                             {!asChild && (
                                 <ParentTrashcan folderPath={folderPath} folderPaths={folderPaths} parentFolderPaths={parentFolderPaths} setFolderPathsHook={setFolderPathsHook} setParentFolderPathsHook={setParentFolderPathsHook} userSettings={userSettings} />
                             )}
+
                         </motion.div>
                         {/* END Main Parent Folder END */}
                     </AnimatePresence>
@@ -460,7 +465,7 @@ const FolderList = (
                             initial={userSettings?.animations === "On" ? { y: -40 } : undefined}
                             animate={userSettings?.animations === "On" ? { opacity: 1, y: 0 } : undefined}
                             exit={(userSettings?.animations === "On") ? { y: -40, opacity: 0 } : undefined}
-                            whileHover={(userSettings?.animations === "On") ? { x: 1 } : undefined}
+                            whileHover={(userSettings?.animations === "On") ? { x: 0.2 } : undefined}
                             transition={{ duration: 0.3, stiffness: 30 }}
 
                         >

@@ -98,6 +98,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-sql",
  "tokio",
+ "window_titles",
 ]
 
 [[package]]
@@ -5016,6 +5017,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
+name = "window_titles"
+version = "0.1.0"
+source = "git+https://github.com/HiruNya/window_titles?branch=master#924feffac93c9ac7238d6fa5c39c1453815a0408"
+dependencies = [
+ "winapi",
+ "xcb",
+]
+
+[[package]]
 name = "windows"
 version = "0.37.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5446,6 +5456,16 @@ dependencies = [
  "libc",
  "linux-raw-sys",
  "rustix",
+]
+
+[[package]]
+name = "xcb"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "62056f63138b39116f82a540c983cc11f1c90cd70b3d492a70c25eaa50bd22a6"
+dependencies = [
+ "libc",
+ "log",
 ]
 
 [[package]]

@@ -12,7 +12,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 //use sqlx::migrate::Migrate;
-use sqlx::{Connection, SqliteConnection};
+use sqlx::{Connection, Row, SqliteConnection};
 //use tauri_plugin_oauth::start;
 //use env_file_reader::read_file;
 use core::str;
@@ -23,16 +23,18 @@ use std::io::{self, BufRead};
 use std::io::{stdout, Write};
 use std::path::Path;
 use std::process::{exit, Command};
+use std::time::Duration;
+use window_titles::{Connection as win_titles_Connection, ConnectionTrait};
 
 // use std::os::windows::process;
 use std::io::Read;
-use std::{env, vec};
+use std::{env, u32, vec};
 use sysinfo::System;
 #[allow(unused_imports)]
 use tauri::{
     command, CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem,
 };
-use tauri::{generate_handler, Manager, Window};
+use tauri::{generate_handler, AppHandle, Manager, Window};
 #[derive(Serialize, Deserialize)]
 struct User {
     id: i64,
@@ -87,6 +89,15 @@ struct Anime {
     _synonyms: Vec<String>,
     _related_anime: Vec<String>,
     _tags: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct VideoTable {
+    id: u32,
+    path: String,
+    user_id: u32,
+    watched: bool,
+    last_watched_at: String,
 }
 
 fn main() {
@@ -197,7 +208,6 @@ fn main() {
 
     hack_builder(tray);
 }
-
 // Misc
 
 // Color Generation
@@ -734,7 +744,9 @@ fn show_in_folder(path: String) {
 }
 
 #[command]
-async fn open_video(path: String, handle: tauri::AppHandle) -> String {
+async fn open_video(path: String, handle: tauri::AppHandle, auto_play: String) -> String {
+    println!("now playing {}", path);
+
     let window: Window = handle
         .clone()
         .get_window("main")
@@ -742,7 +754,6 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
         .expect("failed to get any windows!");
 
     //let screen_res = window.current_monitor().unwrap().unwrap();
-
     let result = close_database(handle.clone()).await;
 
     if result == true {
@@ -754,33 +765,46 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
     // Kill all mpv.exe processes before opening a new video.
     sys.refresh_processes(); // Refresh the list of processes.
 
-    let processes_hashmap = sys.processes().iter().collect::<HashMap<_, _>>();
-
     // TODO : To make it support any video player, get the default video player from the user / the os
-
-    processes_hashmap.iter().for_each(|(_pid, process)| {
+    sys.processes().iter().for_each(|(_pid, process)| {
         if process.name().to_lowercase().contains("mpv.exe") {
             process.kill();
         }
     });
 
-    // Open the video with mpv.
-    match open::that(path) {
-        Ok(_) => "Video opened successfully",
-        Err(_) => "Failed to open video",
-    };
+    let parent_path = Path::new(&path).parent().unwrap().to_str().unwrap();
+    // println!("{}", parent_path);
+
+    // mpv divides whatever is passed to start by half for some reason....
+    let start_video_ep_num =
+        extract_episode_number(Path::new(&path).file_name().unwrap().to_str().unwrap()).unwrap()
+            * 2;
+
+    if auto_play == "On" {
+        let _status = Command::new("mpv.exe")
+            .arg(format!("--playlist-start={}", start_video_ep_num))
+            .arg(format!("--playlist={}", parent_path))
+            .spawn()
+            .unwrap();
+    } else {
+        match open::that(path.clone()) {
+            Ok(_) => "Video opened successfully",
+            Err(_) => "Failed to open video",
+        };
+    }
 
     let instant = std::time::Instant::now();
+    let mut last_watched_video = String::new();
+    //println!("last watched: {}", last_watched_video);
 
-    // Loop indefinitely until mpv.exe is not found.
     loop {
         let mut mpv_running = false; // Flag to check if mpv is running.
-        sys.refresh_processes(); // Refresh the list of processes.
+        sys.refresh_processes();
 
-        let processes_hashmap = sys.processes().iter().collect::<HashMap<_, _>>();
-
-        processes_hashmap.iter().for_each(|(_pid, process)| {
+        sys.processes().iter().for_each(|(_pid, process)| {
             if process.name().to_lowercase().contains("mpv.exe") {
+                // println!("last watched mpv video: {:?}", process.name());
+                last_watched_video = get_last_mpv_win_title();
                 mpv_running = true;
             }
         });
@@ -790,10 +814,8 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
                 "mpv-shelf was running for {:.2} seconds in the background",
                 &instant.elapsed().as_secs_f32()
             );
-            stdout().flush().unwrap();
 
             // open a new window and close the first exe (not a window anymore) in the system tray
-
             match handle.get_window("main") {
                 Some(window) => {
                     window.center().unwrap();
@@ -815,15 +837,84 @@ async fn open_video(path: String, handle: tauri::AppHandle) -> String {
                     .inner_size(800.0, 600.0)
                     .build()
                     .unwrap();
+
+                    // update_last_watched_videos(handle, path.clone(), last_watched_video).await;
+
+                    return "closed".to_string();
                 }
             }
-
-            return "closed".to_string();
         }
 
-        // Sleep for a bit before checking again to reduce CPU usage.
-        std::thread::sleep(std::time::Duration::from_millis(500));
+        tokio::time::sleep(Duration::from_secs(1)).await;
     }
+}
+
+fn get_last_mpv_win_title() -> String {
+    let connection = win_titles_Connection::new().unwrap();
+    let mut current_episode = String::new();
+
+    connection
+        .window_titles()
+        .unwrap()
+        .iter()
+        .for_each(|window| {
+            if window.contains("mpv") {
+                // println!("{}", window);
+                current_episode = window.to_string();
+            }
+        });
+
+    current_episode
+}
+
+async fn update_last_watched_videos(
+    handle: tauri::AppHandle,
+    video_start_path: String,
+    last_video_watched_title: String,
+) {
+    let video_start_title = Path::new(&video_start_path)
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap();
+
+    let video_start_episode_num: u32 = extract_episode_number(&video_start_title).unwrap();
+    println!("{}", last_video_watched_title);
+    let last_video_episode_num: u32 = extract_episode_number(&last_video_watched_title).unwrap();
+    let mut sum: u32 = 0;
+
+    if video_start_episode_num != last_video_episode_num {
+        sum = last_video_episode_num - video_start_episode_num;
+    }
+
+    println!(
+        "start episode:{} - last episode: {} = {}",
+        video_start_episode_num, last_video_episode_num, sum
+    );
+
+    // let db_url = handle
+    //     .path_resolver()
+    //     .app_data_dir()
+    //     .unwrap()
+    //     .join("main.db");
+    //
+    // let mut conn = SqliteConnection::connect(db_url.to_str().unwrap())
+    //     .await
+    //     .unwrap();
+
+    // sqlx::query("SELECT * FROM video WHERE path = ?")
+    //     .fetch
+    //
+
+    // let video: VideoTable = VideoTable {
+    //     id: result.get(0),
+    //     path: result.get(1),
+    //     user_id: result.get(2),
+    //     watched: result.get(3),
+    //     last_watched_at: result.get(4),
+    // };
+
+    // println!("{:?}", video);
 }
 
 #[command]
@@ -838,8 +929,7 @@ async fn close_database(handle: tauri::AppHandle) -> bool {
         .await
         .unwrap();
 
-    println!("Closing the database");
-    stdout().flush().unwrap();
+    println!("Closing the database!");
 
     conn.close().await.unwrap();
 

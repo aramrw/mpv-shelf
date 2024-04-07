@@ -14,6 +14,7 @@ export default function NewUser() {
     const [defaultSettings, setDefaultSettings] = useState<SettingSchema>({
         fontSize: 'Large',
         animations: 'On',
+        autoPlay: 'Off',
         autoRename: 'Off',
         usePin: 'On'
     });

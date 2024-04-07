@@ -39,7 +39,7 @@ export default function VideoFile({ userSettings, file, files, currentFolderColo
                                 updateVideoWatched({ videoPath: file.path, user: currentUser, watched: true }).then(() => {
                                     return closeDatabase()
                                 }).finally(() => {
-                                    invoke('open_video', { path: file.path, userId: string });
+                                    invoke('open_video', { path: file.path, userId: string, autoPlay: userSettings?.autoPlay });
                                 })
 
                         }}
@@ -47,7 +47,7 @@ export default function VideoFile({ userSettings, file, files, currentFolderColo
                         initial={userSettings?.animations === "On" ? { opacity: 0, x: -20 } : undefined}
                         animate={userSettings?.animations === "On" ? { opacity: 1, x: 0 } : undefined}
                         exit={userSettings?.animations === "On" ? { opacity: 0, x: -20 } : undefined}
-                        whileHover={userSettings?.animations === "On" ? { x: 1.5 } : undefined}
+                        whileHover={userSettings?.animations === "On" ? { x: 0.5 } : undefined}
                         transition={{ duration: 0.5, type: 'spring', bounce: 0.4 }}
                     >
 

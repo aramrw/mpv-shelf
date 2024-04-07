@@ -8,7 +8,7 @@ import { FileEntry } from '@tauri-apps/api/fs'
 export default function ParentTitleAndTags({ asChild, expanded, folderPath, userSettings, files, folders, subtitleFiles, currentFolderColor }:
     { asChild: boolean | undefined, expanded: boolean | undefined, folderPath: string, userSettings: SettingSchema | undefined, files: FileEntry[], folders: FileEntry[], subtitleFiles: FileEntry[], currentFolderColor: string | undefined }) {
     return (
-        <div className={cn('flex flex-row items-center justify-start gap-1 font-medium text-primary text-sm text-center w-full pb-1.5 drop-shadow-md ',
+        <div className={cn('flex flex-row items-center justify-start gap-1 font-medium text-primary text-sm text-center pb-1.5 drop-shadow-md ',
         )}
         >
             {(asChild && !expanded) ? (

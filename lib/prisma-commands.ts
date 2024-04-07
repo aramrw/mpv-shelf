@@ -3,9 +3,6 @@ import { User, Folder, Video } from "@prisma/client";
 import { SettingSchema } from "@/app/settings/page";
 import { Global } from "@prisma/client";
 import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
-import { emit, listen, once } from '@tauri-apps/api/event'
-import { confirm, message } from "@tauri-apps/api/dialog";
-import { appWindow } from "@tauri-apps/api/window";
 
 export async function getUsers() {
     const db = await Database.load("sqlite:main.db");
@@ -53,7 +50,6 @@ export async function createNewUser({
     // console.log  ("Attemping to create new user");
 
     try {
-
         // Ensure the table exists before attempting to insert into it
         await db.execute(`
         CREATE TABLE IF NOT EXISTS user 
@@ -81,10 +77,11 @@ export async function createNewUser({
 
 
         if (currentColor !== "") {
+            console.log("creating settings for new user")
             await db.select("SELECT * from user WHERE color = $1", [currentColor])
                 .then(async (user: any) => {
                     if (user.length === 1) {
-                        updateSettings({ formData, userId: user[0].id });
+                        updateSettings({ formData, userId: user[0].id })
                     }
                     await db.close();
                     return user;
@@ -331,6 +328,8 @@ export async function unwatchVideo({
     return true;
 }
 
+// when adding a new setting value, update the default state in newUser
+// update this when adding a new setting value
 export async function updateSettings({
     formData,
     userId
@@ -340,27 +339,30 @@ export async function updateSettings({
 }) {
     const db = await Database.load("sqlite:main.db");
 
-    // console.log ("updating settings for user:", userId);
+    console.log("updating settings for user:", userId, formData);
 
     await db.execute(`
     CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL UNIQUE, 
     fontSize TEXT NOT NULL, 
     animations TEXT NOT NULL, 
+    autoPlay TEXT NOT NULL,
     autoRename TEXT NOT NULL, 
     usePin TEXT NOT NULL,
     FOREIGN KEY (userId) REFERENCES user(id))`).catch((e) => {
         // console.log ("error", e);
     });
 
+    // if new setting add into first row and update values + $
     await db.execute(`
-        INSERT INTO settings (userId, fontSize, animations, autoRename, usePin)
-        VALUES ($1, $2, $3, $4, $5)
+        INSERT INTO settings (userId, fontSize, animations, autoPlay, autoRename, usePin)
+        VALUES ($1, $2, $3, $4, $5, $6)
         ON CONFLICT(userId) DO UPDATE SET
         fontSize = excluded.fontSize,
         animations = excluded.animations,
+        autoPlay = excluded.autoPlay,
         autoRename = excluded.autoRename,
         usePin = excluded.usePin
-    `, [userId, formData.fontSize, formData.animations, formData.autoRename, formData.usePin]).catch((e) => {
+    `, [userId, formData.fontSize, formData.animations, formData.autoPlay, formData.autoRename, formData.usePin]).catch((e) => {
         // console.log ("error", e);
     });
 
@@ -380,6 +382,7 @@ export async function updateUserPin({
     await db.close();
 }
 
+// update this when adding a new setting value
 export async function getUserSettings({
     userId
 }: {
@@ -392,6 +395,7 @@ export async function getUserSettings({
         CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL UNIQUE, 
             fontSize TEXT NOT NULL, 
             animations TEXT NOT NULL, 
+            autoPlay TEXT NOT NULL,
             autoRename TEXT NOT NULL, 
             usePin TEXT NOT NULL,
             FOREIGN KEY (userId) REFERENCES user(id))`).catch((e) => {

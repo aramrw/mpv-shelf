@@ -39,6 +39,7 @@ tokio = { version = "1.36.0" }
 mal-api = { version = "2.0.0" }
 regex = { version = "1.10.4" }
 fuzzy-matcher = { version = "0.3.7" }
+window_titles = { git = "https://github.com/HiruNya/window_titles", branch = "master" }
 
 [dependencies.tauri-plugin-sql]
 git = "https://github.com/tauri-apps/plugins-workspace"
