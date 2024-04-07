@@ -1,10 +1,4 @@
 import {
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { ContextMenu } from "@/components/ui/context-menu";
@@ -14,14 +8,12 @@ import { cn } from "@/lib/utils";
 import { Eye, Film } from "lucide-react";
 import { SettingSchema } from "@/app/settings/page";
 import { FileEntry } from "@tauri-apps/api/fs";
-import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
+import type { User, Video } from "@prisma/client";
 import {
   closeDatabase,
   updateVideoWatched,
 } from "../../../../../lib/prisma-commands";
 import { invoke } from "@tauri-apps/api/tauri";
-import { string } from "zod";
-import { useRouter } from "next/navigation";
 import VideoContextMenu from "./video-context-menu";
 
 export default function VideoFile({
@@ -51,7 +43,6 @@ export default function VideoFile({
   handleSliceToWatchVideo: (index: number) => void;
   handleSliceToUnwatchVideo: (index: number) => void;
 }) {
-  let router = useRouter();
 
   return (
     <div>
@@ -92,7 +83,6 @@ export default function VideoFile({
                   .finally(() => {
                     invoke("open_video", {
                       path: file.path,
-                      userId: string,
                       autoPlay: userSettings?.autoPlay,
                       userId: currentUser.id,
                     });

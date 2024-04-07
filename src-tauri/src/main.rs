@@ -12,7 +12,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 //use sqlx::migrate::Migrate;
-use sqlx::{Connection, Row, SqliteConnection};
+use sqlx::{Connection, SqliteConnection};
 //use tauri_plugin_oauth::start;
 //use env_file_reader::read_file;
 use core::str;
@@ -20,7 +20,6 @@ use mal_api::{oauth::RedirectResponse, prelude::*};
 use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{self, BufRead};
-use std::io::{stdout, Write};
 use std::path::Path;
 use std::process::{exit, Command};
 use std::time::Duration;
@@ -34,7 +33,7 @@ use sysinfo::System;
 use tauri::{
     command, CustomMenuItem, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem,
 };
-use tauri::{generate_handler, AppHandle, Manager, Window};
+use tauri::{generate_handler, Manager, Window};
 #[derive(Serialize, Deserialize)]
 struct User {
     id: i64,
