@@ -1,6 +1,4 @@
-import {
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
+import { ContextMenuTrigger } from "@/components/ui/context-menu";
 import { ContextMenu } from "@/components/ui/context-menu";
 import React from "react";
 import { motion } from "framer-motion";
@@ -43,7 +41,6 @@ export default function VideoFile({
   handleSliceToWatchVideo: (index: number) => void;
   handleSliceToUnwatchVideo: (index: number) => void;
 }) {
-
   return (
     <div>
       <ContextMenu key={"context-menu" + index}>
@@ -51,7 +48,6 @@ export default function VideoFile({
           <motion.li
             className={cn(
               "flex flex-col items-start justify-center gap-1 border-b-2 py-1.5 px-4 cursor-pointer overflow-hidden",
-              index === files.length - 1 && "rounded-b-md border-none",
               userSettings?.animations === "Off" && "hover:opacity-50",
               index % 2 && "brightness-150",
               !(index % 2) && "brightness-[1.35]",
@@ -263,7 +259,15 @@ export default function VideoFile({
               )}
             </motion.div>
           </motion.li>
+          {index === files.length - 1 && (
+            <div className="relative h-1.5 w-auto flex flex-row items-center justify-center gap-1 rounded-b-full"
+
+							style={{ backgroundColor: `${currentFolderColor}`}}
+
+						/>
+          )}
           {/* VideoContextMenu was moved out of the motion.li, if something is wrong it might be this */}
+
           <VideoContextMenu
             file={file}
             index={index}
