@@ -25,7 +25,6 @@ import FolderList from "./_components/folder-list";
 
 export type AnimeType = "TV" | "MOVIE" | "OVA" | "ONA" | "SPECIAL" | "UNKOWN";
 export type AnimeStatus = "FINISHED" | "ONGOING" | "UPCOMING" | "UNKNOWN";
-
 export type AnimeData = {
   _source: String;
   _title: String;
@@ -201,7 +200,7 @@ export default function Dashboard() {
   return (
     <main
       className={cn(
-        "h-fit  pl-3 lg:px-16 xl:px-36 2xl:px-48 mt-3 max-h-screen overflow-auto pb-20",
+        "h-fit pl-3 lg:px-16 xl:px-36 2xl:px-48 mt-3 max-h-screen overflow-auto pb-20",
       )}
       ref={scrolledDiv}
       style={{ scrollbarGutter: "stable" }}
