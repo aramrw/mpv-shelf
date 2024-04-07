@@ -744,7 +744,12 @@ fn show_in_folder(path: String) {
 }
 
 #[command]
-async fn open_video(path: String, handle: tauri::AppHandle, auto_play: String) -> String {
+async fn open_video(
+    path: String,
+    handle: tauri::AppHandle,
+    auto_play: String,
+    user_id: u32,
+) -> String {
     println!("now playing {}", path);
 
     let window: Window = handle
@@ -803,7 +808,6 @@ async fn open_video(path: String, handle: tauri::AppHandle, auto_play: String) -
 
         sys.processes().iter().for_each(|(_pid, process)| {
             if process.name().to_lowercase().contains("mpv.exe") {
-                // println!("last watched mpv video: {:?}", process.name());
                 last_watched_video = get_last_mpv_win_title();
                 mpv_running = true;
             }
@@ -838,7 +842,8 @@ async fn open_video(path: String, handle: tauri::AppHandle, auto_play: String) -
                     .build()
                     .unwrap();
 
-                    // update_last_watched_videos(handle, path.clone(), last_watched_video).await;
+                    update_last_watched_videos(handle, path.clone(), last_watched_video, user_id)
+                        .await;
 
                     return "closed".to_string();
                 }
@@ -858,8 +863,12 @@ fn get_last_mpv_win_title() -> String {
         .unwrap()
         .iter()
         .for_each(|window| {
-            if window.contains("mpv") {
-                // println!("{}", window);
+            if window.contains("mpv")
+                && window.contains(".")
+                && !window.contains("\\")
+                && !window.contains("Visual Studio")
+            {
+                println!("{}", window);
                 current_episode = window.to_string();
             }
         });
@@ -871,6 +880,7 @@ async fn update_last_watched_videos(
     handle: tauri::AppHandle,
     video_start_path: String,
     last_video_watched_title: String,
+    user_id: u32,
 ) {
     let video_start_title = Path::new(&video_start_path)
         .file_name()
@@ -878,8 +888,9 @@ async fn update_last_watched_videos(
         .to_str()
         .unwrap();
 
+    println!("last video watched: {}", last_video_watched_title);
+
     let video_start_episode_num: u32 = extract_episode_number(&video_start_title).unwrap();
-    println!("{}", last_video_watched_title);
     let last_video_episode_num: u32 = extract_episode_number(&last_video_watched_title).unwrap();
     let mut sum: u32 = 0;
 
@@ -887,34 +898,53 @@ async fn update_last_watched_videos(
         sum = last_video_episode_num - video_start_episode_num;
     }
 
-    println!(
-        "start episode:{} - last episode: {} = {}",
-        video_start_episode_num, last_video_episode_num, sum
-    );
+    // println!(
+    //     "start episode:{} - last episode: {} = {}",
+    //     video_start_episode_num, last_video_episode_num, sum
+    // );
 
-    // let db_url = handle
-    //     .path_resolver()
-    //     .app_data_dir()
-    //     .unwrap()
-    //     .join("main.db");
-    //
-    // let mut conn = SqliteConnection::connect(db_url.to_str().unwrap())
+    let db_url = handle
+        .path_resolver()
+        .app_data_dir()
+        .unwrap()
+        .join("main.db");
+
+    let mut conn = SqliteConnection::connect(db_url.to_str().unwrap())
+        .await
+        .unwrap();
+
+    // sqlx::query("BEGIN TRANSACTION")
+    //     .execute(&mut conn)
     //     .await
     //     .unwrap();
 
-    // sqlx::query("SELECT * FROM video WHERE path = ?")
-    //     .fetch
-    //
+    for x in 1..=sum {
+        let video_index = x + video_start_episode_num;
+        let parts: Vec<&str> = video_start_path
+            .rsplitn(2, &video_start_episode_num.to_string())
+            .collect();
+        let starting_new_path = if parts.len() == 2 {
+            parts[1].to_owned() + &video_index.to_string() + parts[0]
+        } else {
+            video_start_path.clone()
+        };
 
-    // let video: VideoTable = VideoTable {
-    //     id: result.get(0),
-    //     path: result.get(1),
-    //     user_id: result.get(2),
-    //     watched: result.get(3),
-    //     last_watched_at: result.get(4),
-    // };
+        println!("Updating episode {} in db", starting_new_path);
 
-    // println!("{:?}", video);
+        sqlx::query(
+            "INSERT OR REPLACE INTO video (path, userId, watched, lastWatchedAt) VALUES (?, ?, ?, datetime('now'))",
+        )
+        .bind(starting_new_path)
+        .bind(user_id)
+        .bind(true)
+        .execute(&mut conn)
+        .await
+        .unwrap();
+    }
+
+    //sqlx::query("COMMIT").execute(&mut conn).await.unwrap();
+
+    conn.close().await.unwrap();
 }
 
 #[command]

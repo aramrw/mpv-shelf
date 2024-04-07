@@ -235,6 +235,10 @@ export async function updateVideoWatched({
             )
         `);
 
+        await db.execute(`
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_video_path ON video(path)
+        `);
+
         // Check if the video already exists in the database
         const videos: Video[] = await db.select("SELECT * from video WHERE path = $1 AND userId = $2", [videoPath, user.id])
 
