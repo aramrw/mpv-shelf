@@ -1,38 +1,48 @@
-"use client"
+"use client";
 
-import { Button } from '@/components/ui/button'
-import React, { useEffect, useRef, useState } from 'react'
-import { open } from '@tauri-apps/api/dialog';
-import { addFolder, closeDatabase, getCurrentUserGlobal, getFolders, getUserScrollY, getUserSettings, getUsers, updateUserScrollY } from '../../../lib/prisma-commands';
+import { Button } from "@/components/ui/button";
+import React, { useEffect, useRef, useState } from "react";
+import { open } from "@tauri-apps/api/dialog";
+import {
+  addFolder,
+  closeDatabase,
+  getCurrentUserGlobal,
+  getFolders,
+  getUserScrollY,
+  getUserSettings,
+  getUsers,
+  updateUserScrollY,
+} from "../../../lib/prisma-commands";
 import type { User } from "@prisma/client";
-import { FolderPlus } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'framer-motion';
-import { SettingSchema } from '../settings/page';
-import { useRouter } from 'next/navigation';
-import { toast } from '@/components/ui/use-toast';
-import FolderList from './_components/folder-list';
+import { FolderPlus } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  motion,
+  useMotionValueEvent,
+  useScroll,
+} from "framer-motion";
+import { SettingSchema } from "../settings/page";
+import { useRouter } from "next/navigation";
+import { toast } from "@/components/ui/use-toast";
+import FolderList from "./_components/folder-list";
 // import { WebviewWindow, appWindow } from "@tauri-apps/api/window"
 
-export type AnimeType = 'TV' | 'MOVIE' | 'OVA' | 'ONA' | 'SPECIAL' | 'UNKOWN';
-export type AnimeStatus = | "FINISHED" | "ONGOING" | "UPCOMING" | "UNKNOWN";
+export type AnimeType = "TV" | "MOVIE" | "OVA" | "ONA" | "SPECIAL" | "UNKOWN";
+export type AnimeStatus = "FINISHED" | "ONGOING" | "UPCOMING" | "UNKNOWN";
 
 export type AnimeData = {
-  _source: String,
-  _title: String,
-  _anime_type: AnimeType,
-  _episodes: String,
-  _status: AnimeStatus,
-  _anime_season: [
-    _season: String,
-    _year: String
-  ]
-  _picture: String,
-  _thumbnail: String,
-  _synonyms: String[],
-  _related_anime: String[]
-  _tags: String[],
-}
+  _source: String;
+  _title: String;
+  _anime_type: AnimeType;
+  _episodes: String;
+  _status: AnimeStatus;
+  _anime_season: [_season: String, _year: String];
+  _picture: String;
+  _thumbnail: String;
+  _synonyms: String[];
+  _related_anime: String[];
+  _tags: String[];
+};
 
 export default function Dashboard() {
   const [folderPaths, setFolderPaths] = useState<string[]>([]);
@@ -44,18 +54,18 @@ export default function Dashboard() {
   //const { scrollYProgress } = useScroll();
   const router = useRouter();
   const { scrollY } = useScroll({
-    container: scrolledDiv
-  })
+    container: scrolledDiv,
+  });
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     if (currentUser && latest > 0)
       updateUserScrollY({ userId: currentUser?.id, scrollY: latest });
-  })
+  });
 
   const setScrollPosition = (userYPos: any) => {
     (scrolledDiv.current as HTMLElement | null)?.scrollTo({
       top: userYPos,
-      behavior: "smooth"
+      behavior: "smooth",
     });
   };
 
@@ -79,7 +89,6 @@ export default function Dashboard() {
     } else {
       delayPerThousandPixels = 20;
     }
-
 
     // Calculate additional delay based on userY
     const additionalDelay = Math.floor(userY / 1000) * delayPerThousandPixels;
@@ -105,25 +114,24 @@ export default function Dashboard() {
             } else {
               //router.prefetch('/');
               closeDatabase().then(() => {
-                router.push('/', { scroll: false });
+                router.push("/", { scroll: false });
               });
-
             }
           });
         } else {
           closeDatabase().then(() => {
-            router.push('/profiles/createUser', { scroll: false });
+            router.push("/profiles/createUser", { scroll: false });
           });
         }
-      })
+      });
     });
-
   }, [router]);
 
   // get and set the user's scroll position from the db once currentUser is set
   useEffect(() => {
-    if (scrolledDiv.current) { // dont let the user be able to scroll while its loading
-      console.log("folderpaths:", folderPaths)
+    if (scrolledDiv.current) {
+      // dont let the user be able to scroll while its loading
+      console.log("folderpaths:", folderPaths);
       scrolledDiv.current.style.maxHeight = "0px";
     }
     if (currentUser && !isLoading)
@@ -140,12 +148,10 @@ export default function Dashboard() {
                 setScrollPosition(userY);
               if (scrolledDiv.current)
                 if (scrolledDiv.current) {
-
                 }
               //console.log("scrolling to ", userY);
             }, calculateDelay(userY));
           }
-
         }
 
         if (scrolledDiv.current) {
@@ -154,9 +160,8 @@ export default function Dashboard() {
 
         return () => {
           clearTimeout(unlisten);
-        }
-
-      })
+        };
+      });
   }, [currentUser, isLoading, folderPaths]);
 
   // get all the folder paths from the folder table with user id on startup
@@ -164,136 +169,200 @@ export default function Dashboard() {
     setIsLoading(true);
     //console.log(currentUser);
     if (currentUser?.id)
-      getFolders({ userId: currentUser?.id as number }).then((folders) => {
-        if (folders) {
-          //console.log(`folders for user ${currentUser?.id} `, folders);
-          for (const folder of folders) {
-            if (!folder.asChild) {
-              setFolderPaths((prev) => [...prev, folder.path]);
+      getFolders({ userId: currentUser?.id as number })
+        .then((folders) => {
+          if (folders) {
+            //console.log(`folders for user ${currentUser?.id} `, folders);
+            for (const folder of folders) {
+              if (!folder.asChild) {
+                setFolderPaths((prev) => [...prev, folder.path]);
+              }
             }
           }
-        }
-      }).finally(() => {
-        //console.log(`parent folder paths: ${folderPaths}`);
-        if (currentUser?.id) {
-          getUserSettings({ userId: currentUser?.id }).then((settings) => {
-            if (settings) {
-              //console.log("user settings:", settings);
-              setUserSettings(settings);
-            }
-          })
-        }
-        setIsLoading(false);
-      })
-
-  }, [currentUser])
+        })
+        .finally(() => {
+          //console.log(`parent folder paths: ${folderPaths}`);
+          if (currentUser?.id) {
+            getUserSettings({ userId: currentUser?.id }).then((settings) => {
+              if (settings) {
+                //console.log("user settings:", settings);
+                setUserSettings(settings);
+              }
+            });
+          }
+          setIsLoading(false);
+        });
+  }, [currentUser]);
 
   const setFolderPathsHook = (newPaths: string[]) => {
     setFolderPaths(newPaths);
-  }
+  };
 
   const setParentFolderPathsHook = (newPaths: string[]) => {
     setParentFolderPaths(newPaths);
   };
 
   return (
-    <main className={cn('h-fit  pl-3 lg:px-16 xl:px-36 2xl:px-48 mt-3 max-h-screen overflow-auto pb-20',
-    )}
+    <main
+      className={cn(
+        "h-fit  pl-3 lg:px-16 xl:px-36 2xl:px-48 mt-3 max-h-screen overflow-auto pb-20",
+      )}
       ref={scrolledDiv}
-      style={{ scrollbarGutter: "stable", }}
+      style={{ scrollbarGutter: "stable" }}
     >
-      <Button variant="outline"
-        className={cn('select-none flex flex-row justify-center items-end gap-1.5 font-bold mb-2',
-          userSettings?.fontSize === "Medium" && 'text-lg mx-0',
-          userSettings?.fontSize === "Large" && 'text-xl mx-0',
-          userSettings?.fontSize === "XLarge" && 'text-2xl mx-0',
+      <Button
+        variant="outline"
+        className={cn(
+          "select-none flex flex-row justify-center items-end gap-1.5 font-bold mb-2",
+          userSettings?.fontSize === "Medium" && "text-lg mx-0",
+          userSettings?.fontSize === "Large" && "text-xl mx-0",
+          userSettings?.fontSize === "XLarge" && "text-2xl mx-0",
         )}
         onClick={() => {
           open({
             directory: true,
             multiple: true,
             recursive: true,
-            filters: [
-              { name: 'Folders', extensions: [""] }
-            ],
-            title: "Add Folder"
+            filters: [{ name: "Folders", extensions: [""] }],
+            title: "Add Folder",
           }).then((selectedFolders): void => {
             if (currentUser) {
               if (Array.isArray(selectedFolders)) {
                 // user selected multiple files
                 for (const path of selectedFolders) {
-                  if (folderPaths.some((folderPath) => folderPath.toString() === path)) {
+                  if (
+                    folderPaths.some(
+                      (folderPath) => folderPath.toString() === path,
+                    )
+                  ) {
                     let pathName = path.replaceAll("\\", " ").split(" ").pop();
                     toast({
                       title: `${pathName} already exists!`,
                       description: `You already have a folder with the name ${pathName} in your library.`,
                       duration: 2000,
-                    })
-                    return
+                    });
+                    return;
                   } else {
-                    addFolder({ userId: currentUser?.id, folderPath: path, expanded: false, asChild: false }).then(() => {
-                      setFolderPaths(prevPaths => [...prevPaths, path] as string[]);
+                    addFolder({
+                      userId: currentUser?.id,
+                      folderPath: path,
+                      expanded: false,
+                      asChild: false,
+                    }).then(() => {
+                      setFolderPaths(
+                        (prevPaths) => [...prevPaths, path] as string[],
+                      );
                     });
                   }
-
                 }
-
               } else if (selectedFolders === null) {
                 // cancalled //.. do nothing
               } else {
-                if (folderPaths.filter((folderPath) => folderPath === selectedFolders)) {
-                  let pathName = selectedFolders.replaceAll("\\", " ").split(" ").pop();
+                if (
+                  folderPaths.filter(
+                    (folderPath) => folderPath === selectedFolders,
+                  )
+                ) {
+                  let pathName = selectedFolders
+                    .replaceAll("\\", " ")
+                    .split(" ")
+                    .pop();
                   toast({
                     title: `${pathName} already exists!`,
                     description: `You already have a folder with the name ${pathName} in your library.`,
                     duration: 2000,
-                  })
+                  });
                   // user selected one folder
-                  addFolder({ userId: currentUser?.id, folderPath: selectedFolders.toString(), expanded: false, asChild: false }).then(() => {
-                    setFolderPaths(prevPaths => [...prevPaths, selectedFolders] as string[]);
+                  addFolder({
+                    userId: currentUser?.id,
+                    folderPath: selectedFolders.toString(),
+                    expanded: false,
+                    asChild: false,
+                  }).then(() => {
+                    setFolderPaths(
+                      (prevPaths) =>
+                        [...prevPaths, selectedFolders] as string[],
+                    );
                   });
                 }
               }
             }
-          })
+          });
         }}
       >
         <span>Add Folder</span>
-        <FolderPlus className={cn('h-auto w-4',
-          userSettings?.fontSize === "Medium" && 'h-auto w-5',
-          userSettings?.fontSize === "Large" && 'h-auto w-6',
-          userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-        )} />
-
+        <FolderPlus
+          className={cn(
+            "h-auto w-4",
+            userSettings?.fontSize === "Medium" && "h-auto w-5",
+            userSettings?.fontSize === "Large" && "h-auto w-6",
+            userSettings?.fontSize === "XLarge" && "h-auto w-7",
+          )}
+        />
       </Button>
       {/* Render Top-Level-Parent Folders */}
-      <motion.div className='flex h-fit flex-col items-center justify-center rounded-b-sm drop-shadow-sm md:flex-row md:items-start md:gap-2'
+      <motion.div
+        className="flex h-fit justify-center rounded-b-sm drop-shadow-sm flex-row items-start gap-2"
         key={"main-parent-folder" + folderPaths.length + 1}
       >
-        <div className='h-fit w-full md:w-1/2'>
+        <div className="h-fit w-full w-1/3">
           {folderPaths.map((folder, index) => {
-            if (index % 2 === 0) {
+            if (index % 3 === 0) {
               return (
-                <FolderList folderPath={folder} userSettings={userSettings} currentUser={currentUser} folderPaths={folderPaths} parentFolderPaths={parentFolderPaths} setFolderPathsHook={setFolderPathsHook} setParentFolderPathsHook={setParentFolderPathsHook} key={index.toString() + folder} />
-              )
+                <FolderList
+                  folderPath={folder}
+                  userSettings={userSettings}
+                  currentUser={currentUser}
+                  folderPaths={folderPaths}
+                  parentFolderPaths={parentFolderPaths}
+                  setFolderPathsHook={setFolderPathsHook}
+                  setParentFolderPathsHook={setParentFolderPathsHook}
+                  key={index.toString() + folder}
+                />
+              );
             }
             return null;
           })}
         </div>
-        <div className='h-fit w-full md:w-1/2'>
+        <div className="h-fit w-full w-1/3">
           {folderPaths.map((folder, index) => {
-            if (index % 2 !== 0) {
+            if (index % 3 === 1) {
               return (
-                <FolderList folderPath={folder} userSettings={userSettings} currentUser={currentUser} folderPaths={folderPaths} parentFolderPaths={parentFolderPaths} setFolderPathsHook={setFolderPathsHook} setParentFolderPathsHook={setParentFolderPathsHook} key={index.toString() + folder} />
-              )
+                <FolderList
+                  folderPath={folder}
+                  userSettings={userSettings}
+                  currentUser={currentUser}
+                  folderPaths={folderPaths}
+                  parentFolderPaths={parentFolderPaths}
+                  setFolderPathsHook={setFolderPathsHook}
+                  setParentFolderPathsHook={setParentFolderPathsHook}
+                  key={index.toString() + folder}
+                />
+              );
+            }
+            return null;
+          })}
+        </div>
+        <div className="h-fit w-full w-1/3">
+          {folderPaths.map((folder, index) => {
+            if (index % 3 === 2) {
+              return (
+                <FolderList
+                  folderPath={folder}
+                  userSettings={userSettings}
+                  currentUser={currentUser}
+                  folderPaths={folderPaths}
+                  parentFolderPaths={parentFolderPaths}
+                  setFolderPathsHook={setFolderPathsHook}
+                  setParentFolderPathsHook={setParentFolderPathsHook}
+                  key={index.toString() + folder}
+                />
+              );
             }
             return null;
           })}
         </div>
       </motion.div>
-    </main >
-  )
-
+    </main>
+  );
 }
-
-
