@@ -16,11 +16,7 @@ import {
 import type { User } from "@prisma/client";
 import { FolderPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  motion,
-  useMotionValueEvent,
-  useScroll,
-} from "framer-motion";
+import { motion, useMotionValueEvent, useScroll } from "framer-motion";
 import { SettingSchema } from "../settings/page";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
@@ -305,7 +301,7 @@ export default function Dashboard() {
         className="flex h-fit justify-center rounded-b-sm drop-shadow-sm flex-row items-start gap-2"
         key={"main-parent-folder" + folderPaths.length + 1}
       >
-        <div className="h-fit w-full w-1/3">
+        <div className="h-fit  w-1/3">
           {folderPaths.map((folder, index) => {
             if (index % 3 === 0) {
               return (
@@ -324,7 +320,7 @@ export default function Dashboard() {
             return null;
           })}
         </div>
-        <div className="h-fit w-full w-1/3">
+        <div className="h-fit w-1/3">
           {folderPaths.map((folder, index) => {
             if (index % 3 === 1) {
               return (
@@ -343,7 +339,7 @@ export default function Dashboard() {
             return null;
           })}
         </div>
-        <div className="h-fit w-full w-1/3">
+        <div className="h-fit  w-1/3">
           {folderPaths.map((folder, index) => {
             if (index % 3 === 2) {
               return (
