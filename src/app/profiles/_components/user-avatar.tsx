@@ -19,10 +19,10 @@ export function UserAvatar({
 }) {
     const pathname = usePathname();
 
-    console.log("userAvatar");
+    //console.log("userAvatar");
 
     return (
-        <Avatar className={cn("h-auto w-40 text-xl font-medium rounded-sm md:w-52 lg:w-64 xl:w-80 flex justify-center items-center outline drop-shadow-lg shadow-md text-background",
+        <Avatar className={cn("h-auto w-40 text-xl font-medium rounded-sm md:w-52 lg:w-52 xl:w-56 flex justify-center items-center outline drop-shadow-lg shadow-md text-background",
             asChild && "h-auto w-full text-lg font-medium outline rounded",
             (asChild && userObject?.imagePath) && "md:w-3/4 rounded-none",
             (asChild && userObject?.imagePath) && "h-40 md:w-40 rounded-sm",
@@ -36,13 +36,12 @@ export function UserAvatar({
             <AvatarFallback className={cn(`h-40 w-40 text-xl font-medium rounded-sm select-none flex justify-center items-center`,
                 asChild && "w-full text-lg font-medium",
                 !asChild &&
-                `md:w-52
+                `md:w-full
                  md:h-52  
-                 lg:w-64 
-                 lg:h-64
-                 xl:h-80
-                 xl:w-80`,
-                pathname.includes("/login") && "h-40 w-40"
+                 lg:w-full 
+                 lg:h-56
+                 xl:h-56
+                 xl:w-full`,
             )}>
                 <div className="flex h-full w-full flex-col items-center justify-center" style={{ backgroundColor: `${userObject?.color}` }}>
                     <span className={cn(

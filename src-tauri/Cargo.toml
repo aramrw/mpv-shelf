@@ -20,7 +20,6 @@ serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "1.6.0", features = [
     "window-all",
-    "global-shortcut-all",
     "fs-create-dir",
     "fs-exists",
     "fs-read-file",
@@ -38,8 +37,9 @@ random_color = { version = "0.8.0" }
 sysinfo = { version = "0.30.5" }
 tokio = { version = "1.36.0" }
 mal-api = { version = "2.0.0" }
-# lib-mal = { version = "0.5.1" }
-# env-file-reader = { version = "0.3.0" }
+regex = { version = "1.10.4" }
+fuzzy-matcher = { version = "0.3.7" }
+window_titles = { git = "https://github.com/HiruNya/window_titles", branch = "master" }
 
 [dependencies.tauri-plugin-sql]
 git = "https://github.com/tauri-apps/plugins-workspace"

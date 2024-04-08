@@ -253,10 +253,9 @@ export default function Home() {
                                         value={pin}
                                         onChange={(e) => handleChange(e.target.value, index)}
                                         onKeyDown={(e) => handleBackspace(e, index)}
-                                        className={cn("h-20 w-20 rounded border-2 border-muted text-center text-4xl md:h-28 md:w-28 md:text-6xl lg:h-36 lg:w-36 lg:text-8xl xl:h-40 xl:w-40 xl:text-8xl shadow-md font-bold",
-                                            (pins.join('').length === 4 && pins.join('') !== userPin) && "border-red-500 focus:outline-none focus:border-red-500",
+                                        className={cn("h-20 w-20 rounded border-2 border-muted text-center text-4xl md:h-[6rem] md:w-24 md:text-5xl lg:h-[6.5rem] lg:w-[6] lg:text-[3.5rem] xl:h-28 xl:w-28 xl:text-6xl shadow-md font-bold",
                                         )}
-                                        pattern="\d{4,4}"
+                                        pattern="[0-9]*" // Ensure only numbers can be inputted
                                     />
                                 ))}
                             </motion.div>

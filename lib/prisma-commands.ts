@@ -3,9 +3,6 @@ import { User, Folder, Video } from "@prisma/client";
 import { SettingSchema } from "@/app/settings/page";
 import { Global } from "@prisma/client";
 import { convertFileSrc, invoke } from '@tauri-apps/api/tauri';
-import { emit, listen, once } from '@tauri-apps/api/event'
-import { confirm, message } from "@tauri-apps/api/dialog";
-import { appWindow } from "@tauri-apps/api/window";
 
 export async function getUsers() {
     const db = await Database.load("sqlite:main.db");
@@ -28,14 +25,14 @@ export async function getUsers() {
             "SELECT * from user"
         )
     } catch (e) {
-        console.log(e);
+        // console.log  (e);
     }
 
     if (users.length !== 0) {
-        console.log("confirmed users", users);
+        // console.log  ("confirmed users", users);
         return users;
     } else {
-        //console.log("users", users);
+        // console.log  ("users", users);
         return null;
     }
 
@@ -50,10 +47,9 @@ export async function createNewUser({
 }) {
     let db = await Database.load("sqlite:main.db");
 
-    console.log("Attemping to create new user");
+    // console.log  ("Attemping to create new user");
 
     try {
-
         // Ensure the table exists before attempting to insert into it
         await db.execute(`
         CREATE TABLE IF NOT EXISTS user 
@@ -81,10 +77,11 @@ export async function createNewUser({
 
 
         if (currentColor !== "") {
+            console.log("creating settings for new user")
             await db.select("SELECT * from user WHERE color = $1", [currentColor])
                 .then(async (user: any) => {
                     if (user.length === 1) {
-                        updateSettings({ formData, userId: user[0].id });
+                        updateSettings({ formData, userId: user[0].id })
                     }
                     await db.close();
                     return user;
@@ -92,7 +89,7 @@ export async function createNewUser({
         }
 
     } catch (e) {
-        console.log(e);
+        // console.log  (e);
         await db.close();
         return false
     }
@@ -114,15 +111,15 @@ export async function addFolder({
 
     // create a new folder table if it doesnt exist
     await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0, asChild BOOLEAN NOT NULL DEFAULT 0, color TEXT, FOREIGN KEY (userId) REFERENCES user(id))").catch((e) => {
-        console.log("error", e);
+        // console.log  ("error", e);
     });
 
     await invoke("generate_random_mono_color").then(async (color: any) => {
         await db.execute("INSERT into folder (expanded, path, userId, asChild, color) VALUES ($1, $2, $3, $4, $5)", [expanded ? 1 : 0, folderPath, userId, asChild ? 1 : 0, color]).then(() => {
-            console.log("Created New Folder: ", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
+            // console.log  ("Created New Folder: ", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
         }).catch(async (e) => {
             await db.close()
-            console.log(e)
+            // console.log (e)
             return false;
         });
     });
@@ -140,14 +137,14 @@ export async function getFolders({
     try {
         // create a new folder table if it doesnt exist
         await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0, asChild BOOLEAN NOT NULL DEFAULT 0, color TEXT, FOREIGN KEY (userId) REFERENCES user(id))").catch((e) => {
-            console.log("error", e);
+            // console.log ("error", e);
         });
 
         try {
             // Directly return the result of the query
             let folders: Folder[] = await db.select("SELECT * from folder WHERE userId = $1", [userId])
 
-            console.log(`getFolders() => Folders found from user ${userId}:`, folders.length);
+            // console.log (`getFolders() => Folders found from user ${userId}:`, folders.length);
             if (folders.length !== 0) {
                 return folders
             } else {
@@ -156,13 +153,13 @@ export async function getFolders({
 
         } catch (e) {
             await db.close();
-            console.log(e);
+            // console.log (e);
             return [];
         }
 
     } catch (e) {
         await db.close();
-        console.log(e);
+        // console.log (e);
         // Return an empty array or handle the error as needed
         return [];
     }
@@ -184,22 +181,22 @@ export async function updateFolderExpanded({
 
     // create a new folder table if it doesnt exist
     await db.execute("CREATE TABLE IF NOT EXISTS folder (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL, path TEXT NOT NULL, expanded BOOLEAN NOT NULL DEFAULT 0, asChild BOOLEAN NOT NULL DEFAULT 0, color TEXT, FOREIGN KEY (userId) REFERENCES user(id))").catch((e) => {
-        console.log("error", e);
+        // console.log ("error", e);
     });
 
     await db.select("SELECT * from folder WHERE PATH = $1 AND userId = $2", [folderPath, userId]).then(async (folders: unknown) => {
-        console.log("folders", folders)
+        // console.log ("folders", folders)
         if (Array.isArray(folders) && folders.length !== 0) {
             await db.execute("UPDATE folder SET expanded = $1 WHERE path = $2 AND userId = $3", [expanded ? 1 : 0, folderPath, userId])
-            console.log("Updated", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
+            // console.log ("Updated", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
         } else {
 
             await invoke("generate_random_mono_color").then(async (color: any) => {
-                await db.execute("INSERT into folder (expanded, path, userId, asChild, color) VALUES ($1, $2, $3, $4, $5)", [expanded ? 1 : 0, folderPath, userId, asChild ? 1 : 0, color]).then(() => {
-                    console.log("Created New Folder: ", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
-                }).catch(async (e) => {
+                await db.execute("INSERT into folder (expanded, path, userId, asChild, color) VALUES ($1, $2, $3, $4, $5)", [expanded ? 1 : 0, folderPath, userId, asChild ? 1 : 0, color])/*.then(() => {
+                    // console.log ("Created New Folder: ", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
+                })*/.catch(async (e) => {
                     await db.close()
-                    console.log(e)
+                    // console.log (e)
                     return false;
                 });
             });
@@ -222,7 +219,7 @@ export async function updateVideoWatched({
     user: User,
     watched: boolean
 }) {
-    console.log("Updating watched: ", videoPath.split("\\").pop(), "as", watched, "for user", user.id);
+    // console.log ("Updating watched: ", videoPath.split("\\").pop(), "as", watched, "for user", user.id);
 
     let db = await Database.load("sqlite:main.db");
 
@@ -236,6 +233,10 @@ export async function updateVideoWatched({
                 lastWatchedAt TIMESTAMP DEFAULT (datetime('now')),
                 FOREIGN KEY (userId) REFERENCES user(id)
             )
+        `);
+
+        await db.execute(`
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_video_path ON video(path)
         `);
 
         // Check if the video already exists in the database
@@ -298,15 +299,15 @@ export async function getVideo({
         `);
 
         video = await db.select("SELECT * from video WHERE path = $1 AND userId = $2", [videoPath, userId])
-        // console.log("retrived", video[0].path.split("\\").pop(), "as", video[0].watched, "for user", video[0].userId);
+        // console.log  ("retrived", video[0].path.split("\\").pop(), "as", video[0].watched, "for user", video[0].userId);
         return video[0];
     } catch (e) {
-        console.log(e);
+        // console.log (e);
 
     }
 
     if (video && video.length !== 0) {
-        //console.log("video", video);
+        // console.log  ("video", video);
         return video[0];
     } else {
         return null
@@ -322,15 +323,17 @@ export async function unwatchVideo({
 }) {
     let db = await Database.load("sqlite:main.db");
 
-    console.log("updating" + videoPath.split("\\").pop(), "as", "unwatched", "for user", userId, "in database");
+    // console.log ("updating" + videoPath.split("\\").pop(), "as", "unwatched", "for user", userId, "in database");
 
     await db.execute("UPDATE video SET watched = 0 WHERE path = $1 AND userId = $2", [videoPath, userId]).catch((e) => {
-        console.log("error", e);
+        // console.log ("error", e);
     });
 
     return true;
 }
 
+// when adding a new setting value, update the default state in newUser
+// update this when adding a new setting value
 export async function updateSettings({
     formData,
     userId
@@ -340,30 +343,31 @@ export async function updateSettings({
 }) {
     const db = await Database.load("sqlite:main.db");
 
-    console.log("updating settings for user:", userId);
+    console.log("updating settings for user:", userId, formData);
 
     await db.execute(`
     CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL UNIQUE, 
-    theme TEXT NOT NULL, 
     fontSize TEXT NOT NULL, 
     animations TEXT NOT NULL, 
+    autoPlay TEXT NOT NULL,
     autoRename TEXT NOT NULL, 
     usePin TEXT NOT NULL,
     FOREIGN KEY (userId) REFERENCES user(id))`).catch((e) => {
-        console.log("error", e);
+        // console.log ("error", e);
     });
 
+    // if new setting add into first row and update values + $
     await db.execute(`
-        INSERT INTO settings (userId, theme, fontSize, animations, autoRename, usePin)
+        INSERT INTO settings (userId, fontSize, animations, autoPlay, autoRename, usePin)
         VALUES ($1, $2, $3, $4, $5, $6)
         ON CONFLICT(userId) DO UPDATE SET
-        theme = excluded.theme,
         fontSize = excluded.fontSize,
         animations = excluded.animations,
+        autoPlay = excluded.autoPlay,
         autoRename = excluded.autoRename,
         usePin = excluded.usePin
-    `, [userId, formData.theme, formData.fontSize, formData.animations, formData.autoRename, formData.usePin]).catch((e) => {
-        console.log("error", e);
+    `, [userId, formData.fontSize, formData.animations, formData.autoPlay, formData.autoRename, formData.usePin]).catch((e) => {
+        // console.log ("error", e);
     });
 
 }
@@ -382,6 +386,7 @@ export async function updateUserPin({
     await db.close();
 }
 
+// update this when adding a new setting value
 export async function getUserSettings({
     userId
 }: {
@@ -391,19 +396,19 @@ export async function getUserSettings({
     try {
 
         await db.execute(`
-    CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL UNIQUE, 
-    theme TEXT NOT NULL, 
-    fontSize TEXT NOT NULL, 
-    animations TEXT NOT NULL, 
-    autoRename TEXT NOT NULL, 
-    usePin TEXT NOT NULL,
-    FOREIGN KEY (userId) REFERENCES user(id))`).catch((e) => {
-            console.log("error", e);
+        CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY AUTOINCREMENT, userId INTEGER NOT NULL UNIQUE, 
+            fontSize TEXT NOT NULL, 
+            animations TEXT NOT NULL, 
+            autoPlay TEXT NOT NULL,
+            autoRename TEXT NOT NULL, 
+            usePin TEXT NOT NULL,
+            FOREIGN KEY (userId) REFERENCES user(id))`).catch((e) => {
+            // console.log ("error", e);
         });
 
         let settings: SettingSchema[] = await db.select("SELECT * from settings WHERE userId = $1", [userId])
 
-        //console.log("settings", settings[0]);
+        // console.log  ("settings", settings[0]);
 
         if (settings.length === 0) {
             return null;
@@ -412,7 +417,7 @@ export async function getUserSettings({
             return settings[0];
         }
     } catch (e) {
-        console.log(e);
+        // console.log (e);
         ;
         return null;
     }
@@ -458,7 +463,7 @@ export async function setCurrentUserGlobal({ userId }: { userId: number }) {
 
     } catch (e) {
         await db.close();
-        console.log(e);
+        // console.log (e);
         return false
     }
 
@@ -488,7 +493,7 @@ export async function getCurrentUserGlobal() {
         return null;
     } catch (e) {
         await db.close();
-        console.log(e);
+        // console.log (e);
         return null;
     }
 
@@ -527,7 +532,7 @@ export async function getProfilePicture({
             return image;
         }
     } catch (e) {
-        console.log(e);
+        // console.log (e);
         ;
         return null;
     }
@@ -554,10 +559,10 @@ export async function deleteProfile({
         // Finally, delete the user
         await db.execute(`DELETE FROM user WHERE id = $1`, [userId]);
 
-        console.log("deleteProfile() => Deleted user:", userId);
+        // console.log ("deleteProfile() => Deleted user:", userId);
     } catch (e) {
         await db.close();
-        console.log(e);
+        // console.log (e);
     } finally {
         // Close the database connection
         await db.close();
@@ -591,7 +596,7 @@ export async function getUserScrollY({
             return scrollY[0].scrollY;
         }
     } catch (e) {
-        console.log(e);
+        // console.log (e);
         await db.close();
         return null;
     }
@@ -613,7 +618,7 @@ export async function userGetAllVideos({
             return [];
         }
     } catch (e) {
-        console.log(e);
+        // console.log (e);
         await db.close();
         return null;
     }
@@ -624,18 +629,17 @@ export async function closeDatabase() {
     await db.close();
 }
 
-// export async function appIsClosing() {
-//     const unlisten = await appWindow.onCloseRequested(async (event) => {
-//         confirm('Are you sure?').then((confirmed) => {
-//             // user did not confirm closing the window; let's prevent it
-//             if (!confirm) {
-//                 event.preventDefault();
-//             }
+export async function randomizeFolderColor({ folderPath }: { folderPath: string }) {
+    const db = await Database.load("sqlite:main.db");
 
-//         });
-//     });
+    return invoke("generate_random_mono_color").then(async (color: any) => {
+        await db.execute("UPDATE folder SET color = $1 WHERE path = $2 ", [color, folderPath]);
+        return color;
+    });
+}
 
-//     return unlisten;
-// }
+export async function getFolderColor({ folderPath }: { folderPath: string }) {
+    const db = await Database.load("sqlite:main.db");
 
-
+    return await db.select("SELECT color FROM folder WHERE path = $1", [folderPath]);
+}
