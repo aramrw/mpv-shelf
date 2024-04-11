@@ -20,9 +20,9 @@ export default function ApplicationSection({
           <select
             className="w-full cursor-pointer rounded-sm bg-accent font-medium"
             name="autoPlay"
-            value={formState.autoRename}
+            value={formState.autoPlay}
             onChange={(e) => {
-              setFormState({ ...formState, autoRename: e.target.value });
+              setFormState({ ...formState, autoPlay: e.target.value });
             }}
           >
             <option className="font-medium">On</option>
