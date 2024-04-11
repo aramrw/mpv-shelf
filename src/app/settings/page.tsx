@@ -51,6 +51,9 @@ import ProfileSignOutButton from "./_components/profile-buttons/profile-sign-out
 import ProfilePictureButton from "./_components/profile-buttons/profile-picture-button";
 import ProfileDeleteButton from "./_components/profile-buttons/profile-delete-button";
 import ProfileMalButton from "./_components/profile-buttons/profile-mal-button";
+import UiUxSection from "./_components/form-sections/ui-ux";
+import ApplicationSection from "./_components/form-sections/application";
+import SecuritySection from "./_components/form-sections/security";
 
 const formSchema = z.object({
   fontSize: z.enum(["Small", "Medium", "Large", "XLarge"]),
@@ -172,29 +175,6 @@ export default function Settings() {
     setSavedChanges(false);
   }, [formState]);
 
-  function ToastClickToSee() {
-    toast({
-      className: "cursor-pointer",
-      title: "Pin Copied!",
-      description: `Click to see pin.`,
-      duration: 1500,
-      onClick: () => {
-        if (currentUser?.pin) {
-          toast({
-            className: "cursor-pointer",
-            variant: "destructive",
-            style: {
-              backdropFilter: "blur(5px)",
-              fontWeight: "bold",
-            },
-            description: `UserID: ${currentUser.id}・Pin: ${currentUser.pin}`,
-            duration: 1500,
-          });
-        }
-      },
-    });
-  }
-
   const handleUserGlobal = () => {
     //router.prefetch('/');
     setCurrentUserGlobal({ userId: -1 })
@@ -204,6 +184,26 @@ export default function Settings() {
       .finally(() => {
         router.push("/");
       });
+  };
+
+  const handleSetFormState = (value: any) => {
+    setFormState(value);
+  };
+
+  const handleSetSavedChanges = (value: boolean) => {
+    setSavedChanges(value);
+  };
+
+  const handleSetSavedChangesFormState = (value: any) => {
+    setSavedChangesFormState(value);
+  };
+
+  const handleSetLocked = (value: boolean) => {
+    setLocked(value);
+  };
+
+  const handleSetCurrentUser = (value: User) => {
+    setCurrentUser(value);
   };
 
   return (
@@ -261,7 +261,7 @@ export default function Settings() {
                                 currentUser={currentUser}
                                 formState={formState}
                               />
-															{ /* <ProfileMalButton formState={formState} /> */ }
+                              {/* <ProfileMalButton formState={formState} /> */}
                             </>
                           )}
                         </div>
@@ -302,321 +302,21 @@ export default function Settings() {
               )}
             </ul>
           </li>
-          <li className="flex h-fit flex-col justify-center rounded-b-sm bg-muted">
-            <h1 className="select-none rounded-t-sm bg-accent px-1 font-bold">
-              UI / UX
-            </h1>
-            <ul className="flex flex-col gap-3 p-2">
-              <li className="flex h-fit w-full bg-muted">
-                <div className="flex w-1/2 items-center justify-start gap-1">
-                  <h1 className="select-none font-medium">Font Size</h1>
-                  <ALargeSmall
-                    className={cn(
-                      "h-auto w-4 cursor-pointer",
-                      formState?.fontSize === "Medium" && "h-auto w-5",
-                      formState?.fontSize === "Large" && "h-auto w-6",
-                      formState?.fontSize === "XLarge" && "h-auto w-7",
-                    )}
-                  />
-                </div>
-                <select
-                  className="w-1/2 cursor-pointer rounded-sm bg-accent font-medium"
-                  name="fontSize"
-                  value={formState.fontSize}
-                  onChange={(e) => {
-                    setFormState({ ...formState, fontSize: e.target.value });
-                  }}
-                >
-                  <option className="font-medium">Small</option>
-                  <option className="font-medium">Medium</option>
-                  <option className="font-medium">Large</option>
-                  <option className="font-medium">XLarge</option>
-                </select>
-              </li>
-              <li className="flex h-fit w-full bg-muted">
-                <div className="flex w-1/2 items-center justify-start gap-1">
-                  <h1 className="select-none font-medium">Animations</h1>
-                  <motion.div
-                    whileHover={
-                      formState.animations === "On" ? { scale: 1.2 } : undefined
-                    }
-                    whileTap={
-                      formState.animations === "On" ? { scale: 0.8 } : undefined
-                    }
-                    transition={
-                      formState.animations
-                        ? { type: "spring", stiffness: 800, damping: 17 }
-                        : undefined
-                    }
-                    drag
-                    dragConstraints={
-                      formState.animations
-                        ? { left: 0, right: 0, top: 0, bottom: 0 }
-                        : undefined
-                    }
-                  >
-                    <Move3d
-                      className={cn(
-                        "h-auto w-4 cursor-pointer",
-                        formState?.fontSize === "Medium" && "h-auto w-5",
-                        formState?.fontSize === "Large" && "h-auto w-6",
-                        formState?.fontSize === "XLarge" && "h-auto w-7",
-                      )}
-                    />
-                  </motion.div>
-                </div>
-                <select
-                  className="w-1/2 cursor-pointer rounded-sm bg-accent font-medium"
-                  name="animations"
-                  value={formState.animations}
-                  onChange={(e) => {
-                    setFormState({ ...formState, animations: e.target.value });
-                  }}
-                >
-                  <option className="font-medium">On</option>
-                  <option className="font-medium">Off</option>
-                </select>
-              </li>
-            </ul>
-          </li>
-          <li className="flex h-fit flex-col justify-center rounded-b-sm bg-muted">
-            <h1 className="select-none rounded-t-sm bg-accent px-1 font-bold">
-              Application
-            </h1>
-            <ul className="flex flex-col gap-3 p-2">
-              <li className="flex h-fit w-full justify-between bg-muted">
-                <h1 className="w-full select-none font-medium">Auto Play</h1>
-                <select
-                  className="w-full cursor-pointer rounded-sm bg-accent font-medium"
-                  name="autoPlay"
-                  value={formState.autoRename}
-                  onChange={(e) => {
-                    setFormState({ ...formState, autoRename: e.target.value });
-                  }}
-                >
-                  <option className="font-medium">On</option>
-                  <option className="font-medium">Off</option>
-                </select>
-              </li>
-              <li className="flex h-fit w-full justify-between bg-muted">
-                <TooltipProvider>
-                  <Tooltip delayDuration={400}>
-                    <div className="flex w-full flex-row gap-1">
-                      <TooltipTrigger className="flex w-full flex-row items-center justify-start gap-1">
-                        <Info
-                          className={cn(
-                            "h-auto w-4 cursor-pointer",
-                            formState?.fontSize === "Medium" && "h-auto w-4",
-                            formState?.fontSize === "Large" && "h-auto w-4",
-                            formState?.fontSize === "XLarge" && "h-auto w-5",
-                          )}
-                        />
-                        <h1 className="select-none font-medium">Auto Rename</h1>
-                      </TooltipTrigger>
-                    </div>
-                    <TooltipContent
-                      align="start"
-                      side="bottom"
-                      className={cn(
-                        "select-none flex text-center",
-                        formState?.fontSize === "Medium" && "text-md",
-                        formState?.fontSize === "Large" && "text-lg",
-                        formState?.fontSize === "XLarge" && "text-xl",
-                      )}
-                    >
-                      <div className="font-medium">
-                        <span className="rounded-sm px-1 font-bold">
-                          Renames subtitle files to match videos
-                        </span>
-                        <br />
-                        <span className="text-base font-semibold">
-                          Subtitle files must be in the same directory as the
-                          video files
-                        </span>
-                        <br />
-                        <span className="text-base font-semibold">
-                          for mpv to match them to the video.
-                        </span>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <select
-                  className="w-full cursor-pointer rounded-sm bg-accent font-medium"
-                  name="autoRename"
-                  value={formState.autoRename}
-                  onChange={(e) => {
-                    setFormState({ ...formState, autoRename: e.target.value });
-                  }}
-                >
-                  <option className="font-medium">On</option>
-                  <option className="font-medium">Off</option>
-                </select>
-              </li>
-            </ul>
-          </li>
-          <li className="flex h-fit flex-col justify-center rounded-b-sm bg-muted">
-            <h1 className="select-none rounded-t-sm bg-accent px-1 font-bold">
-              Security
-            </h1>
-            <ul className="flex flex-col gap-3 p-2">
-              <li className="flex h-fit w-full justify-between bg-muted">
-                <h1 className="w-1/2 select-none font-medium">Use Pin</h1>
-                <select
-                  className="w-1/2 cursor-pointer rounded-sm bg-accent font-medium"
-                  name="usePin"
-                  value={formState.usePin}
-                  onChange={(e) => {
-                    if (e.target.value === "Off") {
-                      // call a native dialog with tauri api //.. ask if user really wants to disable pin
-                      ConfirmTurnOffPin().then((confirmed) => {
-                        if (confirmed) {
-                          setFormState({ ...formState, usePin: "Off" });
-                          setSavedChanges(true);
-                          setSavedChangesFormState(formState);
-                        }
-                      });
-                    } else if (e.target.value === "On") {
-                      setFormState({ ...formState, usePin: "On" });
-                    }
-                  }}
-                >
-                  <option className="font-medium">On</option>
-                  <option className="font-medium">Off</option>
-                </select>
-              </li>
-              {formState.usePin === "On" && currentUser?.pin && (
-                <li className="flex h-fit w-full bg-muted">
-                  <h1 className="w-1/2 select-none font-medium">Pin</h1>
-                  <div className={cn("flex w-1/2 flex-row")}>
-                    {!locked && (
-                      <motion.div
-                        className={cn(
-                          "flex h-full cursor-pointer flex-row items-center justify-center rounded-l-sm bg-accent px-1",
-                        )}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => {
-                          // copy the pin to clipboard
-                          if (currentUser?.pin) {
-                            writeText(currentUser.pin.toString());
-                            ToastClickToSee();
-                          }
-                        }}
-                      >
-                        <Copy
-                          className={cn(
-                            "h-5/6 w-4",
-                            formState?.fontSize === "Medium" && "h-auto w-5",
-                            formState?.fontSize === "Large" && "h-auto w-6",
-                            formState?.fontSize === "XLarge" && "h-auto w-7",
-                          )}
-                        />
-                      </motion.div>
-                    )}
-                    <input
-                      className={cn(
-                        "w-full rounded-l-sm bg-accent px-1 font-medium",
-                        locked &&
-                          "cursor-not-allowed select-none opacity-50 focus:outline-none",
-                        !locked && "rounded-none",
-                        currentUser.pin === "disabled" &&
-                          formState.usePin === "On" &&
-                          "animate-pulse text-white",
-                      )}
-                      type="password"
-                      name="pin"
-                      maxLength={4}
-                      pattern="[0-9]{4}"
-                      title="Numbers Only"
-                      placeholder={
-                        currentUser.pin === "disabled" &&
-                        formState.usePin === "On"
-                          ? "Enter a pin #"
-                          : `••••`
-                      }
-                      readOnly={locked}
-                      onChange={(e) => {
-                        if (e.target.value.length === 4) {
-                          // ask the user if they want to change the pin
-                          if (currentUser.pin)
-                            if (
-                              currentUser?.id &&
-                              e.target.value === currentUser.pin.toString()
-                            ) {
-                              AlertNoChangesMade().then(() => {
-                                setLocked(true);
-                              });
-                            } else {
-                              ConfirmChangePin().then((confirm) => {
-                                if (confirm) {
-                                  setLocked(true);
-                                  if (currentUser?.pin) {
-                                    if (
-                                      currentUser?.id &&
-                                      e.target.value !==
-                                        currentUser.pin.toString()
-                                    ) {
-                                      updateUserPin({
-                                        userId: currentUser.id,
-                                        newPin: e.target.value,
-                                      }).then(() => {
-                                        setCurrentUser({
-                                          ...currentUser,
-                                          pin: e.target.value,
-                                        });
-
-                                        toast({
-                                          title: "Pin Changed!",
-                                          description:
-                                            "Your pin has been updated.",
-                                          duration: 1500,
-                                        });
-                                      });
-                                      turnOnPin({ userId: currentUser.id });
-                                      setSavedChanges(true);
-                                      setSavedChangesFormState(formState);
-                                    }
-                                  }
-                                }
-                              });
-                            }
-                        }
-                      }}
-                    />
-                    <motion.div
-                      className="flex h-full cursor-pointer flex-row items-center justify-center rounded-r-sm bg-accent px-1"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => {
-                        setLocked(!locked);
-                      }}
-                    >
-                      {locked ? (
-                        <Lock
-                          className={cn(
-                            "h-5/6 w-4",
-                            formState?.fontSize === "Medium" && "h-auto w-5",
-                            formState?.fontSize === "Large" && "h-auto w-6",
-                            formState?.fontSize === "XLarge" && "h-auto w-7",
-                          )}
-                        />
-                      ) : (
-                        <Unlock
-                          className={cn(
-                            "h-5/6 w-4 cursor-pointer ",
-                            formState?.fontSize === "Medium" && "h-auto w-5",
-                            formState?.fontSize === "Large" && "h-auto w-6",
-                            formState?.fontSize === "XLarge" && "h-auto w-7",
-                          )}
-                        />
-                      )}
-                    </motion.div>
-                  </div>
-                </li>
-              )}
-            </ul>
-          </li>
+          <UiUxSection formState={formState} setFormState={setFormState} />
+          <ApplicationSection
+            formState={formState}
+            setFormState={setFormState}
+          />
+          <SecuritySection
+            formState={formState}
+            setFormState={setFormState}
+            setCurrentUser={handleSetCurrentUser}
+            setLocked={handleSetLocked}
+            setSavedChangesFormState={handleSetSavedChangesFormState}
+            setSavedChanges={handleSetSavedChanges}
+            currentUser={currentUser}
+						locked={locked}
+          />
         </ul>
 
         <AnimatePresence mode="wait">
