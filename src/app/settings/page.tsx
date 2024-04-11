@@ -5,52 +5,22 @@ import React, { useEffect, useState } from "react";
 import { z } from "zod";
 import {
   closeDatabase,
-  deleteProfile,
   getCurrentUserGlobal,
   getUserSettings,
   getUsers,
   setCurrentUserGlobal,
-  turnOnPin,
-  updateProfilePicture,
   updateSettings,
   updateUserPin,
 } from "../../../lib/prisma-commands";
 import { User } from "@prisma/client";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-
-import {
-  ALargeSmall,
-  Check,
-  Copy,
-  Delete,
-  Images,
-  Info,
-  Lock,
-  Move3d,
-  Unlock,
-  UserPlus,
-} from "lucide-react";
+import { Check, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { writeText } from "@tauri-apps/api/clipboard";
-import { useToast } from "@/components/ui/use-toast";
-import {
-  AlertNoChangesMade,
-  ConfirmChangePin,
-  ConfirmDeleteProfile,
-  ConfirmTurnOffPin,
-} from "./_components/confirm";
 import { useRouter } from "next/navigation";
 import { UserAvatar } from "../profiles/_components/user-avatar";
 import ProfileSignOutButton from "./_components/profile-buttons/profile-sign-out-button";
 import ProfilePictureButton from "./_components/profile-buttons/profile-picture-button";
 import ProfileDeleteButton from "./_components/profile-buttons/profile-delete-button";
-import ProfileMalButton from "./_components/profile-buttons/profile-mal-button";
 import UiUxSection from "./_components/form-sections/ui-ux";
 import ApplicationSection from "./_components/form-sections/application";
 import SecuritySection from "./_components/form-sections/security";
@@ -66,7 +36,6 @@ const formSchema = z.object({
 export type SettingSchema = z.infer<typeof formSchema>;
 
 export default function Settings() {
-  const { toast } = useToast();
 
   const [formState, setFormState] = useState({
     fontSize: "Large",
@@ -315,7 +284,7 @@ export default function Settings() {
             setSavedChangesFormState={handleSetSavedChangesFormState}
             setSavedChanges={handleSetSavedChanges}
             currentUser={currentUser}
-						locked={locked}
+            locked={locked}
           />
         </ul>
 
