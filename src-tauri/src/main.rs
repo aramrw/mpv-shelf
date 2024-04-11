@@ -259,13 +259,14 @@ fn rename_subs(sub_paths: String, vid_paths: String, folder_path: String) {
     //println!("{}, {}", first_video_file_name, folder_name);
 
     if first_video_file_name.contains(&folder_name) && first_sub_file_name.contains(&folder_name) {
-        //println!("File's already renamed");1
+        println!("File's already renamed");
         return;
     }
 
     //println!("{}", folder_path);
 
-    for vid in vid_v {
+    for vid in vid_v { 
+        //println!("{}", vid);
         let video_file_name = Path::new(&vid)
             .file_name()
             .unwrap()
@@ -301,7 +302,7 @@ fn rename_subs(sub_paths: String, vid_paths: String, folder_path: String) {
             "{}\\{} - {}.{}",
             folder_path, folder_name, subtitle_episode, sub_file_type
         );
-        //println!("{}", new_subtitle_path);
+        println!("{}", new_subtitle_path);
         fs::rename(sub, new_subtitle_path).unwrap();
     }
 }
@@ -750,6 +751,7 @@ async fn open_video(
     user_id: u32,
 ) -> String {
     println!("now playing {}", path);
+
 
     let window: Window = handle
         .clone()
