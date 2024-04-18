@@ -49,7 +49,7 @@ pub fn rename_subs(sub_paths: String, vid_paths: String, folder_path: String) {
             .unwrap()
             .to_string();
         let (_video_file_name, video_file_type) = video_file_name
-            .rsplit_once(".")
+            .rsplit_once('.')
             .map(|(name, file_type)| (name.to_string(), file_type.to_string()))
             .unwrap_or(("".to_string(), "".to_string()));
         let video_episode = extract_episode_number(&vid).unwrap();
