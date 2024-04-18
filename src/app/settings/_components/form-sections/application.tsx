@@ -15,7 +15,7 @@ export default function ApplicationSection({
         Application
       </h1>
       <ul className="flex flex-col gap-3 p-2">
-        <li className="flex h-fit w-full justify-between bg-muted">
+        <li className="flex h-fit w-full items-center justify-between bg-muted">
           <h1 className="w-full select-none font-medium">Auto Play</h1>
           <select
             className="w-full cursor-pointer rounded-sm bg-accent font-medium"
@@ -60,12 +60,12 @@ export default function ApplicationSection({
                     Renames subtitle files to match videos
                   </span>
                   <br />
-                  <span className="text-base font-semibold">
+                  <span className="font-semibold">
                     Subtitle files must be in the same directory as the video
                     files
                   </span>
                   <br />
-                  <span className="text-base font-semibold">
+                  <span className="font-semibold">
                     for mpv to match them to the video.
                   </span>
                 </div>
