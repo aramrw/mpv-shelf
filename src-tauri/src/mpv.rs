@@ -1,12 +1,11 @@
+use crate::misc::extract_episode_number;
 use sqlx::{Connection, SqliteConnection};
-use std::time::Duration;
-use window_titles::{Connection as win_titles_Connection, ConnectionTrait};
-use tauri::{Window, Manager};
-use std::process::Command;
 use std::fs;
 use std::path::Path;
-use crate::misc::extract_episode_number;
-
+use std::process::Command;
+use std::time::Duration;
+use tauri::{Manager, Window};
+use window_titles::{Connection as win_titles_Connection, ConnectionTrait};
 
 #[tauri::command]
 pub async fn open_video(
@@ -23,7 +22,7 @@ pub async fn open_video(
         .or_else(|| handle.clone().get_window("main"))
         .expect("failed to get any windows!");
 
-        window.close().expect("failed to close main window");
+    window.close().expect("failed to close main window");
 
     // Kill all mpv.exe processes before opening a new video.
     let mut sys = sysinfo::System::new_all();
@@ -46,7 +45,7 @@ pub async fn open_video(
             println!("current video index: {}", current_video_index);
             break;
         }
-   }
+    }
 
     if auto_play == "On" {
         let _status = Command::new("mpv.exe")
@@ -197,4 +196,3 @@ async fn update_last_watched_videos(
 
     conn.close().await.unwrap();
 }
-
