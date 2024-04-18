@@ -132,8 +132,8 @@ fn main() {
             .expect("error while building tauri application")
             .run(|_app_handle, event| {
                 if let tauri::RunEvent::ExitRequested { api, .. } = event {
-                          api.prevent_exit();
-                          // _app_handle.get_window("main").unwrap().hide().unwrap();
+                    api.prevent_exit();
+                    // _app_handle.get_window("main").unwrap().hide().unwrap();
                 }
             });
     }
