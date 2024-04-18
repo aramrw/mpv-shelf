@@ -258,7 +258,7 @@ fn rename_subs(sub_paths: String, vid_paths: String, folder_path: String) {
 
     //println!("{}, {}", first_video_file_name, folder_name);
 
-    if first_video_file_name.contains(&folder_name) && first_sub_file_name.contains(&folder_name) {
+    if first_video_file_name.contains(folder_name) && first_sub_file_name.contains(folder_name) {
         println!("File's already renamed");
         return;
     }
@@ -294,7 +294,7 @@ fn rename_subs(sub_paths: String, vid_paths: String, folder_path: String) {
             .unwrap()
             .to_string();
         let (_sub_file_name, sub_file_type) = sub_file_name
-            .rsplit_once(".")
+            .rsplit_once('.')
             .map(|(name, file_type)| (name.to_string(), file_type.to_string()))
             .unwrap_or(("".to_string(), "".to_string()));
         let subtitle_episode = extract_episode_number(&sub).unwrap();
@@ -568,28 +568,26 @@ async fn check_mal_config(anime_data: String, episode_number: u32) {
 
     // parse the anime_data json as the Anime struct
     let data: Anime = serde_json::from_str(&anime_data).unwrap();
-    let anime_id = match data._source.rsplit_once("/") {
+    let anime_id = match data._source.rsplit_once('/') {
         Some((_url, id)) => id,
         None => "",
     };
-    //println!("{:?}", anime_id);
 
+    // MARKING FOR IF THIS SHIT BREAKS MY APP 
     let mut lines_vec: Vec<String> = Vec::new();
     if let Ok(lines) = read_toml_lines("./mal.toml").await {
-        for line in lines {
-            if let Ok(token) = line {
+        for token in lines.map_while(Result::ok) {
                 if token.contains(&"mal_access_token".to_string()) {
-                    let split = token.split("=").collect::<Vec<&str>>();
+                    let split = token.split('=').collect::<Vec<&str>>();
                     lines_vec.push(split[1].trim().to_string());
                 }
                 if token.contains(&"mal_refresh_token".to_string()) {
-                    let split = token.split("=").collect::<Vec<&str>>();
+                    let split = token.split('=').collect::<Vec<&str>>();
                     lines_vec.push(split[1].trim().to_string());
                 }
                 if token.contains(&"mal_token_expires_at".to_string()) {
-                    let split = token.split("=").collect::<Vec<&str>>();
+                    let split = token.split('=').collect::<Vec<&str>>();
                     lines_vec.push(split[1].trim().to_string());
-                }
             }
         }
     }
@@ -598,9 +596,7 @@ async fn check_mal_config(anime_data: String, episode_number: u32) {
         *line = line.trim_matches('\"').to_string();
     });
 
-    if lines_vec.len() > 0 {
-        // println!("{:?}", lines_vec);
-
+    if lines_vec.is_empty() {
         let client_id = "7e2bbcc2ee9bd135cc6c0bca185132ac".to_string();
         let client_secret =
             "af749aa2e34194d2744c0c082a0e9d7bd71732ec226d67946d82c8167e80cdcc".to_string();
@@ -694,8 +690,6 @@ async fn link_my_anime_list() {
     //let _manga_api_client = MangaApiClient::from(&authenticated_oauth_client);
 }
 
-// ! DONT TOUCH THESE FUNCTIONS ! //
-
 #[command]
 fn show_in_folder(path: String) {
     #[cfg(target_os = "windows")]
@@ -758,19 +752,15 @@ async fn open_video(
         .or_else(|| handle.clone().get_window("main"))
         .expect("failed to get any windows!");
 
-    //let screen_res = window.current_monitor().unwrap().unwrap();
     let result = close_database(handle.clone()).await;
 
     if result == true {
         window.close().expect("failed to close main window");
     }
 
-    let mut sys = System::new_all();
-
     // Kill all mpv.exe processes before opening a new video.
+    let mut sys = System::new_all();
     sys.refresh_processes(); // Refresh the list of processes.
-
-    // TODO : To make it support any video player, get the default video player from the user / the os
     sys.processes().iter().for_each(|(_pid, process)| {
         if process.name().to_lowercase().contains("mpv.exe") {
             process.kill();
@@ -779,7 +769,7 @@ async fn open_video(
 
     let parent_path = Path::new(&path).parent().unwrap().to_str().unwrap();
 
-    // find which index the video is in the parent folder
+    // find which index the video the user clicked is in the parent folder
     let mut current_video_index: i32 = -1;
     let video_files = fs::read_dir(parent_path).unwrap();
     for (index, file) in video_files.enumerate() {
@@ -791,23 +781,23 @@ async fn open_video(
         }
     }
 
-        if auto_play == "On" {
-            //println!("current video index: {}", current_video_index);
-            let _status = Command::new("mpv.exe")
-                .arg(format!("--playlist-start={}", current_video_index))
-                .arg(format!("--playlist={}", parent_path))
-                .spawn()
-                .unwrap();
-        } else {
-            match open::that(path.clone()) {
-                Ok(_) => "Video opened successfully",
-                Err(_) => "Failed to open video",
-            };
-        }
+    if auto_play == "On" {
+        let _status = Command::new("mpv.exe")
+            // --playlist-start should be the index of the video in the parent folder
+            .arg(format!("--playlist-start={}", current_video_index))
+            // --playlist should be the path of the parent folder
+            .arg(format!("--playlist={}", parent_path))
+            .spawn()
+            .unwrap();
+    } else {
+        match open::that(path.clone()) {
+            Ok(_) => "Video opened successfully",
+            Err(_) => "Failed to open video",
+        };
+    }
 
     let instant = std::time::Instant::now();
     let mut last_watched_video = String::new();
-    //println!("last watched: {}", last_watched_video);
 
     loop {
         let mut mpv_running = false; // Flag to check if mpv is running.
@@ -834,9 +824,6 @@ async fn open_video(
                     window.set_focus().unwrap();
                 }
                 None => {
-                    // get users current resolution
-
-                    // build the window
                     tauri::WindowBuilder::new(
                         &handle,
                         "main".to_string(),
@@ -871,8 +858,8 @@ fn get_last_mpv_win_title() -> String {
         .iter()
         .for_each(|window| {
             if window.contains("mpv")
-                && window.contains(".")
-                && !window.contains("\\")
+                && window.contains('.')
+                && !window.contains('\\')
                 && !window.contains("Visual Studio")
             {
                 println!("{}", window);
@@ -896,9 +883,9 @@ async fn update_last_watched_videos(
         .unwrap();
 
     println!("last video watched: {}", last_video_watched_title);
-
     let video_start_episode_num: u32 = extract_episode_number(video_start_title).unwrap_or(0);
-    let last_video_episode_num: u32 = extract_episode_number(&last_video_watched_title).unwrap_or(0);
+    let last_video_episode_num: u32 =
+        extract_episode_number(&last_video_watched_title).unwrap_or(0);
     let mut sum: u32 = 0;
 
     if video_start_episode_num == 0 && last_video_episode_num == 0 {
@@ -909,11 +896,6 @@ async fn update_last_watched_videos(
         sum = last_video_episode_num - video_start_episode_num;
     }
 
-    // println!(
-    //     "start episode:{} - last episode: {} = {}",
-    //     video_start_episode_num, last_video_episode_num, sum
-    // );
-
     let db_url = handle
         .path_resolver()
         .app_data_dir()
@@ -923,11 +905,6 @@ async fn update_last_watched_videos(
     let mut conn = SqliteConnection::connect(db_url.to_str().unwrap())
         .await
         .unwrap();
-
-    // sqlx::query("BEGIN TRANSACTION")
-    //     .execute(&mut conn)
-    //     .await
-    //     .unwrap();
 
     for x in 1..=sum {
         let video_index = x + video_start_episode_num;
@@ -940,8 +917,6 @@ async fn update_last_watched_videos(
             video_start_path.clone()
         };
 
-        println!("Updating episode {} in db", starting_new_path);
-
         sqlx::query(
             "INSERT OR REPLACE INTO video (path, userId, watched, lastWatchedAt) VALUES (?, ?, ?, datetime('now'))",
         )
@@ -952,8 +927,6 @@ async fn update_last_watched_videos(
         .await
         .unwrap();
     }
-
-    //sqlx::query("COMMIT").execute(&mut conn).await.unwrap();
 
     conn.close().await.unwrap();
 }
@@ -969,10 +942,7 @@ async fn close_database(handle: tauri::AppHandle) -> bool {
     let conn = SqliteConnection::connect(db_url.to_str().unwrap())
         .await
         .unwrap();
-
-    println!("Closing the database!");
-
     conn.close().await.unwrap();
 
-    return true;
+    true
 }
