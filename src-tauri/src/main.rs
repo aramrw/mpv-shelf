@@ -265,7 +265,7 @@ fn rename_subs(sub_paths: String, vid_paths: String, folder_path: String) {
 
     //println!("{}", folder_path);
 
-    for vid in vid_v { 
+    for vid in vid_v {
         //println!("{}", vid);
         let video_file_name = Path::new(&vid)
             .file_name()
@@ -752,7 +752,6 @@ async fn open_video(
 ) -> String {
     println!("now playing {}", path);
 
-
     let window: Window = handle
         .clone()
         .get_window("main")
@@ -779,25 +778,32 @@ async fn open_video(
     });
 
     let parent_path = Path::new(&path).parent().unwrap().to_str().unwrap();
-    // println!("{}", parent_path);
 
-    // mpv divides whatever is passed to start by half for some reason....
-    let start_video_ep_num =
-        extract_episode_number(Path::new(&path).file_name().unwrap().to_str().unwrap()).unwrap()
-            * 2;
-
-    if auto_play == "On" {
-        let _status = Command::new("mpv.exe")
-            .arg(format!("--playlist-start={}", start_video_ep_num))
-            .arg(format!("--playlist={}", parent_path))
-            .spawn()
-            .unwrap();
-    } else {
-        match open::that(path.clone()) {
-            Ok(_) => "Video opened successfully",
-            Err(_) => "Failed to open video",
-        };
+    // find which index the video is in the parent folder
+    let mut current_video_index: i32 = -1;
+    let video_files = fs::read_dir(parent_path).unwrap();
+    for (index, file) in video_files.enumerate() {
+        let file = file.unwrap().path();
+        if file.to_str().unwrap() == path {
+            current_video_index = index as i32;
+            println!("current video index: {}", current_video_index);
+            break;
+        }
     }
+
+        if auto_play == "On" {
+            //println!("current video index: {}", current_video_index);
+            let _status = Command::new("mpv.exe")
+                .arg(format!("--playlist-start={}", current_video_index))
+                .arg(format!("--playlist={}", parent_path))
+                .spawn()
+                .unwrap();
+        } else {
+            match open::that(path.clone()) {
+                Ok(_) => "Video opened successfully",
+                Err(_) => "Failed to open video",
+            };
+        }
 
     let instant = std::time::Instant::now();
     let mut last_watched_video = String::new();
@@ -891,9 +897,13 @@ async fn update_last_watched_videos(
 
     println!("last video watched: {}", last_video_watched_title);
 
-    let video_start_episode_num: u32 = extract_episode_number(&video_start_title).unwrap();
-    let last_video_episode_num: u32 = extract_episode_number(&last_video_watched_title).unwrap();
+    let video_start_episode_num: u32 = extract_episode_number(video_start_title).unwrap_or(0);
+    let last_video_episode_num: u32 = extract_episode_number(&last_video_watched_title).unwrap_or(0);
     let mut sum: u32 = 0;
+
+    if video_start_episode_num == 0 && last_video_episode_num == 0 {
+        return;
+    }
 
     if video_start_episode_num != last_video_episode_num {
         sum = last_video_episode_num - video_start_episode_num;
