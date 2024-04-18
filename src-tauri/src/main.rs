@@ -76,29 +76,20 @@ fn main() {
                 Ok(())
             })
             .system_tray(tray.clone())
-            .on_system_tray_event(move |app, event| match event {
-                SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
-                    "toggle_window" => match app.get_window("main") {
-                        Some(window) => {
-                            if window.is_visible().unwrap() {
-                                window.hide().unwrap();
-                            } else if !window.is_visible().unwrap() {
-                                window.center().unwrap();
-                                window.show().unwrap();
-                                window.set_focus().unwrap();
-                            }
-                        }
-                        None => match app.get_window("main") {
-                            Some(window) => {
+            .plugin(tauri_plugin_sql::Builder::default().build())
+            .on_system_tray_event(move |app, event| {
+                if let SystemTrayEvent::MenuItemClick { id, .. } = event {
+                    match id.as_str() {
+                        "toggle_window" => {
+                            if let Some(window) = app.get_window("main") {
                                 if window.is_visible().unwrap() {
                                     window.hide().unwrap();
-                                } else if !window.is_visible().unwrap() {
+                                } else {
                                     window.center().unwrap();
                                     window.show().unwrap();
                                     window.set_focus().unwrap();
                                 }
-                            }
-                            None => {
+                            } else {
                                 tauri::WindowBuilder::new(
                                     app,
                                     "main".to_string(),
@@ -110,25 +101,24 @@ fn main() {
                                 .build()
                                 .unwrap();
                             }
-                        },
-                    },
-                    "restart" => {
-                        let _ = app.emit_all("closing_app", ()).unwrap();
-                        app.restart();
-                    }
-                    "quit" => {
-                        if app.windows().len() > 0 {
-                            let _ = app.emit_all("quit_app", ());
-                            app.once_global("db_closed", |_e| {
-                                exit(0);
-                            });
-                        } else {
-                            check_for_mpv();
                         }
+                        "restart" => {
+                            app.emit_all("closing_app", ()).unwrap();
+                            app.restart();
+                        }
+                        "quit" => {
+                            if app.windows().is_empty() {
+                                let _ = app.emit_all("quit_app", ());
+                                app.once_global("db_closed", |_e| {
+                                    exit(0);
+                                });
+                            } else {
+                                check_for_mpv();
+                            }
+                        }
+                        _ => {}
                     }
-                    _ => {}
-                },
-                _ => {}
+                }
             })
             .plugin(tauri_plugin_sql::Builder::default().build())
             .invoke_handler(generate_handler![
@@ -140,19 +130,16 @@ fn main() {
             ])
             .build(tauri::generate_context!())
             .expect("error while building tauri application")
-            .run(|_app_handle, event| match event {
-                tauri::RunEvent::ExitRequested { api, .. } => {
-                    api.prevent_exit();
-                    // _app_handle.get_window("main").unwrap().hide().unwrap();
+            .run(|_app_handle, event| {
+                if let tauri::RunEvent::ExitRequested { api, .. } = event {
+                          api.prevent_exit();
+                          // _app_handle.get_window("main").unwrap().hide().unwrap();
                 }
-                _ => {}
             });
     }
 
     hack_builder(tray);
 }
-
-
 
 // Tray
 fn check_for_mpv() {
@@ -196,5 +183,3 @@ fn close_open_mpv_shelf_instance() -> bool {
 
     true
 }
-
-
