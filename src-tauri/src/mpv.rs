@@ -34,12 +34,14 @@ pub async fn open_video(
     });
 
     let parent_path = Path::new(&path).parent().unwrap().to_str().unwrap();
+    let mut current_video_name: String = String::new();
 
     // find which index the video the user clicked is in the parent folder
     let mut current_video_index: i32 = -1;
     let video_files = fs::read_dir(parent_path).unwrap();
     for (index, file) in video_files.enumerate() {
         let file = file.unwrap().path();
+        current_video_name = file.file_name().unwrap().to_str().unwrap().to_string();
         if file.to_str().unwrap() == path {
             current_video_index = index as i32;
             println!("current video index: {}", current_video_index);
@@ -53,6 +55,8 @@ pub async fn open_video(
             .arg(format!("--playlist-start={}", current_video_index))
             // --playlist should be the path of the parent folder
             .arg(format!("--playlist={}", parent_path))
+            //.arg(format!("--title={} - mpv.exe", current_video_name))
+            .arg("--title='${filename} - mpv.exe")
             .spawn()
             .unwrap();
     } else {
@@ -158,10 +162,10 @@ async fn update_last_watched_videos(
         return;
     }
 
-    if video_start_episode_num != last_video_episode_num {
+    if video_start_episode_num != last_video_episode_num && last_video_episode_num > video_start_episode_num {
         sum = last_video_episode_num - video_start_episode_num;
-    }
-
+    } 
+    
     let db_url = handle
         .path_resolver()
         .app_data_dir()
