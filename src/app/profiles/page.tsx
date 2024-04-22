@@ -1,6 +1,6 @@
 "use client";
 
-import React, { lazy, useEffect, useMemo, useRef, useState } from 'react';
+import React, { lazy, useEffect, useRef, useState } from 'react';
 import { closeDatabase } from '../../../lib/prisma-commands/misc-cmds';
 import { AnimatePresence, PanInfo, motion } from 'framer-motion';
 import { User } from '@prisma/client';
