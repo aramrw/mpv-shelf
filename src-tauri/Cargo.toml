@@ -15,6 +15,8 @@ rust-version = "1.60"
 tauri-build = { version = "1.5.1", features = [] }
 
 [dependencies]
+# mal-api = { version = "2.0.0" }
+# fuzzy-matcher = { version = "0.3.7" }
 sqlx = { version = "0.7.3", features = ["runtime-tokio", "tls-native-tls"] }
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
@@ -36,9 +38,7 @@ open = { version = "5.0.1" }
 random_color = { version = "0.8.0" }
 sysinfo = { version = "0.30.5" }
 tokio = { version = "1.36.0" }
-mal-api = { version = "2.0.0" }
 regex = { version = "1.10.4" }
-fuzzy-matcher = { version = "0.3.7" }
 window_titles = { git = "https://github.com/HiruNya/window_titles", branch = "master" }
 
 [dependencies.tauri-plugin-sql]
