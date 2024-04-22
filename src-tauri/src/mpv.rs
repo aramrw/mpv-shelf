@@ -12,6 +12,37 @@ use window_titles::{Connection as win_titles_Connection, ConnectionTrait};
 pub enum OpenVideoResult {
     Success(String),
     Error(String),
+#[derive(Debug)]
+pub enum OpenVideoError {
+    Error { message: String },
+}
+
+impl serde::Serialize for OpenVideoError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        let error_message = match self {
+            OpenVideoError::Error { message } => message,
+        };
+        serializer.serialize_str(error_message)
+    }
+}
+
+
+
+impl std::fmt::Display for OpenVideoError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            OpenVideoError::Error { message } => write!(f, "Custom error: {}", message),
+        }
+    }
+}
+
+impl std::error::Error for OpenVideoError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        None
+    }
 }
 
 #[tauri::command]
