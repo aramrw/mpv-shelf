@@ -1,4 +1,5 @@
 use crate::misc::extract_episode_number;
+use serde::{Deserialize, Serialize};
 use sqlx::{Connection, SqliteConnection};
 use std::fs;
 use std::path::Path;
@@ -7,13 +8,19 @@ use std::time::Duration;
 use tauri::{Manager, Window};
 use window_titles::{Connection as win_titles_Connection, ConnectionTrait};
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum OpenVideoResult {
+    Success(String),
+    Error(String),
+}
+
 #[tauri::command]
 pub async fn open_video(
     path: String,
     handle: tauri::AppHandle,
     auto_play: String,
     user_id: u32,
-) -> String {
+) -> OpenVideoResult {
     let window: Window = handle
         .clone()
         .get_window("main")
@@ -36,7 +43,7 @@ pub async fn open_video(
         let parent_path = Path::new(&path).parent().unwrap().to_str().unwrap();
         let current_video_index = find_video_index(parent_path, &path);
 
-        let _status = Command::new("mpv.exe")
+        let status = Command::new("mpv.exe")
             // --playlist-start should be the index of the video in the parent folder
             .arg(format!("--playlist-start={}", current_video_index))
             // --playlist should be the path of the parent folder
@@ -44,7 +51,12 @@ pub async fn open_video(
             //.arg(format!("--title={} - mpv.exe", current_video_name))
             .arg("--title=${filename} - mpv.exe")
             .spawn()
-            .unwrap();
+            .map_err(|e| e.to_string());
+
+        match status {
+            Ok(_) => OpenVideoResult::Success("Success".into()),
+            Err(e) => OpenVideoResult::Error(e),
+        };
     } else {
         match open::that(path.clone()) {
             Ok(_) => "Video opened successfully",
@@ -75,12 +87,14 @@ pub async fn open_video(
             // open a new window and close the first exe (not a window anymore) in the system tray
             open_new_window(handle.clone());
             update_last_watched_videos(handle, path.clone(), last_watched_video, user_id).await;
-
-            return "closed".to_string();
+            break;
         }
 
         tokio::time::sleep(Duration::from_secs(1)).await;
     }
+
+    println!("mpv-shelf was closed");
+    OpenVideoResult::Success("Success".into())
 }
 
 fn open_new_window(handle: tauri::AppHandle) {
