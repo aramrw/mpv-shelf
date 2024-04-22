@@ -204,7 +204,7 @@ export default function VideoFile({
                   >
                     <Eye
                       className={cn(
-                        "h-auto w-5 mr-0.5 ",
+                        "h-auto w-4 mr-0.5",
                         userSettings?.fontSize === "Medium" && "h-auto w-5",
                         userSettings?.fontSize === "Large" &&
                           "h-auto w-[1.3.5rem]",
