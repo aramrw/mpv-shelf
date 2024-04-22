@@ -99,7 +99,7 @@ export default function VideoFile({
                 : undefined
             }
             whileHover={
-              userSettings?.animations === "On" ? { x: 0.5 } : undefined
+              userSettings?.animations === "On" ? { x: 0.3 } : undefined
             }
             transition={{ duration: 0.5, type: "spring", bounce: 0.4 }}
           >
