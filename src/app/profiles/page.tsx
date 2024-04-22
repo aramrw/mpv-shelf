@@ -1,12 +1,14 @@
 "use client";
 
 import React, { lazy, useEffect, useMemo, useRef, useState } from 'react';
-import { closeDatabase, getUsers, setCurrentUserGlobal } from '../../../lib/prisma-commands';
-import { AnimatePresence, MotionValue, PanInfo, motion, motionValue, useDragControls, useMotionValue, useScroll } from 'framer-motion';
+import { closeDatabase } from '../../../lib/prisma-commands/misc-cmds';
+import { AnimatePresence, PanInfo, motion } from 'framer-motion';
 import { User } from '@prisma/client';
 import { useRouter } from 'next/navigation'; // Corrected import for useRouter
-import { GripHorizontal, GripVertical, Loader2, MoveLeft, MoveRight } from 'lucide-react';
+import { GripVertical, Loader2 } from 'lucide-react';
 const UserAvatar = lazy(() => import('./_components/user-avatar').then(module => ({ default: module.UserAvatar })));
+import { getUsers } from '../../../lib/prisma-commands/user/user-cmds';
+import { setCurrentUserGlobal } from '../../../lib/prisma-commands/global/global-cmds';
 
 import { cn } from '@/lib/utils';
 //import { currentMonitor } from '@tauri-apps/api/window';

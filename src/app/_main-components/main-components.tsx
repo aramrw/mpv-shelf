@@ -1,15 +1,14 @@
 "use client"
 // import React, { useEffect, useState } from 'react'
 import { motion, /*useMotionValueEvent, useScroll*/ } from 'framer-motion'
-import { HelpCircle, MoveLeft, Sliders } from 'lucide-react'
+import { MoveLeft, Sliders } from 'lucide-react'
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useScrollTop } from '../../../lib/hooks/scroll-y-check';
 import { useEffect } from 'react';
-import { confirm } from '@tauri-apps/api/dialog';
-import { closeDatabase } from '../../../lib/prisma-commands';
-import { emit, listen, once } from '@tauri-apps/api/event';
+import { closeDatabase } from '../../../lib/prisma-commands/misc-cmds';
+import { emit, listen } from '@tauri-apps/api/event';
 
 export function Navbar() {
 

@@ -5,13 +5,7 @@ import React, { useEffect, useState } from "react";
 import { z } from "zod";
 import {
   closeDatabase,
-  getCurrentUserGlobal,
-  getUserSettings,
-  getUsers,
-  setCurrentUserGlobal,
-  updateSettings,
-  updateUserPin,
-} from "../../../lib/prisma-commands";
+} from "../../../lib/prisma-commands/misc-cmds";
 import { User } from "@prisma/client";
 import { Check, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,6 +18,9 @@ import ProfileDeleteButton from "./_components/profile-buttons/profile-delete-bu
 import UiUxSection from "./_components/form-sections/ui-ux";
 import ApplicationSection from "./_components/form-sections/application";
 import SecuritySection from "./_components/form-sections/security";
+import { getCurrentUserGlobal, setCurrentUserGlobal } from "../../../lib/prisma-commands/global/global-cmds";
+import { getUsers } from "../../../lib/prisma-commands/user/user-cmds";
+import { getUserSettings, updateUserPin, updateSettings } from "../../../lib/prisma-commands/settings/setting-cmds";
 
 const formSchema = z.object({
   fontSize: z.enum(["Small", "Medium", "Large", "XLarge"]),
@@ -353,7 +350,7 @@ export default function Settings() {
                     formState?.fontSize === "Large" && "text-xl",
                     formState?.fontSize === "XLarge" && "text-2xl",
                     formState !== savedChangesFormState &&
-                      "animate-pulse duration-400",
+                    "animate-pulse duration-400",
                   )}
                   type="submit"
                   onClick={() => {

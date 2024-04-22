@@ -3,7 +3,7 @@ import { motion } from "framer-motion"
 import { Trash2 } from 'lucide-react';
 import { SettingSchema } from '@/app/settings/page';
 import { cn } from '@/lib/utils';
-import { deleteFolder } from '../../../../lib/prisma-commands';
+import { deleteFolder } from '../../../../lib/prisma-commands/folders/folder-cmds';
 
 
 export default function ParentTrashcan({ userSettings, folderPaths, parentFolderPaths, folderPath, setFolderPathsHook, setParentFolderPathsHook }: { userSettings: SettingSchema | undefined, folderPaths: string[] | undefined, parentFolderPaths: string[] | undefined, folderPath: string, setFolderPathsHook: (folderPaths: string[]) => void, setParentFolderPathsHook: (folderPaths: string[]) => void }) {

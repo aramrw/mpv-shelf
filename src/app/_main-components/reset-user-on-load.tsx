@@ -1,7 +1,8 @@
 "use client"
 
 import React, { useEffect } from 'react'
-import { closeDatabase, setCurrentUserGlobal } from '../../../lib/prisma-commands';
+import { closeDatabase } from '../../../lib/prisma-commands/misc-cmds';
+import { setCurrentUserGlobal } from '../../../lib/prisma-commands/global/global-cmds';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 

@@ -6,7 +6,7 @@ import { writeText } from "@tauri-apps/api/clipboard";
 import { motion } from "framer-motion";
 import { toast } from "@/components/ui/use-toast";
 import { AlertNoChangesMade } from "../confirm";
-import { turnOnPin, updateUserPin } from "../../../../../lib/prisma-commands";
+import { turnOnPin, updateUserPin } from "../../../../../lib/prisma-commands/settings/setting-cmds";
 
 export default function SecuritySection({
   formState,
@@ -16,7 +16,7 @@ export default function SecuritySection({
   setSavedChanges,
   setSavedChangesFormState,
   setLocked,
-	setCurrentUser,
+  setCurrentUser,
 }: {
   formState: any;
   currentUser: User | undefined;
@@ -114,11 +114,11 @@ export default function SecuritySection({
                 className={cn(
                   "w-full rounded-l-sm bg-accent px-1 font-medium",
                   locked &&
-                    "cursor-not-allowed select-none opacity-50 focus:outline-none",
+                  "cursor-not-allowed select-none opacity-50 focus:outline-none",
                   !locked && "rounded-none",
                   currentUser.pin === "disabled" &&
-                    formState.usePin === "On" &&
-                    "animate-pulse text-white",
+                  formState.usePin === "On" &&
+                  "animate-pulse text-white",
                 )}
                 type="password"
                 name="pin"

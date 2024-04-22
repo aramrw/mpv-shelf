@@ -1,13 +1,12 @@
 "use client"
 
 import React, { createRef, useEffect, useRef, useState } from 'react'
-import { createNewUser, updateSettings } from '../../../../lib/prisma-commands';
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from 'next/navigation';
 import { UserPlus } from 'lucide-react';
 import { SettingSchema } from '@/app/settings/page';
 import { cn } from '@/lib/utils';
-
+import { createNewUser } from '../../../../lib/prisma-commands/user/user-cmds';
 
 export default function NewUser() {
 

@@ -1,6 +1,5 @@
 import { confirm } from '@tauri-apps/api/dialog'
 import { WebviewWindow } from '@tauri-apps/api/window'
-import { title } from 'process'
 
 export async function setupAppWindow() {
     const appWindow = (await import('@tauri-apps/api/window')).appWindow

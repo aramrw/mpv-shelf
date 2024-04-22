@@ -1,7 +1,7 @@
 import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
 import { FileEntry, readDir } from "@tauri-apps/api/fs";
 import { useEffect, useState } from "react";
-import { getFolderColor, getFolders, getVideo, randomizeFolderColor, updateFolderExpanded, updateVideoWatched } from '../../../../lib/prisma-commands';
+import { getFolderColor, randomizeFolderColor } from '../../../../lib/prisma-commands/misc-cmds';
 import {
     ContextMenu,
     ContextMenuContent,
@@ -18,6 +18,8 @@ import { SettingSchema } from "@/app/settings/page";
 import ParentTitleAndTags from "./parent-title-and-tags";
 import ParentTrashcan from "./parentTrashcan";
 import VideoFile from "./_video-files/video-file";
+import { getFolders, updateFolderExpanded, updateVideoWatched } from "../../../../lib/prisma-commands/folders/folder-cmds";
+import { getVideo } from "../../../../lib/prisma-commands/videos/video-cmds";
 
 let supportedVideoFormats = ['mp4', 'mkv', 'avi', 'mov', 'wmv', 'flv', 'webm', 'vob', 'ogv', 'ogg', 'drc', 'gif', 'gifv', 'mng', 'avi', 'mov', 'qt', 'wmv', 'yuv', 'rm', 'rmvb', 'asf', 'amv', 'mp4', 'm4p', 'm4v', 'mpg', 'mp2', 'mpeg', 'mpe', 'mpv', 'mpg', 'mpeg', 'm2v', 'm4v', 'svi', '3gp', '3g2', 'mxf', 'roq', 'nsv', 'flv', 'f4v', 'f4p', 'f4a', 'f4b'];
 

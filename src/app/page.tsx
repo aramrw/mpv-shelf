@@ -1,7 +1,5 @@
 import ResetUserOnLoad from "./_main-components/reset-user-on-load";
 
-
-
 export default async function Page() {
 
   return (
