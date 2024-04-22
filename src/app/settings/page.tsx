@@ -156,9 +156,9 @@ export default function Settings() {
       });
   };
 
-  const handleSetFormState = (value: any) => {
-    setFormState(value);
-  };
+  // const handleSetFormState = (value: any) => {
+  //   setFormState(value);
+  // };
 
   const handleSetSavedChanges = (value: boolean) => {
     setSavedChanges(value);
