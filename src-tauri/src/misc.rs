@@ -24,7 +24,7 @@ pub fn rename_subs(sub_paths: String, vid_paths: String, folder_path: String) {
         .unwrap()
         .to_string();
 
-    let first_sub_file_name = Path::new(&vid_v[0])
+    let first_sub_file_name = Path::new(&sub_v[0])
         .file_name()
         .unwrap()
         .to_str()
@@ -34,7 +34,7 @@ pub fn rename_subs(sub_paths: String, vid_paths: String, folder_path: String) {
     //println!("{}, {}", first_video_file_name, folder_name);
 
     if first_video_file_name.contains(folder_name) && first_sub_file_name.contains(folder_name) {
-        println!("File's already renamed");
+        //println!("{} and {} already have the correct name", first_video_file_name, first_sub_file_name);
         return;
     }
 
