@@ -11,6 +11,7 @@ import { closeDatabase } from "../../../../../lib/prisma-commands/misc-cmds";
 import { invoke } from "@tauri-apps/api/tauri";
 import VideoContextMenu from "./video-context-menu";
 import { updateVideoWatched } from "../../../../../lib/prisma-commands/folders/folder-cmds";
+import OpenVideoError from "../error-dialogs/open-video-error";
 
 export default function VideoFile({
   userSettings,
@@ -79,12 +80,8 @@ export default function VideoFile({
                       path: file.path,
                       autoPlay: userSettings?.autoPlay,
                       userId: currentUser.id,
-                    }).then((res: unknown) => {
-											alert("hello");
-                      if (res !== "success") {
-												// add a cleaner toast notification here
-												alert(res);
-                      }
+                    }).catch((err) => {
+											OpenVideoError(err);
                     });
                   });
             }}
