@@ -79,6 +79,12 @@ export default function VideoFile({
                       path: file.path,
                       autoPlay: userSettings?.autoPlay,
                       userId: currentUser.id,
+                    }).then((res: unknown) => {
+											alert("hello");
+                      if (res !== "success") {
+												// add a cleaner toast notification here
+												alert(res);
+                      }
                     });
                   });
             }}
@@ -107,14 +113,14 @@ export default function VideoFile({
               className={cn(
                 "text-base flex flex-row items-start justify-center gap-1 font-medium select-none text-center",
                 file.name &&
-                  file.name?.length > 20 &&
-                  "overflow-hidden whitespace-nowrap",
+                file.name?.length > 20 &&
+                "overflow-hidden whitespace-nowrap",
               )}
               key={"current-video-file-name-motion-div" + file.name + index}
               whileHover={
                 userSettings?.animations === "On" &&
-                file.name &&
-                file.name?.length > 65
+                  file.name &&
+                  file.name?.length > 65
                   ? { width: "-100%" }
                   : undefined
               }
@@ -124,8 +130,8 @@ export default function VideoFile({
                 className={cn(
                   "h-auto w-3",
                   file.name &&
-                    file.name?.length > 100 &&
-                    "items-start justify-center gap-1 p-0",
+                  file.name?.length > 100 &&
+                  "items-start justify-center gap-1 p-0",
                   userSettings?.fontSize === "Medium" && "h-auto w-3.5",
                   userSettings?.fontSize === "Large" && "h-auto w-4",
                   userSettings?.fontSize === "XLarge" && "h-auto w-5",
@@ -207,7 +213,7 @@ export default function VideoFile({
                         "h-auto w-4 mr-0.5",
                         userSettings?.fontSize === "Medium" && "h-auto w-5",
                         userSettings?.fontSize === "Large" &&
-                          "h-auto w-[1.3.5rem]",
+                        "h-auto w-[1.3.5rem]",
                         userSettings?.fontSize === "XLarge" && "h-auto w-7",
                       )}
                     />
