@@ -1,5 +1,4 @@
 use crate::misc::extract_episode_number;
-use serde::{Deserialize, Serialize};
 use sqlx::{Connection, SqliteConnection};
 use std::fs;
 use std::path::Path;
@@ -8,10 +7,6 @@ use std::time::Duration;
 use tauri::{Manager, Window};
 use window_titles::{Connection as win_titles_Connection, ConnectionTrait};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum OpenVideoResult {
-    Success(String),
-    Error(String),
 #[derive(Debug)]
 pub enum OpenVideoError {
     Error { message: String },
@@ -51,14 +46,38 @@ pub async fn open_video(
     handle: tauri::AppHandle,
     auto_play: String,
     user_id: u32,
-) -> OpenVideoResult {
-    let window: Window = handle
+) -> Result<(), OpenVideoError> {
+
+    let video_file_name = Path::new(&path).file_name().unwrap().to_str().unwrap();
+    let removed_extension = video_file_name.rsplit_once('.').unwrap().0;
+
+    if removed_extension.is_empty() {
+        return Err(OpenVideoError::Error {
+            message: "File must have a name.".to_string(),
+        });
+    }
+    
+    let window: Window = match handle
         .clone()
         .get_window("main")
         .or_else(|| handle.clone().get_window("main"))
-        .expect("failed to get any windows!");
+    {
+        Some(window) => window,
+        None => {
+            return Err(OpenVideoError::Error {
+                message: "Window `main` not found".to_string(),
+            })
+        }
+    };
 
-    window.close().expect("failed to close main window");
+    match window.close() {
+        Ok(_) => (),
+        Err(e) => {
+            return Err(OpenVideoError::Error {
+                message: e.to_string(),
+            })
+        }
+    }
 
     // Kill all mpv.exe processes before opening a new video.
     let mut sys = sysinfo::System::new_all();
@@ -69,7 +88,7 @@ pub async fn open_video(
         }
     });
 
-    println!("now playing {}", path);
+    println!("now playing {}", removed_extension);
     if auto_play == "On" {
         let parent_path = Path::new(&path).parent().unwrap().to_str().unwrap();
         let current_video_index = find_video_index(parent_path, &path);
@@ -85,14 +104,16 @@ pub async fn open_video(
             .map_err(|e| e.to_string());
 
         match status {
-            Ok(_) => OpenVideoResult::Success("Success".into()),
-            Err(e) => OpenVideoResult::Error(e),
-        };
+            Ok(_) => Ok(()),
+            Err(e) => Err(OpenVideoError::Error { message: e }),
+        }?;
     } else {
         match open::that(path.clone()) {
-            Ok(_) => "Video opened successfully",
-            Err(_) => "Failed to open video",
-        };
+            Ok(_) => Ok(()),
+            Err(_) => Err(OpenVideoError::Error {
+                message: "Failed to open the video".to_string(),
+            }),
+        }?;
     }
 
     let instant = std::time::Instant::now();
@@ -125,7 +146,7 @@ pub async fn open_video(
     }
 
     println!("mpv-shelf was closed");
-    OpenVideoResult::Success("Success".into())
+    Ok(())
 }
 
 fn open_new_window(handle: tauri::AppHandle) {
@@ -155,11 +176,6 @@ fn find_video_index(parent_path: &str, selected_video_path: &str) -> u32 {
     let mut video_files_vec: Vec<fs::DirEntry> = fs::read_dir(parent_path)
         .unwrap()
         .filter_map(|entry| entry.ok())
-        // .filter(|entry| {
-        //     let entry_path = entry.path();
-        //     let ext = entry_path.extension().unwrap().to_str().unwrap();
-        //     ext != "srt" && ext != "ass"
-        // })
         .collect();
 
     video_files_vec.sort_by(|a, b| {
