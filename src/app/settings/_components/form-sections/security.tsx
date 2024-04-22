@@ -56,7 +56,7 @@ export default function SecuritySection({
         Security
       </h1>
       <ul className="flex flex-col gap-3 p-2">
-        <li className="flex h-fit w-full justify-between bg-muted">
+        <li className="flex h-fit w-full justify-between items-center bg-muted">
           <h1 className="w-1/2 select-none font-medium">Use Pin</h1>
           <select
             className="w-1/2 cursor-pointer rounded-sm bg-accent font-medium"
