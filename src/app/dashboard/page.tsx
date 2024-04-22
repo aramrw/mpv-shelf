@@ -275,7 +275,7 @@ export default function Dashboard() {
       <Button
         variant="outline"
         className={cn(
-          "select-none flex flex-row justify-center items-end gap-1.5 font-bold mb-2",
+          "select-none flex flex-row justify-center items-center gap-1.5 font-bold mb-2",
           userSettings?.fontSize === "Medium" && "text-lg mx-0",
           userSettings?.fontSize === "Large" && "text-xl mx-0",
           userSettings?.fontSize === "XLarge" && "text-2xl mx-0",
