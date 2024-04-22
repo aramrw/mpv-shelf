@@ -34,7 +34,6 @@ pub async fn open_video(
     println!("now playing {}", path);
     if auto_play == "On" {
         let parent_path = Path::new(&path).parent().unwrap().to_str().unwrap();
-
         let current_video_index = find_video_index(parent_path, &path);
 
         let _status = Command::new("mpv.exe")
@@ -74,34 +73,36 @@ pub async fn open_video(
             );
 
             // open a new window and close the first exe (not a window anymore) in the system tray
-            match handle.get_window("main") {
-                Some(window) => {
-                    window.center().unwrap();
-                    window.show().unwrap();
-                    window.set_focus().unwrap();
-                }
-                None => {
-                    tauri::WindowBuilder::new(
-                        &handle,
-                        "main".to_string(),
-                        tauri::WindowUrl::App("/dashboard".into()),
-                    )
-                    .center()
-                    .transparent(true)
-                    .title("mpv-shelf")
-                    .inner_size(800.0, 600.0)
-                    .build()
-                    .unwrap();
+            open_new_window(handle.clone());
+            update_last_watched_videos(handle, path.clone(), last_watched_video, user_id).await;
 
-                    update_last_watched_videos(handle, path.clone(), last_watched_video, user_id)
-                        .await;
-
-                    return "closed".to_string();
-                }
-            }
+            return "closed".to_string();
         }
 
         tokio::time::sleep(Duration::from_secs(1)).await;
+    }
+}
+
+fn open_new_window(handle: tauri::AppHandle) {
+    match handle.get_window("main") {
+        Some(window) => {
+            window.center().unwrap();
+            window.show().unwrap();
+            window.set_focus().unwrap();
+        }
+        None => {
+            tauri::WindowBuilder::new(
+                &handle,
+                "main".to_string(),
+                tauri::WindowUrl::App("/dashboard".into()),
+            )
+            .center()
+            .transparent(true)
+            .title("mpv-shelf")
+            .inner_size(800.0, 600.0)
+            .build()
+            .unwrap();
+        }
     }
 }
 
