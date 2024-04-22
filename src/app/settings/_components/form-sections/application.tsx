@@ -53,7 +53,7 @@ export default function ApplicationSection({
                 <TooltipTrigger className="flex w-full flex-row items-center justify-start gap-1">
                   <Info
                     className={cn(
-                      "h-auto w-4",
+                      "h-auto w-3",
                       formState?.fontSize === "Medium" && "h-auto w-4",
                       formState?.fontSize === "Large" && "h-auto w-4",
                       formState?.fontSize === "XLarge" && "h-auto w-5",
