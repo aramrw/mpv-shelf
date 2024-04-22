@@ -28,9 +28,9 @@ export default function ApplicationSection({
             <Repeat2
               className={cn(
                 "h-auto w-4",
-                formState?.fontSize === "Medium" && "h-auto w-4",
-                formState?.fontSize === "Large" && "h-auto w-4",
-                formState?.fontSize === "XLarge" && "h-auto w-5",
+                formState?.fontSize === "Medium" && "h-auto w-[18px]",
+                formState?.fontSize === "Large" && "h-auto w-5",
+                formState?.fontSize === "XLarge" && "h-auto w-6",
               )}
             />
           </div>
