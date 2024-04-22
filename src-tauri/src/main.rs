@@ -108,10 +108,8 @@ fn main() {
                         }
                         "quit" => {
                             if app.windows().is_empty() {
-                                let _ = app.emit_all("quit_app", ());
-                                app.once_global("db_closed", |_e| {
+                                println!("No windows open, emitting quit_app event.");
                                     exit(0);
-                                });
                             } else {
                                 check_for_mpv();
                             }
