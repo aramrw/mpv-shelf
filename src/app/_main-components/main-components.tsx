@@ -72,19 +72,6 @@ export function Navbar() {
                             <MoveLeft className={`h-auto drop-shadow-lg md:w-7 lg:w-8`} />
                         </motion.div>
                     )}
-                <motion.div
-                    className='flex cursor-pointer'
-                    whileTap={{ scale: 0.9 }}
-                    whileHover={{ scale: 1.1 }}
-                >
-                    <HelpCircle className={cn(`h-auto md:w-6 lg:w-7 drop-shadow-md`,
-                        pathname === "/profiles" && "text-primary",
-                        pathname === "/dashboard" && 'w-6'
-                    )} />
-                </motion.div>
-
-
-
             </div>
 
             {(pathname !== "/settings" && !pathname.includes("/profile") && pathname !== "/login" && pathname !== "/") && (
