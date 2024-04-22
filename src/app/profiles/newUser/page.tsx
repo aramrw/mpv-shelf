@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createRef, useEffect, useRef, useState } from 'react'
+import React, { createRef, useEffect, useState } from 'react'
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from 'next/navigation';
 import { UserPlus } from 'lucide-react';
@@ -10,7 +10,7 @@ import { createNewUser } from '../../../../lib/prisma-commands/user/user-cmds';
 
 export default function NewUser() {
 
-    const [defaultSettings, setDefaultSettings] = useState<SettingSchema>({
+    const [defaultSettings, _setDefaultSettings] = useState<SettingSchema>({
         fontSize: 'Large',
         animations: 'On',
         autoPlay: 'Off',
