@@ -3,9 +3,7 @@
 import { Button } from "@/components/ui/button";
 import React, { useEffect, useState } from "react";
 import { z } from "zod";
-import {
-  closeDatabase,
-} from "../../../lib/prisma-commands/misc-cmds";
+import { closeDatabase } from "../../../lib/prisma-commands/misc-cmds";
 import { User } from "@prisma/client";
 import { Check, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,9 +16,17 @@ import ProfileDeleteButton from "./_components/profile-buttons/profile-delete-bu
 import UiUxSection from "./_components/form-sections/ui-ux";
 import ApplicationSection from "./_components/form-sections/application";
 import SecuritySection from "./_components/form-sections/security";
-import { getCurrentUserGlobal, setCurrentUserGlobal } from "../../../lib/prisma-commands/global/global-cmds";
+import {
+  getCurrentUserGlobal,
+  setCurrentUserGlobal,
+} from "../../../lib/prisma-commands/global/global-cmds";
 import { getUsers } from "../../../lib/prisma-commands/user/user-cmds";
-import { getUserSettings, updateUserPin, updateSettings } from "../../../lib/prisma-commands/settings/setting-cmds";
+import {
+  getUserSettings,
+  updateUserPin,
+  updateSettings,
+} from "../../../lib/prisma-commands/settings/setting-cmds";
+import AddNewProfileButton from "./_components/profile-buttons/add-new-profile-button";
 
 const formSchema = z.object({
   fontSize: z.enum(["Small", "Medium", "Large", "XLarge"]),
@@ -33,7 +39,6 @@ const formSchema = z.object({
 export type SettingSchema = z.infer<typeof formSchema>;
 
 export default function Settings() {
-
   const [formState, setFormState] = useState({
     fontSize: "Large",
     animations: "On",
@@ -239,31 +244,7 @@ export default function Settings() {
 
               {!hasMultipleProfiles && (
                 <li className="flex h-fit w-full items-center justify-center bg-muted">
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "select-none w-1/2 py-1 h-1/4 flex flex-row justify-center items-center gap-1",
-                      formState?.fontSize === "Medium" && "text-lg",
-                      formState?.fontSize === "Large" && "text-xl",
-                      formState?.fontSize === "XLarge" && "text-2xl",
-                    )}
-                    onClick={() => {
-                      //router.prefetch('/');
-                      closeDatabase().then(() => {
-                        router.push("/profiles/newUser");
-                      });
-                    }}
-                  >
-                    Add New Profile
-                    <UserPlus
-                      className={cn(
-                        "h-auto w-4 cursor-pointer",
-                        formState?.fontSize === "Medium" && "h-auto w-5",
-                        formState?.fontSize === "Large" && "h-auto w-6",
-                        formState?.fontSize === "XLarge" && "h-auto w-7",
-                      )}
-                    />
-                  </Button>
+                  <AddNewProfileButton formState={formState} router={router} />
                 </li>
               )}
             </ul>
