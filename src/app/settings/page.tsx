@@ -27,6 +27,7 @@ import {
   updateSettings,
 } from "../../../lib/prisma-commands/settings/setting-cmds";
 import AddNewProfileButton from "./_components/profile-buttons/add-new-profile-button";
+import SaveChangesButton from "./_components/save-changes-button";
 
 const formSchema = z.object({
   fontSize: z.enum(["Small", "Medium", "Large", "XLarge"]),
@@ -267,83 +268,13 @@ export default function Settings() {
         </ul>
 
         <AnimatePresence mode="wait">
-          <AnimatePresence mode="wait">
-            {savedChanges ? (
-              <motion.div
-                key="saved"
-                className="flex w-full flex-row items-center gap-2 text-base"
-                initial={
-                  formState.animations === "On" ? { opacity: 0 } : undefined
-                }
-                animate={
-                  formState.animations === "On" ? { opacity: 1 } : undefined
-                }
-                exit={
-                  formState.animations === "On" ? { opacity: 0 } : undefined
-                }
-                transition={
-                  formState.animations === "On" ? { duration: 0.5 } : undefined
-                }
-              >
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "mx-2 select-none transition-all flex flex-row justify-center items-center gap-1 text-base ",
-                    formState?.fontSize === "Medium" && "text-lg",
-                    formState?.fontSize === "Large" && "text-xl",
-                    formState?.fontSize === "XLarge" && "text-2xl",
-                  )}
-                  type="submit"
-                >
-                  <Check
-                    className={cn(
-                      "h-5/6 w-4",
-                      formState?.fontSize === "Medium" && "h-auto w-5",
-                      formState?.fontSize === "Large" && "h-auto w-6",
-                      formState?.fontSize === "XLarge" && "h-auto w-7",
-                    )}
-                  />
-                  Saved Changes
-                </Button>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="save"
-                className="flex w-full flex-row items-center gap-2 text-base"
-                initial={
-                  formState.animations === "On" ? { opacity: 0 } : undefined
-                }
-                animate={
-                  formState.animations === "On" ? { opacity: 1 } : undefined
-                }
-                exit={
-                  formState.animations === "On" ? { opacity: 0 } : undefined
-                }
-                transition={
-                  formState.animations === "On" ? { duration: 0.5 } : undefined
-                }
-              >
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "mx-2 select-none transition-all text-base",
-                    formState?.fontSize === "Medium" && "text-lg",
-                    formState?.fontSize === "Large" && "text-xl",
-                    formState?.fontSize === "XLarge" && "text-2xl",
-                    formState !== savedChangesFormState &&
-                    "animate-pulse duration-400",
-                  )}
-                  type="submit"
-                  onClick={() => {
-                    setSavedChanges(true);
-                    setSavedChangesFormState(formState);
-                  }}
-                >
-                  Save
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <SaveChangesButton
+            formState={formState}
+            savedChanges={savedChanges}
+            savedChangesFormState={savedChangesFormState}
+            setSavedChanges={setSavedChanges}
+            setSavedChangesFormState={setSavedChangesFormState}
+          />
         </AnimatePresence>
       </form>
     </motion.main>
