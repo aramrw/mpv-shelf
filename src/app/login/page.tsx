@@ -110,12 +110,14 @@ export default function Home() {
         const [isLoading, setIsLoading] = useState(true);
 
         // focus on the first pin input on component mount
+				/* eslint-disable */
         useEffect(() => {
 
             if (inputRefs[0] && inputRefs[0].current) {
                 (inputRefs[0].current as HTMLInputElement).focus();
             }
         }, []);
+				/* eslint-disable */
 
         // get the user object to display the avatar
         useEffect(() => {
