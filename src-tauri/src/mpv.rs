@@ -14,8 +14,6 @@ pub async fn open_video(
     auto_play: String,
     user_id: u32,
 ) -> String {
-    println!("now playing {}", path);
-
     let window: Window = handle
         .clone()
         .get_window("main")
@@ -33,30 +31,19 @@ pub async fn open_video(
         }
     });
 
-    let parent_path = Path::new(&path).parent().unwrap().to_str().unwrap();
-    let mut current_video_name: String = String::new();
-
-    // find which index the video the user clicked is in the parent folder
-    let mut current_video_index: i32 = -1;
-    let video_files = fs::read_dir(parent_path).unwrap();
-    for (index, file) in video_files.enumerate() {
-        let file = file.unwrap().path();
-        current_video_name = file.file_name().unwrap().to_str().unwrap().to_string();
-        if file.to_str().unwrap() == path {
-            current_video_index = index as i32;
-            println!("current video index: {}", current_video_index);
-            break;
-        }
-    }
-
+    println!("now playing {}", path);
     if auto_play == "On" {
+        let parent_path = Path::new(&path).parent().unwrap().to_str().unwrap();
+
+        let current_video_index = find_video_index(parent_path, &path);
+
         let _status = Command::new("mpv.exe")
             // --playlist-start should be the index of the video in the parent folder
             .arg(format!("--playlist-start={}", current_video_index))
             // --playlist should be the path of the parent folder
             .arg(format!("--playlist={}", parent_path))
             //.arg(format!("--title={} - mpv.exe", current_video_name))
-            .arg("--title='${filename} - mpv.exe")
+            .arg("--title=${filename} - mpv.exe")
             .spawn()
             .unwrap();
     } else {
@@ -118,6 +105,52 @@ pub async fn open_video(
     }
 }
 
+fn find_video_index(parent_path: &str, selected_video_path: &str) -> u32 {
+    let mut video_files_vec: Vec<fs::DirEntry> = fs::read_dir(parent_path)
+        .unwrap()
+        .filter_map(|entry| entry.ok())
+        // .filter(|entry| {
+        //     let entry_path = entry.path();
+        //     let ext = entry_path.extension().unwrap().to_str().unwrap();
+        //     ext != "srt" && ext != "ass"
+        // })
+        .collect();
+
+    video_files_vec.sort_by(|a, b| {
+        let a = a.path();
+        let b = b.path();
+        let a_str = a.file_name().unwrap().to_string_lossy();
+        let b_str = b.file_name().unwrap().to_string_lossy();
+
+        let a_num: i32 = a_str
+            .chars()
+            .filter(|c| c.is_ascii_digit())
+            .collect::<String>()
+            .parse()
+            .unwrap_or(0);
+        let b_num: i32 = b_str
+            .chars()
+            .filter(|c| c.is_ascii_digit())
+            .collect::<String>()
+            .parse()
+            .unwrap_or(0);
+
+        a_num.cmp(&b_num)
+    });
+
+    // video_files_vec.iter().for_each(|file| {
+    //     println!("{}", file.file_name().to_str().unwrap());
+    // });
+
+    let current_video_index = video_files_vec
+        .iter()
+        .position(|file| file.path().to_str().unwrap() == selected_video_path)
+        .unwrap() as u32;
+
+    //println!("{}", current_video_index);
+    current_video_index
+}
+
 fn get_last_mpv_win_title() -> String {
     let connection = win_titles_Connection::new().unwrap();
     let mut current_episode = String::new();
@@ -132,7 +165,7 @@ fn get_last_mpv_win_title() -> String {
                 && !window.contains('\\')
                 && !window.contains("Visual Studio")
             {
-                println!("{}", window);
+                //println!("{}", window);
                 current_episode = window.to_string();
             }
         });
@@ -152,7 +185,7 @@ async fn update_last_watched_videos(
         .to_str()
         .unwrap();
 
-    println!("last video watched: {}", last_video_watched_title);
+    //println!("last video watched: {}", last_video_watched_title);
     let video_start_episode_num: u32 = extract_episode_number(video_start_title).unwrap_or(0);
     let last_video_episode_num: u32 =
         extract_episode_number(&last_video_watched_title).unwrap_or(0);
@@ -162,10 +195,12 @@ async fn update_last_watched_videos(
         return;
     }
 
-    if video_start_episode_num != last_video_episode_num && last_video_episode_num > video_start_episode_num {
+    if video_start_episode_num != last_video_episode_num
+        && last_video_episode_num > video_start_episode_num
+    {
         sum = last_video_episode_num - video_start_episode_num;
-    } 
-    
+    }
+
     let db_url = handle
         .path_resolver()
         .app_data_dir()
