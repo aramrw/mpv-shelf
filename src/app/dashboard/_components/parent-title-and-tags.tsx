@@ -128,10 +128,7 @@ export default function ParentTitleAndTags({
       )}
       {folders.length > 0 && (
         <div
-          className={cn(
-            "flex flex-row items-center justify-center gap-0.5 rounded-md bg-tertiary px-0.5",
-            asChild && "p-0.5 brightness-[1.15]",
-          )}
+          className="flex flex-row items-center justify-center gap-0.5 rounded-md bg-tertiary px-0.5 brightness-[1.15]"
           style={{
             ...(currentFolderColor
               ? { backgroundColor: `${currentFolderColor} ` }
