@@ -72,7 +72,7 @@ export default function Profiles() {
 
 
 
-    const handleDragStart = (event: MouseEvent, info: PanInfo) => {
+    const handleDragStart = (_event: MouseEvent, _info: PanInfo) => {
         setIsGrabbing(true);
         //setInitialDragX(info.point.x); // Store the initial X position at drag start
         //setInitialDragY(info.point.y); // Store the initial Y position at drag start
