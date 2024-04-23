@@ -5,7 +5,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Info, Repeat2 } from "lucide-react";
+import { Info, PenLine, Repeat2 } from "lucide-react";
 
 export default function ApplicationSection({
   formState,
@@ -22,9 +22,7 @@ export default function ApplicationSection({
       <ul className="flex flex-col gap-3 p-2">
         <li className="flex h-fit w-full items-center justify-between bg-muted">
           <div className="flex w-full flex-row gap-1 justify-start items-center">
-            <h1 className="w-fit select-none font-medium">
-              Auto Play 
-            </h1>
+            <h1 className="w-fit select-none font-medium">Auto Play</h1>
             <Repeat2
               className={cn(
                 "h-auto w-4",
@@ -60,6 +58,14 @@ export default function ApplicationSection({
                     )}
                   />
                   <h1 className="select-none font-medium">Auto Rename</h1>
+                  <PenLine
+                    className={cn(
+                      "h-auto w-3.5",
+                      formState?.fontSize === "Medium" && "h-auto w-4",
+                      formState?.fontSize === "Large" && "h-auto w-5",
+                      formState?.fontSize === "XLarge" && "h-auto w-6",
+                    )}
+                  />
                 </TooltipTrigger>
               </div>
               <TooltipContent
