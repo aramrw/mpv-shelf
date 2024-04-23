@@ -4,6 +4,7 @@
 mod mal;
 mod misc;
 mod mpv;
+mod db;
 
 use core::str;
 #[allow(unused_imports)]
@@ -62,6 +63,7 @@ fn main() {
     fn hack_builder(tray: SystemTray) {
         tauri::Builder::default()
             .setup(|app| {
+                db::create_database(app.handle());
                 let result = close_open_mpv_shelf_instance();
                 if result {
                     match app.get_window("main") {
