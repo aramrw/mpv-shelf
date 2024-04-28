@@ -5,6 +5,7 @@ mod mal;
 mod misc;
 mod mpv;
 mod db;
+mod stats;
 
 use core::str;
 #[allow(unused_imports)]
@@ -123,6 +124,7 @@ fn main() {
             .plugin(tauri_plugin_sql::Builder::default().build())
             .invoke_handler(generate_handler![
                 mpv::open_video,
+                stats::create_stats,
                 misc::show_in_folder,
                 misc::generate_random_color,
                 misc::generate_random_mono_color,
