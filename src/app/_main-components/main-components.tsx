@@ -16,7 +16,6 @@ export function Navbar() {
   const scrolled = useScrollTop();
 
   useEffect(() => {
-    console.log(pathname);
     const handleWindowClose = async () => {
       const { appWindow } = await import("@tauri-apps/api/window");
       const unlisten = appWindow.onCloseRequested((event) => {
