@@ -97,7 +97,7 @@ export async function updateFolderExpanded({
             ) /*.then(() => {
                     // console.log ("Created New Folder: ", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
                 })*/
-            .catch(async (e) => {
+            .catch(async () => {
               await db.close();
               // console.log (e)
               return false;
@@ -137,13 +137,13 @@ export async function updateVideoWatched({
     if (videos.length === 0) {
       // Insert new video record if it does not exist
       await db.execute(
-        "INSERT INTO video (path, userId, watched, lastWatchedAt) VALUES ($1, $2, $3, (datetime('now')))",
+        "INSERT INTO video (path, userId, watched, lastWatchedAt) VALUES ($1, $2, $3, (datetime('now', 'localtime')))",
         [videoPath, user.id, watched ? 1 : 0],
       );
     } else {
       // Update existing video record
       await db.execute(
-        "UPDATE video SET watched = $3, lastWatchedAt = (datetime('now')) WHERE path = $1 AND userId = $2",
+        "UPDATE video SET watched = $3, lastWatchedAt = (datetime('now', 'localtime')) WHERE path = $1 AND userId = $2",
         [videoPath, user.id, watched ? 1 : 0],
       );
     }
@@ -160,4 +160,6 @@ export async function deleteFolder({ folderPath }: { folderPath: string }) {
   let db = await Database.load("sqlite:main.db");
 
   await db.execute("DELETE from folder WHERE path = $1", [folderPath]);
+
+  await db.execute("DELETE from video WHERE path LIKE $1", [`${folderPath}%`]);
 }
