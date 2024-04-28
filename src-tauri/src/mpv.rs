@@ -285,7 +285,7 @@ async fn update_last_watched_videos(
         };
 
         sqlx::query(
-            "INSERT OR REPLACE INTO video (path, userId, watched, lastWatchedAt) VALUES (?, ?, ?, datetime('now'))",
+            "INSERT OR REPLACE INTO video (path, userId, watched, lastWatchedAt) VALUES (?, ?, ?, datetime('now', 'localtime'))",
         )
         .bind(starting_new_path)
         .bind(user_id)
