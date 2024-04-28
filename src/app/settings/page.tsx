@@ -1,19 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import React, { useEffect, useState } from "react";
 import { z } from "zod";
-import {
-  closeDatabase,
-  getCurrentUserGlobal,
-  getUserSettings,
-  getUsers,
-  setCurrentUserGlobal,
-  updateSettings,
-  updateUserPin,
-} from "../../../lib/prisma-commands";
+import { closeDatabase } from "../../../lib/prisma-commands/misc-cmds";
 import { User } from "@prisma/client";
-import { Check, UserPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -24,6 +14,18 @@ import ProfileDeleteButton from "./_components/profile-buttons/profile-delete-bu
 import UiUxSection from "./_components/form-sections/ui-ux";
 import ApplicationSection from "./_components/form-sections/application";
 import SecuritySection from "./_components/form-sections/security";
+import {
+  getCurrentUserGlobal,
+  setCurrentUserGlobal,
+} from "../../../lib/prisma-commands/global/global-cmds";
+import { getUsers } from "../../../lib/prisma-commands/user/user-cmds";
+import {
+  getUserSettings,
+  updateUserPin,
+  updateSettings,
+} from "../../../lib/prisma-commands/settings/setting-cmds";
+import AddNewProfileButton from "./_components/profile-buttons/add-new-profile-button";
+import SaveChangesButton from "./_components/save-changes-button";
 
 const formSchema = z.object({
   fontSize: z.enum(["Small", "Medium", "Large", "XLarge"]),
@@ -36,7 +38,6 @@ const formSchema = z.object({
 export type SettingSchema = z.infer<typeof formSchema>;
 
 export default function Settings() {
-
   const [formState, setFormState] = useState({
     fontSize: "Large",
     animations: "On",
@@ -155,9 +156,9 @@ export default function Settings() {
       });
   };
 
-  const handleSetFormState = (value: any) => {
-    setFormState(value);
-  };
+  // const handleSetFormState = (value: any) => {
+  //   setFormState(value);
+  // };
 
   const handleSetSavedChanges = (value: boolean) => {
     setSavedChanges(value);
@@ -242,31 +243,7 @@ export default function Settings() {
 
               {!hasMultipleProfiles && (
                 <li className="flex h-fit w-full items-center justify-center bg-muted">
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "select-none w-1/2 py-1 h-1/4 flex flex-row justify-center items-center gap-1",
-                      formState?.fontSize === "Medium" && "text-lg",
-                      formState?.fontSize === "Large" && "text-xl",
-                      formState?.fontSize === "XLarge" && "text-2xl",
-                    )}
-                    onClick={() => {
-                      //router.prefetch('/');
-                      closeDatabase().then(() => {
-                        router.push("/profiles/newUser");
-                      });
-                    }}
-                  >
-                    Add New Profile
-                    <UserPlus
-                      className={cn(
-                        "h-auto w-4 cursor-pointer",
-                        formState?.fontSize === "Medium" && "h-auto w-5",
-                        formState?.fontSize === "Large" && "h-auto w-6",
-                        formState?.fontSize === "XLarge" && "h-auto w-7",
-                      )}
-                    />
-                  </Button>
+                  <AddNewProfileButton formState={formState} router={router} />
                 </li>
               )}
             </ul>
@@ -289,83 +266,13 @@ export default function Settings() {
         </ul>
 
         <AnimatePresence mode="wait">
-          <AnimatePresence mode="wait">
-            {savedChanges ? (
-              <motion.div
-                key="saved"
-                className="flex w-full flex-row items-center gap-2 text-base"
-                initial={
-                  formState.animations === "On" ? { opacity: 0 } : undefined
-                }
-                animate={
-                  formState.animations === "On" ? { opacity: 1 } : undefined
-                }
-                exit={
-                  formState.animations === "On" ? { opacity: 0 } : undefined
-                }
-                transition={
-                  formState.animations === "On" ? { duration: 0.5 } : undefined
-                }
-              >
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "mx-2 select-none transition-all flex flex-row justify-center items-center gap-1 text-base ",
-                    formState?.fontSize === "Medium" && "text-lg",
-                    formState?.fontSize === "Large" && "text-xl",
-                    formState?.fontSize === "XLarge" && "text-2xl",
-                  )}
-                  type="submit"
-                >
-                  <Check
-                    className={cn(
-                      "h-5/6 w-4",
-                      formState?.fontSize === "Medium" && "h-auto w-5",
-                      formState?.fontSize === "Large" && "h-auto w-6",
-                      formState?.fontSize === "XLarge" && "h-auto w-7",
-                    )}
-                  />
-                  Saved Changes
-                </Button>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="save"
-                className="flex w-full flex-row items-center gap-2 text-base"
-                initial={
-                  formState.animations === "On" ? { opacity: 0 } : undefined
-                }
-                animate={
-                  formState.animations === "On" ? { opacity: 1 } : undefined
-                }
-                exit={
-                  formState.animations === "On" ? { opacity: 0 } : undefined
-                }
-                transition={
-                  formState.animations === "On" ? { duration: 0.5 } : undefined
-                }
-              >
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "mx-2 select-none transition-all text-base",
-                    formState?.fontSize === "Medium" && "text-lg",
-                    formState?.fontSize === "Large" && "text-xl",
-                    formState?.fontSize === "XLarge" && "text-2xl",
-                    formState !== savedChangesFormState &&
-                      "animate-pulse duration-400",
-                  )}
-                  type="submit"
-                  onClick={() => {
-                    setSavedChanges(true);
-                    setSavedChangesFormState(formState);
-                  }}
-                >
-                  Save
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <SaveChangesButton
+            formState={formState}
+            savedChanges={savedChanges}
+            savedChangesFormState={savedChangesFormState}
+            setSavedChanges={setSavedChanges}
+            setSavedChangesFormState={setSavedChangesFormState}
+          />
         </AnimatePresence>
       </form>
     </motion.main>

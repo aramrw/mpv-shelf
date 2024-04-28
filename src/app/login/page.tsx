@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, createRef, useEffect, use } from 'react';
-import { closeDatabase, getCurrentUserGlobal, getUsers, setCurrentUserGlobal } from '../../../lib/prisma-commands';
+import { closeDatabase } from '../../../lib/prisma-commands/misc-cmds';
 import type { User } from "@prisma/client";
 import { useRouter } from 'next/navigation';
 import { UserAvatar } from '../profiles/_components/user-avatar';
@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { getCurrentUserGlobal, setCurrentUserGlobal } from '../../../lib/prisma-commands/global/global-cmds';
+import { getUsers } from '../../../lib/prisma-commands/user/user-cmds';
 
 export default function Home() {
     let router = useRouter();
@@ -108,12 +110,14 @@ export default function Home() {
         const [isLoading, setIsLoading] = useState(true);
 
         // focus on the first pin input on component mount
+				/* eslint-disable */
         useEffect(() => {
 
             if (inputRefs[0] && inputRefs[0].current) {
                 (inputRefs[0].current as HTMLInputElement).focus();
             }
         }, []);
+				/* eslint-disable */
 
         // get the user object to display the avatar
         useEffect(() => {

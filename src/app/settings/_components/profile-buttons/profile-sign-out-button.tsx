@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { User } from "@prisma/client";
 // import { SettingSchema } from "../../page";
 
-export default function ProfileSignOutButton({currentUser, formState, handleUserGlobal}: {currentUser: User, formState: any, handleUserGlobal: () => void }) {
+export default function ProfileSignOutButton({ currentUser, formState, handleUserGlobal }: { currentUser: User, formState: any, handleUserGlobal: () => void }) {
   return (
     <TooltipProvider>
       <Tooltip delayDuration={1000}>

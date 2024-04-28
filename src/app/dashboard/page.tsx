@@ -4,15 +4,10 @@ import { Button } from "@/components/ui/button";
 import React, { useEffect, useRef, useState } from "react";
 import { open } from "@tauri-apps/api/dialog";
 import {
-  addFolder,
   closeDatabase,
-  getCurrentUserGlobal,
-  getFolders,
   getUserScrollY,
-  getUserSettings,
-  getUsers,
   updateUserScrollY,
-} from "../../../lib/prisma-commands";
+} from "../../../lib/prisma-commands/misc-cmds";
 import type { User } from "@prisma/client";
 import { FolderPlus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,6 +16,13 @@ import { SettingSchema } from "../settings/page";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/use-toast";
 import FolderList from "./_components/folder-list";
+import {
+  addFolder,
+  getFolders,
+} from "../../../lib/prisma-commands/folders/folder-cmds";
+import { getCurrentUserGlobal } from "../../../lib/prisma-commands/global/global-cmds";
+import { getUsers } from "../../../lib/prisma-commands/user/user-cmds";
+import { getUserSettings } from "../../../lib/prisma-commands/settings/setting-cmds";
 // import { WebviewWindow, appWindow } from "@tauri-apps/api/window"
 
 export type AnimeType = "TV" | "MOVIE" | "OVA" | "ONA" | "SPECIAL" | "UNKOWN";
@@ -197,6 +199,71 @@ export default function Dashboard() {
     setParentFolderPaths(newPaths);
   };
 
+  const handleAddFolder = () => {
+    open({
+      directory: true,
+      multiple: true,
+      recursive: true,
+      filters: [{ name: "Folders", extensions: [""] }],
+      title: "Add Folder",
+    }).then((selectedFolders): void => {
+      if (currentUser) {
+        if (Array.isArray(selectedFolders)) {
+          // user selected multiple files
+          for (const path of selectedFolders) {
+            if (
+              folderPaths.some((folderPath) => folderPath.toString() === path)
+            ) {
+              let pathName = path.replaceAll("\\", " ").split(" ").pop();
+              toast({
+                title: `${pathName} already exists!`,
+                description: `You already have a folder with the name ${pathName} in your library.`,
+                duration: 2000,
+              });
+              return;
+            } else {
+              addFolder({
+                userId: currentUser?.id,
+                folderPath: path,
+                expanded: false,
+                asChild: false,
+              }).then(() => {
+                setFolderPaths((prevPaths) => [...prevPaths, path] as string[]);
+              });
+            }
+          }
+        } else if (selectedFolders === null) {
+          // cancelled //.. do nothing
+        } else {
+          if (
+            folderPaths.filter((folderPath) => folderPath === selectedFolders)
+          ) {
+            let pathName = selectedFolders
+              .replaceAll("\\", " ")
+              .split(" ")
+              .pop();
+            toast({
+              title: `${pathName} already exists!`,
+              description: `You already have a folder with the name ${pathName} in your library.`,
+              duration: 2000,
+            });
+            // user selected one folder
+            addFolder({
+              userId: currentUser?.id,
+              folderPath: selectedFolders.toString(),
+              expanded: false,
+              asChild: false,
+            }).then(() => {
+              setFolderPaths(
+                (prevPaths) => [...prevPaths, selectedFolders] as string[],
+              );
+            });
+          }
+        }
+      }
+    });
+  };
+
   return (
     <main
       className={cn(
@@ -208,81 +275,13 @@ export default function Dashboard() {
       <Button
         variant="outline"
         className={cn(
-          "select-none flex flex-row justify-center items-end gap-1.5 font-bold mb-2",
+          "select-none flex flex-row justify-center items-center gap-1.5 font-bold mb-2",
           userSettings?.fontSize === "Medium" && "text-lg mx-0",
           userSettings?.fontSize === "Large" && "text-xl mx-0",
           userSettings?.fontSize === "XLarge" && "text-2xl mx-0",
         )}
         onClick={() => {
-          open({
-            directory: true,
-            multiple: true,
-            recursive: true,
-            filters: [{ name: "Folders", extensions: [""] }],
-            title: "Add Folder",
-          }).then((selectedFolders): void => {
-            if (currentUser) {
-              if (Array.isArray(selectedFolders)) {
-                // user selected multiple files
-                for (const path of selectedFolders) {
-                  if (
-                    folderPaths.some(
-                      (folderPath) => folderPath.toString() === path,
-                    )
-                  ) {
-                    let pathName = path.replaceAll("\\", " ").split(" ").pop();
-                    toast({
-                      title: `${pathName} already exists!`,
-                      description: `You already have a folder with the name ${pathName} in your library.`,
-                      duration: 2000,
-                    });
-                    return;
-                  } else {
-                    addFolder({
-                      userId: currentUser?.id,
-                      folderPath: path,
-                      expanded: false,
-                      asChild: false,
-                    }).then(() => {
-                      setFolderPaths(
-                        (prevPaths) => [...prevPaths, path] as string[],
-                      );
-                    });
-                  }
-                }
-              } else if (selectedFolders === null) {
-                // cancalled //.. do nothing
-              } else {
-                if (
-                  folderPaths.filter(
-                    (folderPath) => folderPath === selectedFolders,
-                  )
-                ) {
-                  let pathName = selectedFolders
-                    .replaceAll("\\", " ")
-                    .split(" ")
-                    .pop();
-                  toast({
-                    title: `${pathName} already exists!`,
-                    description: `You already have a folder with the name ${pathName} in your library.`,
-                    duration: 2000,
-                  });
-                  // user selected one folder
-                  addFolder({
-                    userId: currentUser?.id,
-                    folderPath: selectedFolders.toString(),
-                    expanded: false,
-                    asChild: false,
-                  }).then(() => {
-                    setFolderPaths(
-                      (prevPaths) =>
-                        [...prevPaths, selectedFolders] as string[],
-                    );
-                  });
-                }
-              }
-            }
-          });
+          handleAddFolder();
         }}
       >
         <span>Add Folder</span>
@@ -297,10 +296,10 @@ export default function Dashboard() {
       </Button>
       {/* Render Top-Level-Parent Folders */}
       <motion.div
-        className="flex h-fit justify-center rounded-b-sm drop-shadow-sm flex-row items-start gap-2"
+        className="flex h-fit flex-row items-start justify-center gap-2 rounded-b-sm drop-shadow-sm"
         key={"main-parent-folder" + folderPaths.length + 1}
       >
-        <div className="h-fit  w-1/3">
+        <div className="h-fit w-1/3">
           {folderPaths.map((folder, index) => {
             if (index % 3 === 0) {
               return (
@@ -338,7 +337,7 @@ export default function Dashboard() {
             return null;
           })}
         </div>
-        <div className="h-fit  w-1/3">
+        <div className="h-fit w-1/3">
           {folderPaths.map((folder, index) => {
             if (index % 3 === 2) {
               return (

@@ -1,6 +1,11 @@
 import { cn } from "@/lib/utils";
-import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Info, PenLine, Repeat2 } from "lucide-react";
 
 export default function ApplicationSection({
   formState,
@@ -15,8 +20,18 @@ export default function ApplicationSection({
         Application
       </h1>
       <ul className="flex flex-col gap-3 p-2">
-        <li className="flex h-fit w-full justify-between bg-muted">
-          <h1 className="w-full select-none font-medium">Auto Play</h1>
+        <li className="flex h-fit w-full items-center justify-between bg-muted">
+          <div className="flex w-full flex-row gap-1 justify-start items-center">
+            <h1 className="w-fit select-none font-medium">Auto Play</h1>
+            <Repeat2
+              className={cn(
+                "h-auto w-4",
+                formState?.fontSize === "Medium" && "h-auto w-[18px]",
+                formState?.fontSize === "Large" && "h-auto w-5",
+                formState?.fontSize === "XLarge" && "h-auto w-6",
+              )}
+            />
+          </div>
           <select
             className="w-full cursor-pointer rounded-sm bg-accent font-medium"
             name="autoPlay"
@@ -36,20 +51,28 @@ export default function ApplicationSection({
                 <TooltipTrigger className="flex w-full flex-row items-center justify-start gap-1">
                   <Info
                     className={cn(
-                      "h-auto w-4 cursor-pointer",
+                      "h-auto w-3",
                       formState?.fontSize === "Medium" && "h-auto w-4",
                       formState?.fontSize === "Large" && "h-auto w-4",
                       formState?.fontSize === "XLarge" && "h-auto w-5",
                     )}
                   />
                   <h1 className="select-none font-medium">Auto Rename</h1>
+                  <PenLine
+                    className={cn(
+                      "h-auto w-3.5",
+                      formState?.fontSize === "Medium" && "h-auto w-4",
+                      formState?.fontSize === "Large" && "h-auto w-5",
+                      formState?.fontSize === "XLarge" && "h-auto w-6",
+                    )}
+                  />
                 </TooltipTrigger>
               </div>
               <TooltipContent
                 align="start"
                 side="bottom"
                 className={cn(
-                  "select-none flex text-center",
+                  "select-none flex text-center cursor-pointer",
                   formState?.fontSize === "Medium" && "text-md",
                   formState?.fontSize === "Large" && "text-lg",
                   formState?.fontSize === "XLarge" && "text-xl",
@@ -60,12 +83,12 @@ export default function ApplicationSection({
                     Renames subtitle files to match videos
                   </span>
                   <br />
-                  <span className="text-base font-semibold">
+                  <span className="font-semibold">
                     Subtitle files must be in the same directory as the video
                     files
                   </span>
                   <br />
-                  <span className="text-base font-semibold">
+                  <span className="font-semibold">
                     for mpv to match them to the video.
                   </span>
                 </div>

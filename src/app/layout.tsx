@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
 import { Noto_Sans_JP } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "./_main-components/main-components";
 import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "@/components/ui/theme-provider";
+//import { ThemeProvider } from "@/components/ui/theme-provider";
 
 // const mplus = Poppins({
 //   subsets: ["latin", "latin-ext", "devanagari"],

@@ -14,7 +14,7 @@ export default function UiUxSection({formState, setFormState}: {formState: any, 
             <h1 className="select-none font-medium">Font Size</h1>
             <ALargeSmall
               className={cn(
-                "h-auto w-4 cursor-pointer",
+                "h-auto w-4",
                 formState?.fontSize === "Medium" && "h-auto w-5",
                 formState?.fontSize === "Large" && "h-auto w-6",
                 formState?.fontSize === "XLarge" && "h-auto w-7",
@@ -59,10 +59,10 @@ export default function UiUxSection({formState, setFormState}: {formState: any, 
             >
               <Move3d
                 className={cn(
-                  "h-auto w-4 cursor-pointer",
-                  formState?.fontSize === "Medium" && "h-auto w-5",
-                  formState?.fontSize === "Large" && "h-auto w-6",
-                  formState?.fontSize === "XLarge" && "h-auto w-7",
+                  "h-auto w-3.5 cursor-pointer",
+                  formState?.fontSize === "Medium" && "h-auto w-4",
+                  formState?.fontSize === "Large" && "h-auto w-5",
+                  formState?.fontSize === "XLarge" && "h-auto w-6",
                 )}
               />
             </motion.div>

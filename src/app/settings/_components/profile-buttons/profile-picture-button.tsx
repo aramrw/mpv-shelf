@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { User } from "@prisma/client";
 import { open } from "@tauri-apps/api/dialog";
-import { updateProfilePicture } from "../../../../../lib/prisma-commands";
+import { updateProfilePicture } from "../../../../../lib/prisma-commands/settings/setting-cmds";
 import { Images } from "lucide-react";
 
 export default function ProfilePictureButton({

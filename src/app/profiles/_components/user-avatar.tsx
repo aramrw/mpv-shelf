@@ -1,5 +1,3 @@
-"use client";
-
 import {
     Avatar,
     AvatarFallback,
@@ -8,7 +6,6 @@ import {
 import { cn } from "@/lib/utils";
 import { User } from "@prisma/client"
 import { UserIcon, UserPlus } from "lucide-react";
-import { usePathname } from "next/navigation";
 
 export function UserAvatar({
     userObject,
@@ -17,8 +14,6 @@ export function UserAvatar({
     userObject: User
     asChild?: boolean
 }) {
-    const pathname = usePathname();
-
     //console.log("userAvatar");
 
     return (

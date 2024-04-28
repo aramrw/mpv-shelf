@@ -7,10 +7,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { User } from "@prisma/client";
-import { deleteProfile,  setCurrentUserGlobal, closeDatabase} from "../../../../../lib/prisma-commands";
+import { closeDatabase } from "../../../../../lib/prisma-commands/misc-cmds";
 import { ConfirmDeleteProfile } from "../confirm";
 import { useRouter } from "next/navigation";
 import { Delete } from "lucide-react";
+import { deleteProfile } from "../../../../../lib/prisma-commands/settings/setting-cmds";
+import { setCurrentUserGlobal } from "../../../../../lib/prisma-commands/global/global-cmds";
 
 export default function ProfileDeleteButton({
   currentUser,
@@ -20,7 +22,7 @@ export default function ProfileDeleteButton({
   formState: any;
 }) {
 
-	let router = useRouter();
+  let router = useRouter();
 
   return (
     <TooltipProvider>

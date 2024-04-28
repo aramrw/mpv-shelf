@@ -1,12 +1,15 @@
 import { cn } from "@/lib/utils";
 import { ConfirmChangePin, ConfirmTurnOffPin } from "../confirm";
 import { User } from "@prisma/client";
-import { Copy, Lock, Unlock } from "lucide-react";
+import { Copy, Fingerprint, Lock, Unlock } from "lucide-react";
 import { writeText } from "@tauri-apps/api/clipboard";
 import { motion } from "framer-motion";
 import { toast } from "@/components/ui/use-toast";
 import { AlertNoChangesMade } from "../confirm";
-import { turnOnPin, updateUserPin } from "../../../../../lib/prisma-commands";
+import {
+  turnOnPin,
+  updateUserPin,
+} from "../../../../../lib/prisma-commands/settings/setting-cmds";
 
 export default function SecuritySection({
   formState,
@@ -16,7 +19,7 @@ export default function SecuritySection({
   setSavedChanges,
   setSavedChangesFormState,
   setLocked,
-	setCurrentUser,
+  setCurrentUser,
 }: {
   formState: any;
   currentUser: User | undefined;
@@ -56,8 +59,18 @@ export default function SecuritySection({
         Security
       </h1>
       <ul className="flex flex-col gap-3 p-2">
-        <li className="flex h-fit w-full justify-between bg-muted">
-          <h1 className="w-1/2 select-none font-medium">Use Pin</h1>
+        <li className="flex h-fit w-full justify-between items-center bg-muted">
+          <div className="w-fit flex flex-row justify-start items-start gap-1">
+            <h1 className="w-fit select-none font-medium">Use Pin</h1>
+            <Fingerprint
+              className={cn(
+                "h-auto w-3.5",
+                formState?.fontSize === "Medium" && "h-auto w-4",
+                formState?.fontSize === "Large" && "h-auto w-5",
+                formState?.fontSize === "XLarge" && "h-auto w-6",
+              )}
+            />
+          </div>
           <select
             className="w-1/2 cursor-pointer rounded-sm bg-accent font-medium"
             name="usePin"
@@ -114,11 +127,11 @@ export default function SecuritySection({
                 className={cn(
                   "w-full rounded-l-sm bg-accent px-1 font-medium",
                   locked &&
-                    "cursor-not-allowed select-none opacity-50 focus:outline-none",
+                  "cursor-not-allowed select-none opacity-50 focus:outline-none",
                   !locked && "rounded-none",
                   currentUser.pin === "disabled" &&
-                    formState.usePin === "On" &&
-                    "animate-pulse text-white",
+                  formState.usePin === "On" &&
+                  "animate-pulse text-white",
                 )}
                 type="password"
                 name="pin"
