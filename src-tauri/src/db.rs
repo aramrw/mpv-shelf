@@ -2,6 +2,25 @@ use sqlx::{migrate::MigrateDatabase, Sqlite, SqlitePool};
 use tauri::{AppHandle, Manager};
 use tokio::sync::Mutex;
 
+#[derive(sqlx::FromRow)]
+pub struct Video {
+    pub id: u32,
+    pub path: String,
+    pub userId: u32,
+    pub watched: bool,
+    pub lastWatchedAt: String,
+}
+
+#[derive(sqlx::FromRow)]
+pub struct Folder {
+    pub id: u32,
+    pub userId: u32,
+    pub path: String,
+    pub expanded: bool,
+    pub asChild: bool,
+    pub color: String,
+}
+
 pub fn create_database(handle: AppHandle) {
     let path = create_app_data_folder(&handle);
 
@@ -20,6 +39,7 @@ pub fn create_database(handle: AppHandle) {
             migrate_videos(&sqlite_pool).await.unwrap();
             migrate_settings(&sqlite_pool).await.unwrap();
             migrate_global(&sqlite_pool).await.unwrap();
+            migrate_stats(&sqlite_pool).await.unwrap();
 
             Ok::<(), sqlx::Error>(())
         })
@@ -72,6 +92,7 @@ pub async fn migrate_videos(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         watched boolean NOT NULL,
         lastWatchedAt TIMESTAMP DEFAULT (datetime('now', 'localtime')),
         FOREIGN KEY (userId) REFERENCES user(id)
+        UNIQUE (userId, path)
     )",
     )
     .execute(pool)
@@ -107,6 +128,25 @@ pub async fn migrate_global(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         id GID99844589388427 PRIMARY KEY,
         userId INTEGER NOT NULL
     )",
+    )
+    .execute(pool)
+    .await
+    .unwrap();
+
+    Ok(())
+}
+
+pub async fn migrate_stats(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+    sqlx::query(
+        "CREATE TABLE IF NOT EXISTS stats (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,   
+        user_id INTEGER NOT NULL,
+        total_anime INTEGER NOT NULL,
+        total_videos INTEGER NOT NULL,
+        videos_watched INTEGER NOT NULL,
+        videos_remaining INTEGER NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES user(id)
+        )",
     )
     .execute(pool)
     .await
