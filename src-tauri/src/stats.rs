@@ -1,8 +1,7 @@
 use crate::db::{Folder, Video};
 use serde::{Deserialize, Serialize};
-use sqlx::{Connection, SqlitePool};
-use std::time::Duration;
-use tauri::{AppHandle, Manager, Window};
+use sqlx::SqlitePool;
+use tauri::{AppHandle, Manager};
 use tokio::sync::Mutex;
 
 #[derive(Serialize, Deserialize)]
@@ -12,7 +11,7 @@ pub struct Stats {
     total_videos: u32,
     videos_watched: u32,
     videos_remaining: u32,
-    //watch_time: u32,
+    watchtime: u32,
 }
 
 #[tauri::command]
@@ -25,8 +24,11 @@ pub async fn create_stats(handle: AppHandle, user_id: u16) -> Option<Stats> {
         .await
         .unwrap();
 
+    let mut watchtime = 0;
+
     for folder in &total_anime_vec {
         read_anime_folder_dirs(folder.path.clone(), user_id, &pool).await;
+        watchtime += folder.watchTime;
     }
 
     let videos_vec: Vec<Video> = sqlx::query_as("SELECT * FROM video WHERE userId = ?")
@@ -46,6 +48,7 @@ pub async fn create_stats(handle: AppHandle, user_id: u16) -> Option<Stats> {
         total_videos,
         videos_watched,
         videos_remaining,
+        watchtime,
     })
 }
 
