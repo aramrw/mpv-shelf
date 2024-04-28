@@ -11,6 +11,7 @@ export type MainStatsType = {
   total_videos: number;
   videos_remaining: number;
   videos_watched: number;
+	watchtime: number,
 };
 
 export default function MainStats() {
@@ -80,7 +81,9 @@ export default function MainStats() {
         <Separator className="min-w-[2.1px] max-w-[2px] h-11" />
         <li className="flex flex-col justify-center items-start gap-0.5 text-xs bg-muted px-2 pb-1.5 pt-0.5 rounded-md">
           <label className="font-semibold underline">Watch Time</label>
-          <span className="font-medium bg-accent rounded-sm px-0.5"></span>
+          <span className="font-medium bg-accent rounded-sm px-0.5">
+					{calculateTimeSpentWatching(mainStats?.watchtime)}
+					</span>
         </li>
       </ul>
     </div>
