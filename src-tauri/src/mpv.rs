@@ -1,10 +1,11 @@
 use crate::misc::extract_episode_number;
-use sqlx::{Connection, SqliteConnection};
+use sqlx::{Connection, SqliteConnection, SqlitePool};
 use std::fs;
 use std::path::Path;
 use std::process::Command;
 use std::time::Duration;
 use tauri::{Manager, Window};
+use tokio::sync::Mutex;
 use window_titles::{Connection as win_titles_Connection, ConnectionTrait};
 
 #[derive(Debug)]
@@ -23,8 +24,6 @@ impl serde::Serialize for OpenVideoError {
         serializer.serialize_str(error_message)
     }
 }
-
-
 
 impl std::fmt::Display for OpenVideoError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -47,7 +46,6 @@ pub async fn open_video(
     auto_play: String,
     user_id: u32,
 ) -> Result<(), OpenVideoError> {
-
     let video_file_name = Path::new(&path).file_name().unwrap().to_str().unwrap();
     let removed_extension = video_file_name.rsplit_once('.').unwrap().0;
 
@@ -56,7 +54,7 @@ pub async fn open_video(
             message: "File must have a name.".to_string(),
         });
     }
-    
+
     let window: Window = match handle
         .clone()
         .get_window("main")
@@ -88,9 +86,9 @@ pub async fn open_video(
         }
     });
 
+    let parent_path = Path::new(&path).parent().unwrap().to_str().unwrap();
     println!("now playing {}", removed_extension);
     if auto_play == "On" {
-        let parent_path = Path::new(&path).parent().unwrap().to_str().unwrap();
         let current_video_index = find_video_index(parent_path, &path);
 
         let status = Command::new("mpv.exe")
@@ -131,10 +129,13 @@ pub async fn open_video(
         });
 
         if !mpv_running {
+            let watch_time = instant.elapsed().as_secs() as u32;
             println!(
-                "mpv-shelf was running for {:.2} seconds in the background",
-                &instant.elapsed().as_secs_f32()
+                "mpv-shelf was running for {:2} seconds in the background",
+                watch_time
             );
+
+            update_folder_watchtime(parent_path, &watch_time, &handle).await;
 
             // open a new window and close the first exe (not a window anymore) in the system tray
             open_new_window(handle.clone());
@@ -296,4 +297,15 @@ async fn update_last_watched_videos(
     }
 
     conn.close().await.unwrap();
+}
+
+async fn update_folder_watchtime(parent_path: &str, watch_time: &u32, handle: &tauri::AppHandle) {
+    let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
+
+    sqlx::query("UPDATE folder SET watchTime = ? WHERE path = ?")
+        .bind(watch_time)
+        .bind(parent_path)
+        .execute(&pool)
+        .await
+        .unwrap();
 }
