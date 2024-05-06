@@ -141,12 +141,12 @@ pub async fn migrate_global(pool: &SqlitePool) -> Result<(), sqlx::Error> {
 pub async fn migrate_stats(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS stats (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,   
-        user_id INTEGER NOT NULL,
-        total_anime INTEGER NOT NULL,
-        total_videos INTEGER NOT NULL,
-        videos_watched INTEGER NOT NULL,
-        videos_remaining INTEGER NOT NULL,
+        user_id INTEGER PRIMARY KEY NOT NULL DEFAULT 0,
+        total_anime INTEGER NOT NULL DEFAULT 0,
+        total_videos INTEGER NOT NULL DEFAULT 0,
+        videos_watched INTEGER NOT NULL DEFAULT 0,
+        videos_remaining INTEGER NOT NULL DEFAULT 0,
+        watchtime INTEGER NOT NULL DEFAULT 0, 
         FOREIGN KEY (user_id) REFERENCES user(id)
         )",
     )
