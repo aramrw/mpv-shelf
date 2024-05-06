@@ -1,10 +1,10 @@
 use crate::db::{Folder, Video};
 use serde::{Deserialize, Serialize};
-use sqlx::SqlitePool;
+use sqlx::{FromRow, SqlitePool};
 use tauri::{AppHandle, Manager};
 use tokio::sync::Mutex;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default, FromRow)]
 pub struct Stats {
     user_id: u16,
     total_anime: u32,
@@ -14,8 +14,7 @@ pub struct Stats {
     watchtime: u32,
 }
 
-#[tauri::command]
-pub async fn create_stats(handle: AppHandle, user_id: u16) -> Option<Stats> {
+pub async fn create_new_stats(handle: AppHandle, user_id: u16) -> Option<Stats> {
     let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
 
     let total_anime_vec: Vec<Folder> = sqlx::query_as("SELECT * FROM folder WHERE userId = ?")
@@ -42,6 +41,8 @@ pub async fn create_stats(handle: AppHandle, user_id: u16) -> Option<Stats> {
     let videos_watched = videos_vec.iter().filter(|vid| vid.watched).count() as u32;
     let videos_remaining = videos_vec.iter().filter(|vid| !vid.watched).count() as u32;
 
+    //println!("new: {}", total_anime);
+
     Some(Stats {
         user_id,
         total_anime,
@@ -50,6 +51,85 @@ pub async fn create_stats(handle: AppHandle, user_id: u16) -> Option<Stats> {
         videos_remaining,
         watchtime,
     })
+}
+
+#[tauri::command]
+pub async fn update_global_stats(handle: AppHandle, user_id: u16) -> Stats {
+    let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
+    let mut is_stale: bool = false;
+
+    let old_stats: Stats = match sqlx::query_as("SELECT * FROM stats WHERE user_id = ?")
+        .bind(user_id)
+        .fetch_one(&pool)
+        .await
+    {
+        Ok(stats) => stats,
+        Err(err) => {
+            println!("Err fetching old stats: {}", err);
+            Stats::default()
+        },
+    };
+    let mut new_stats = create_new_stats(handle, user_id).await.unwrap();
+
+    let old_stats_vec = stats_to_vec(&old_stats);
+    let mut new_stats_vec = stats_to_vec(&new_stats);
+
+    //println!("old t: {} | new t: {}", old_stats.watchtime, new_stats.watchtime);
+
+    if old_stats.watchtime > new_stats.watchtime {
+        new_stats.watchtime = old_stats.watchtime;
+        let len = new_stats_vec.len() - 1;
+        new_stats_vec[len] = old_stats.watchtime;
+    }
+
+    for i in 0..old_stats_vec.len() {
+        //println!("old: {} | new: {}", old_stats_vec[i], new_stats_vec[i]);
+        if old_stats_vec[i] != new_stats_vec[i] {
+            is_stale = true;
+            break;
+        }
+    }
+
+    if is_stale {
+        sqlx::query(
+            "INSERT OR REPLACE INTO stats 
+        (
+        user_id,
+        total_anime, 
+        total_videos, 
+        videos_watched, 
+        videos_remaining, 
+        watchtime 
+        )
+        VALUES (
+        ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(user_id)
+        .bind(new_stats.total_anime)
+        .bind(new_stats.total_videos)
+        .bind(new_stats.videos_watched)
+        .bind(new_stats.videos_remaining)
+        .bind(new_stats.watchtime)
+        .execute(&pool)
+        .await
+        .unwrap();
+
+        return new_stats;
+    }
+
+    old_stats
+}
+
+fn stats_to_vec(stats: &Stats) -> Vec<u32> {
+    let vec: Vec<u32> = vec![
+        stats.total_anime,
+        stats.total_videos,
+        stats.videos_watched,
+        stats.videos_remaining,
+        stats.watchtime,
+    ];
+
+    vec
 }
 
 async fn read_anime_folder_dirs(folder_path: String, user_id: u16, pool: &SqlitePool) {
@@ -61,6 +141,7 @@ async fn read_anime_folder_dirs(folder_path: String, user_id: u16, pool: &Sqlite
     ];
 
     // read it's video files
+
     let parent = std::fs::read_dir(folder_path).unwrap();
 
     for file in parent {
