@@ -159,7 +159,7 @@ export async function updateVideoWatched({
 export async function deleteFolder({ folderPath }: { folderPath: string }) {
   let db = await Database.load("sqlite:main.db");
 
-  await db.execute("DELETE from folder WHERE path = $1", [folderPath]);
+  await db.execute("DELETE from folder WHERE path LIKE $1", [`${folderPath}%`]);
 
-  await db.execute("DELETE from video WHERE path LIKE $1", [`${folderPath}%`]);
+	await db.execute("DELETE from video WHERE path LIKE $1", [`${folderPath}%`])
 }
