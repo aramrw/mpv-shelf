@@ -19,7 +19,7 @@ export default function MainStats() {
 
   useEffect(() => {
     getCurrentUserGlobal().then((user) => {
-      invoke("create_stats", { userId: user?.userId }).then((stats) => {
+      invoke("update_global_stats", { userId: user?.userId }).then((stats) => {
         if (stats) {
           setMainStats(stats as MainStatsType);
           //console.log(stats);
