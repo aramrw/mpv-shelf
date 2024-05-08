@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { invoke } from "@tauri-apps/api/tauri";
 import { useEffect, useState } from "react";
 import { getCurrentUserGlobal } from "../../../../lib/prisma-commands/global/global-cmds";
+import { Eye, EyeOff, Folder, Timer, Video } from "lucide-react";
 
 export type MainStatsType = {
   user_id: number;
@@ -50,39 +51,39 @@ export default function MainStats() {
 
   return (
     <div className="w-full flex flex-col justify-center items-center h-fit bg-card rounded-xl shadow-md outline outline-border p-2 select-none">
-      <h1 className="font-bold rounded-md px-1">Main Stats</h1>
+      <h1 className="font-bold rounded-md px-1">Total Stats</h1>
       <Separator className="h-[2px] w-1/5 my-1.5 mr-0.5" />
       <ul className="w-full flex flex-row justify-center items-start gap-3 pb-0.5">
         <li className="flex flex-col justify-center items-start gap-0.5 text-xs bg-muted px-2 pb-1.5 pt-0.5 rounded-md pointer-events-none select-none">
-          <label className="font-semibold underline">Folders</label>
+          <label className="font-semibold underline flex flex-row gap-1">Folders <Folder className="w-2.5 h-auto" /></label>
           <span className="font-medium bg-accent rounded-sm px-0.5">
             {mainStats?.total_anime}
           </span>
         </li>
         <Separator className="min-w-[1.5px] max-w-[1.9px] h-11" />
         <li className="flex flex-col justify-center items-start gap-0.5 text-xs bg-muted px-2 pb-1.5 pt-0.5 rounded-md pointer-events-none select-none">
-          <label className="font-semibold underline">Videos</label>
+          <label className="font-semibold underline flex flex-row gap-1">Videos <Video className="w-3 h-auto" /></label>
           <span className="font-medium bg-accent rounded-sm px-0.5">
             {mainStats?.total_videos}
           </span>
         </li>
         <Separator className="min-w-[1.9px] max-w-[2.05px] h-11" />
         <li className="flex flex-col justify-center items-start gap-0.5 text-xs bg-muted px-2 pb-1.5 pt-0.5 rounded-md pointer-events-none select-none">
-          <label className="font-semibold underline">Watched</label>
+          <label className="font-semibold underline flex flex-row gap-1">Watched <Eye className="w-3 h-auto"/></label>
           <span className="font-medium bg-accent rounded-sm px-0.5">
             {mainStats?.videos_watched}
           </span>
         </li>
         <Separator className="min-w-[2.1px] max-w-[2px] h-11" />
         <li className="flex flex-col justify-center items-start gap-0.5 text-xs bg-muted px-2 pb-1.5 pt-0.5 rounded-md pointer-events-none select-none">
-          <label className="font-semibold underline">Remaining</label>
+          <label className="font-semibold underline flex flex-row gap-1">Remaining <EyeOff className="w-3 h-auto"/> </label>
           <span className="font-medium bg-accent rounded-sm px-0.5">
             {mainStats?.videos_remaining}
           </span>
         </li>
         <Separator className="min-w-[2.1px] max-w-[2px] h-11" />
         <li className="flex flex-col justify-center items-start gap-0.5 text-xs bg-muted px-2 pb-1.5 pt-0.5 rounded-md pointer-events-none select-none">
-          <label className="font-semibold underline">Watch Time</label>
+          <label className="font-semibold underline flex flex-row gap-1">Watch Time <Timer className="w-3 h-auto" /></label>
           <span className="font-medium bg-accent rounded-sm px-0.5">
 					{calculateTimeSpentWatching(mainStats?.watchtime)}
 					</span>
