@@ -54,28 +54,28 @@ export default function MainStats() {
       <Separator className="h-[2px] w-1/5 my-1.5 mr-0.5" />
       <ul className="w-full flex flex-row justify-center items-start gap-3 pb-0.5">
         <li className="flex flex-col justify-center items-start gap-0.5 text-xs bg-muted px-2 pb-1.5 pt-0.5 rounded-md pointer-events-none select-none">
-          <label className="font-semibold underline">Total Anime</label>
+          <label className="font-semibold underline">Folders</label>
           <span className="font-medium bg-accent rounded-sm px-0.5">
             {mainStats?.total_anime}
           </span>
         </li>
         <Separator className="min-w-[1.5px] max-w-[1.9px] h-11" />
         <li className="flex flex-col justify-center items-start gap-0.5 text-xs bg-muted px-2 pb-1.5 pt-0.5 rounded-md pointer-events-none select-none">
-          <label className="font-semibold underline">Total Videos</label>
+          <label className="font-semibold underline">Videos</label>
           <span className="font-medium bg-accent rounded-sm px-0.5">
             {mainStats?.total_videos}
           </span>
         </li>
         <Separator className="min-w-[1.9px] max-w-[2.05px] h-11" />
         <li className="flex flex-col justify-center items-start gap-0.5 text-xs bg-muted px-2 pb-1.5 pt-0.5 rounded-md pointer-events-none select-none">
-          <label className="font-semibold underline">Videos Watched</label>
+          <label className="font-semibold underline">Watched</label>
           <span className="font-medium bg-accent rounded-sm px-0.5">
             {mainStats?.videos_watched}
           </span>
         </li>
         <Separator className="min-w-[2.1px] max-w-[2px] h-11" />
         <li className="flex flex-col justify-center items-start gap-0.5 text-xs bg-muted px-2 pb-1.5 pt-0.5 rounded-md pointer-events-none select-none">
-          <label className="font-semibold underline">Videos Remaining</label>
+          <label className="font-semibold underline">Remaining</label>
           <span className="font-medium bg-accent rounded-sm px-0.5">
             {mainStats?.videos_remaining}
           </span>
