@@ -33,10 +33,12 @@ export default function MainStats() {
   }, [mainStats]);
 
   function calculateTimeSpentWatching(time: number | undefined) {
-    // if time (seconds) is greater than a minute render both minutes and seconds
-    // else render only seconds
-    if (time && time > 60) {
+		if (time && time > 60) {
       const minutes = Math.floor(time / 60);
+			if (time > 3600) {
+				const hours = Math.floor(time / 3600)
+				return `${hours}h ${Math.floor(minutes % 60)}m`
+			}
       const seconds = time % 60;
       return `${minutes}m ${seconds}s`;
     } else if (time) {
