@@ -5,9 +5,7 @@ export default function StatsPage() {
   return (
     <main className="w-full h-full flex flex-col justify-start items-center p-5 gap-4 md:px-30 lg:px-16 xl:px-36 2xl:px-48">
       <MainStats />
-      <div className="w-full h-fit cursor-not-allowed">
         <TimeTabs />
-      </div>
     </main>
   );
 }

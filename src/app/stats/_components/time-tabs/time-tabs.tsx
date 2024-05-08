@@ -1,12 +1,3 @@
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DailyTab from "./daily-tab/daily-tab";
 import WeeklyTab from "./weekly-tab/weekly-tab";
@@ -16,10 +7,7 @@ import { Lock } from "lucide-react";
 
 export default function TimeTabs() {
   return (
-    <div className="opacity-50 w-full h-fit flex flex-row justify-center items-center pointer-events-none">
-      <div className="fixed left-49">
-					<Lock  className="w-24 h-24"/>
-      </div>
+    <div className="w-full h-fit flex flex-row justify-center items-center">
       <Tabs defaultValue="daily" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="daily">Daily</TabsTrigger>

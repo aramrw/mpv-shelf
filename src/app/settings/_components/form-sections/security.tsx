@@ -127,7 +127,7 @@ export default function SecuritySection({
                 className={cn(
                   "w-full rounded-l-sm bg-accent px-1 font-medium",
                   locked &&
-                  "cursor-not-allowed select-none opacity-50 focus:outline-none",
+                  "select-none opacity-50 focus:outline-none",
                   !locked && "rounded-none",
                   currentUser.pin === "disabled" &&
                   formState.usePin === "On" &&
