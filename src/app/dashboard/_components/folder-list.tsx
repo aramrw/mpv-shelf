@@ -451,7 +451,7 @@ const FolderList = (
             {
                 expanded && folders.map((folder, index) => {
                     return (
-                        <motion.li className={cn('flex flex-col items-start justify-center gap-1 border-b-2 p-0.5 px-2 cursor-pointer overflow-hidden select-none',
+                        <motion.li className={cn('max-h-56 flex flex-col items-start justify-self-center gap-1 border-b-2 p-0.5 px-2 cursor-pointer overflow-x-hidden overflow-y-auto select-none',
                             (index === folders.length - 1 && !asChild) && 'rounded-b-xl border-b-8 border-tertiary',
                             asChild && 'rounded-b-md border-none border-tertiary',
 
@@ -461,7 +461,7 @@ const FolderList = (
                                     {
                                         borderBottom: `8px solid ${currentFolderColor}`
                                     } : {}),
-                                ...(expanded && !asChild ? { padding: "6.5px" } : {}),
+                                ...(expanded && !asChild ? { padding: "5.5px 3.5px 0 3.5px" } : {}),
                             }}
                             key={folder.name + "current-child" + index}
                             initial={userSettings?.animations === "On" ? { y: -40 } : undefined}
