@@ -89,10 +89,10 @@ pub async fn update_global_stats(handle: AppHandle, user_id: u16) -> Stats {
     let old_stats_vec = stats_to_vec(&old_stats);
     let mut new_stats_vec = stats_to_vec(&new_stats);
 
-    println!(
-        "old t: {} | new t: {}",
-        old_stats.watchtime, new_stats.watchtime
-    );
+    // println!(
+    //     "old t: {} | new t: {}",
+    //     old_stats.watchtime, new_stats.watchtime
+    // );
 
     new_stats.watchtime += old_stats.watchtime;
     let len = new_stats_vec.len() - 1;
