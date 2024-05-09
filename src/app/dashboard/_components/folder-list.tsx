@@ -613,7 +613,7 @@ const FolderList = ({
       {/* Renders Video Files */}
       <div
         className={cn(
-          "max-h-60 overflow-y-auto rounded-lg overflow-x-hidden h-fit",
+          "max-h-60 overflow-y-auto rounded-b-lg overflow-x-hidden h-fit",
           //folders.length < 2 && "max-h-60",
         )}
         style={{
