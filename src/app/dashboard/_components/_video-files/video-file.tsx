@@ -16,7 +16,7 @@ import OpenVideoError from "../error-dialogs/open-video-error";
 export default function VideoFile({
   userSettings,
   file,
-  files,
+  //files,
   currentFolderColor,
   prismaVideos,
   currentUser,
@@ -46,10 +46,10 @@ export default function VideoFile({
         <ContextMenuTrigger>
           <motion.li
             className={cn(
-              "flex flex-col items-start justify-center gap-1 border-b-2 py-1.5 px-4 cursor-pointer overflow-hidden rounded-none",
+              "flex flex-col items-start justify-center gap-1 border-b-2 py-1.5 px-4 cursor-pointer overflow-hidden",
               userSettings?.animations === "Off" && "hover:opacity-50",
               index % 2 && "brightness-150",
-              !(index % 2) && "brightness-[1.35]",
+              !(index % 2) && "brightness-[1.35] rounded-none",
               {
                 /* watched video notification  */
               },
