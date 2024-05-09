@@ -179,7 +179,7 @@ const FolderList = ({
         expanded: expanded,
         userId: currentUser?.id,
         asChild: asChild || false,
-      }).then(() => { });
+      }).then(() => {});
     }
   }, [
     asChild,
@@ -469,22 +469,22 @@ const FolderList = ({
               style={{
                 ...(currentFolderColor
                   ? {
-                    backgroundColor: `${currentFolderColor}`,
-                    borderBottom: `1px solid ${currentFolderColor}`,
-                  }
+                      backgroundColor: `${currentFolderColor}`,
+                      borderBottom: `1px solid ${currentFolderColor}`,
+                    }
                   : {}),
                 ...(expanded && !asChild ? { padding: "6.5px" } : {}),
               }}
               className={cn(
                 "flex cursor-pointer flex-row items-center justify-between border-tertiary rounded-sm p-1 bg-muted break-keep",
                 expanded &&
-                files.length > 0 &&
-                !asChild &&
-                "rounded-b-none border-b-4",
+                  files.length > 0 &&
+                  !asChild &&
+                  "rounded-b-none border-b-4",
                 expanded &&
-                folders.length > 0 &&
-                !asChild &&
-                "rounded-b-none border-b-4",
+                  folders.length > 0 &&
+                  !asChild &&
+                  "rounded-b-none border-b-4",
                 expanded && asChild && "border-none rounded-sm",
                 expanded && asChild && "p-1 border-none rounded-b-none",
                 expanded && !asChild && "border-none",
@@ -492,7 +492,7 @@ const FolderList = ({
                 userSettings?.animations === "Off" && "hover:opacity-80",
               )}
               onClick={() => {
-                if (files.length > 0 || folders.length > 0)
+                if (files.length > 0 || folders.length > 0) {
                   if (!expanded) {
                     getFolderColor({ folderPath: folderPath }).then(
                       (color: any) => {
@@ -505,10 +505,11 @@ const FolderList = ({
                   } else {
                     setCurrentFolderColor(undefined);
                   }
-                setExpanded(!expanded);
+                  setExpanded(!expanded);
+                }
               }}
               whileHover={
-                userSettings?.animations === "On" && !asChild
+                userSettings?.animations === "On" && !asChild && files.length > 0 || folders.length > 0
                   ? { padding: "6.5px" }
                   : undefined
               }
@@ -612,15 +613,15 @@ const FolderList = ({
       {/* Renders Video Files */}
       <div
         className={cn(
-          "overflow-y-auto rounded-lg overflow-x-hidden h-fit",
-          folders.length < 1 && "max-h-60",
+          "max-h-60 overflow-y-auto rounded-lg overflow-x-hidden h-fit",
+          //folders.length < 2 && "max-h-60",
         )}
         style={{
           ...(currentFolderColor
             ? {
-              //backgroundColor: `${currentFolderColor}`,
-              borderBottom: `8px solid ${currentFolderColor}`,
-            }
+                //backgroundColor: `${currentFolderColor}`,
+                borderBottom: `8px solid ${currentFolderColor}`,
+              }
             : {}),
         }}
       >
@@ -653,17 +654,15 @@ const FolderList = ({
             return (
               <motion.li
                 className={cn(
-                  "max-h-60 flex flex-col items-start justify-self-center gap-1 p-0.5 px-2 cursor-pointer overflow-x-hidden overflow-y-auto select-none",
-                  index === folders.length - 1 &&
-                  !asChild &&
-                  "border-tertiary",
+                  "max-h-40 flex flex-col items-start justify-self-center gap-1 p-0.5 px-2 cursor-pointer overflow-x-hidden overflow-y-auto select-none",
+                  index === folders.length - 1 && !asChild && "border-tertiary",
                   asChild && "rounded-b-md border-none border-tertiary",
                 )}
                 style={{
                   ...(currentFolderColor
                     ? {
-                      //borderBottom: `8px solid ${currentFolderColor}`,
-                    }
+                        //borderBottom: `8px solid ${currentFolderColor}`,
+                      }
                     : {}),
                   ...(expanded && !asChild
                     ? { padding: "5.5px 3.5px 0 3.5px" }

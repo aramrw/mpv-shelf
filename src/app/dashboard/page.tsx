@@ -299,6 +299,7 @@ export default function Dashboard() {
         className="grid grid-cols-3 h-fit items-start justify-center gap-2 rounded-b-sm drop-shadow-sm"
         key={"main-parent-folder" + folderPaths.length + 1}
       >
+        <div className="w-full h-fit">
           {folderPaths.map((folder, index) => {
             if (index % 3 === 0) {
               return (
@@ -316,6 +317,8 @@ export default function Dashboard() {
             }
             return null;
           })}
+        </div>
+        <div className="w-full h-fit">
           {folderPaths.map((folder, index) => {
             if (index % 3 === 1) {
               return (
@@ -333,6 +336,8 @@ export default function Dashboard() {
             }
             return null;
           })}
+        </div>
+        <div className="w-full h-fit">
           {folderPaths.map((folder, index) => {
             if (index % 3 === 2) {
               return (
@@ -350,6 +355,7 @@ export default function Dashboard() {
             }
             return null;
           })}
+        </div>
       </motion.div>
     </main>
   );
