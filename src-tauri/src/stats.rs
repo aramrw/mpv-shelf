@@ -75,7 +75,7 @@ pub async fn update_global_stats(handle: AppHandle, user_id: u16) -> Stats {
         Err(err) => {
             println!("Err fetching old stats: {}", err);
             Stats::default()
-        },
+        }
     };
     let mut new_stats = create_new_stats(handle, user_id).await.unwrap();
 
@@ -183,6 +183,7 @@ async fn insert_or_ignore_vid(video_path: &str, user_id: u16, pool: &SqlitePool)
         .await
         .unwrap();
 }
+
 #[tauri::command]
 pub async fn create_chart_stats(
     range: String,
@@ -260,3 +261,26 @@ pub async fn create_chart_stats(
                 }
             }
 
+            if range == "yearly" && last_watched_at.year() == current_year {
+                let split_date: Vec<&str> = entry.updated_at.split('-').collect();
+                let mut _month: u8 = 0;
+
+                {
+                    let split_month: Vec<&str> = split_date[1]
+                        .split("")
+                        .filter(|str| !str.is_empty())
+                        .collect();
+                    if split_month[0] == "0" {
+                        _month = split_month[1].parse().unwrap();
+                    } else {
+                        _month = split_date[1].parse().unwrap();
+                    }
+                }
+
+                final_data[_month as usize - 1] += entry.watchtime as f32 / 3600.0  
+            }
+        }
+    }
+
+    final_data
+}
