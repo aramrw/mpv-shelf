@@ -125,6 +125,7 @@ fn main() {
             .invoke_handler(generate_handler![
                 mpv::open_video,
                 stats::update_global_stats,
+                stats::create_chart_stats,
                 misc::show_in_folder,
                 misc::generate_random_color,
                 misc::generate_random_mono_color,
