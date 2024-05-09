@@ -128,7 +128,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (scrolledDiv.current) {
       // dont let the user be able to scroll while its loading
-      console.log("folderpaths:", folderPaths);
+      //console.log("folderpaths:", folderPaths);
       scrolledDiv.current.style.maxHeight = "0px";
     }
     if (currentUser && !isLoading)
@@ -267,7 +267,7 @@ export default function Dashboard() {
   return (
     <main
       className={cn(
-        "h-fit pl-3 lg:px-16 xl:px-36 2xl:px-48 mt-3 max-h-screen overflow-auto pb-20",
+        "h-full pl-3 lg:px-16 xl:px-36 2xl:px-48 mt-3 max-h-screen overflow-auto pb-20",
       )}
       ref={scrolledDiv}
       style={{ scrollbarGutter: "stable" }}
@@ -296,10 +296,9 @@ export default function Dashboard() {
       </Button>
       {/* Render Top-Level-Parent Folders */}
       <motion.div
-        className="flex h-fit flex-row items-start justify-center gap-2 rounded-b-sm drop-shadow-sm"
+        className="grid grid-cols-3 h-fit items-start justify-center gap-2 rounded-b-sm drop-shadow-sm"
         key={"main-parent-folder" + folderPaths.length + 1}
       >
-        <div className="h-fit w-1/3">
           {folderPaths.map((folder, index) => {
             if (index % 3 === 0) {
               return (
@@ -317,8 +316,6 @@ export default function Dashboard() {
             }
             return null;
           })}
-        </div>
-        <div className="h-fit w-1/3">
           {folderPaths.map((folder, index) => {
             if (index % 3 === 1) {
               return (
@@ -336,8 +333,6 @@ export default function Dashboard() {
             }
             return null;
           })}
-        </div>
-        <div className="h-fit w-1/3">
           {folderPaths.map((folder, index) => {
             if (index % 3 === 2) {
               return (
@@ -355,7 +350,6 @@ export default function Dashboard() {
             }
             return null;
           })}
-        </div>
       </motion.div>
     </main>
   );
