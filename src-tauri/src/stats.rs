@@ -183,3 +183,47 @@ async fn insert_or_ignore_vid(video_path: &str, user_id: u16, pool: &SqlitePool)
         .await
         .unwrap();
 }
+#[tauri::command]
+pub async fn create_chart_stats(
+    range: String,
+    days_in_month: Option<u8>,
+    handle: AppHandle,
+) -> Vec<f32> {
+    let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
+
+    //let mut updated_this_week: Vec<Chart> = Vec::new();
+    let mut final_data: Vec<f32> = Vec::new();
+
+    let today = chrono::Local::now().naive_local().date();
+    let current_year = chrono::Local::now().year();
+    let current_month = today.month0();
+
+    if range == "weekly" {
+        final_data = vec![0.0; 6];
+    } else if range == "monthly" {
+        final_data = vec![0.0; days_in_month.unwrap() as usize - 1];
+    } else if range == "yearly" {
+        final_data = vec![0.0; 11];
+    }
+
+    {
+        let data: Vec<Chart> = sqlx::query_as("SELECT * FROM chart ORDER BY updated_at DESC")
+            .fetch_all(&pool)
+            .await
+            .unwrap();
+
+        for entry in data {
+            let last_watched_at =
+                chrono::NaiveDate::parse_from_str(&entry.updated_at, "%Y-%m-%d").unwrap();
+
+            if range == "weekly" {
+                let week = today.week(chrono::Weekday::Mon);
+                let days = week.days();
+
+                if days.contains(&last_watched_at) {
+                    let weekday_index = last_watched_at.weekday().num_days_from_sunday();
+                    //println!("{}", weekday_index);
+                    final_data[weekday_index as usize] = entry.watchtime as f32 / 3600.0;
+                }
+            }
+
