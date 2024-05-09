@@ -303,7 +303,7 @@ async fn update_last_watched_videos(
 async fn update_folder_watchtime(parent_path: &str, watch_time: &u32, handle: &tauri::AppHandle) {
     let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
 
-    sqlx::query("UPDATE folder SET watchTime = ? WHERE path = ?")
+    sqlx::query("UPDATE folder SET watchTime = watchtime + ? WHERE path = ?")
         .bind(watch_time)
         .bind(parent_path)
         .execute(&pool)
@@ -314,11 +314,20 @@ async fn update_folder_watchtime(parent_path: &str, watch_time: &u32, handle: &t
 async fn update_chart_watchtime(user_id: u32, watch_time: &u32, handle: &tauri::AppHandle) {
     let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
 
-    sqlx::query("INSERT OR REPLACE INTO chart (user_id, watchtime, updated_at) VALUES (?, ?, date('now', 'localtime'))")
-        .bind(user_id)
+    let today = chrono::Local::now().naive_local().date();
+
+    sqlx::query("INSERT OR IGNORE INTO chart (user_id, watchtime, updated_at) VALUES (?, 0, date('now', 'localtime'))")
+    .bind(user_id)
+    .execute(&pool)
+    .await
+    .unwrap();
+
+    // Then, increment the watchtime.
+    sqlx::query("UPDATE chart SET watchtime = watchtime + ? WHERE user_id = ? AND updated_at = ?")
         .bind(watch_time)
+        .bind(user_id)
+        .bind(today.to_string())
         .execute(&pool)
         .await
         .unwrap();
 }
-

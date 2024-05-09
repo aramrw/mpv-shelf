@@ -51,6 +51,13 @@ pub async fn create_new_stats(handle: AppHandle, user_id: u16) -> Option<Stats> 
 
     //println!("new: {}", total_anime);
 
+    // reset all the folders watch time since it will be added to the global watch time
+    sqlx::query("UPDATE folder SET watchTime = 0 WHERE userId = ?")
+        .bind(user_id)
+        .execute(&pool)
+        .await
+        .unwrap();
+
     Some(Stats {
         user_id,
         total_anime,
@@ -82,13 +89,14 @@ pub async fn update_global_stats(handle: AppHandle, user_id: u16) -> Stats {
     let old_stats_vec = stats_to_vec(&old_stats);
     let mut new_stats_vec = stats_to_vec(&new_stats);
 
-    //println!("old t: {} | new t: {}", old_stats.watchtime, new_stats.watchtime);
+    println!(
+        "old t: {} | new t: {}",
+        old_stats.watchtime, new_stats.watchtime
+    );
 
-    if old_stats.watchtime > new_stats.watchtime {
-        new_stats.watchtime = old_stats.watchtime;
-        let len = new_stats_vec.len() - 1;
-        new_stats_vec[len] = old_stats.watchtime;
-    }
+    new_stats.watchtime += old_stats.watchtime;
+    let len = new_stats_vec.len() - 1;
+    new_stats_vec[len] += old_stats.watchtime;
 
     for i in 0..old_stats_vec.len() {
         //println!("old: {} | new: {}", old_stats_vec[i], new_stats_vec[i]);
@@ -277,7 +285,7 @@ pub async fn create_chart_stats(
                     }
                 }
 
-                final_data[_month as usize - 1] += entry.watchtime as f32 / 3600.0  
+                final_data[_month as usize - 1] += entry.watchtime as f32 / 3600.0
             }
         }
     }
