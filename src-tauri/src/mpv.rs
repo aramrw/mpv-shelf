@@ -136,6 +136,7 @@ pub async fn open_video(
             );
 
             update_folder_watchtime(parent_path, &watch_time, &handle).await;
+            update_chart_watchtime(user_id, &watch_time, &handle).await;
 
             // open a new window and close the first exe (not a window anymore) in the system tray
             open_new_window(handle.clone());
@@ -309,3 +310,15 @@ async fn update_folder_watchtime(parent_path: &str, watch_time: &u32, handle: &t
         .await
         .unwrap();
 }
+
+async fn update_chart_watchtime(user_id: u32, watch_time: &u32, handle: &tauri::AppHandle) {
+    let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
+
+    sqlx::query("INSERT OR REPLACE INTO chart (user_id, watchtime, updated_at) VALUES (?, ?, date('now', 'localtime'))")
+        .bind(user_id)
+        .bind(watch_time)
+        .execute(&pool)
+        .await
+        .unwrap();
+}
+
