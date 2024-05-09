@@ -227,3 +227,36 @@ pub async fn create_chart_stats(
                 }
             }
 
+            if range == "monthly" {
+                let split_date: Vec<&str> = entry.updated_at.split('-').collect();
+                let mut _month: u8 = 0;
+
+                {
+                    let split_month: Vec<&str> = split_date[1]
+                        .split("")
+                        .filter(|str| !str.is_empty())
+                        .collect();
+                    if split_month[0] == "0" {
+                        _month = split_month[1].parse().unwrap();
+                    } else {
+                        _month = split_date[1].parse().unwrap();
+                    }
+                }
+
+                if current_month as u8 + 1 == _month {
+                    let mut _day: usize = 0;
+
+                    let split_day: Vec<&str> = split_date[2]
+                        .split("")
+                        .filter(|str| !str.is_empty())
+                        .collect();
+                    if split_day[0] == "0" {
+                        _day = split_day[1].parse().unwrap();
+                    } else {
+                        _day = split_date[2].parse().unwrap();
+                    }
+
+                    final_data[_day - 1] = entry.watchtime as f32 / 3600.0;
+                }
+            }
+
