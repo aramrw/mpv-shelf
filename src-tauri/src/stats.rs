@@ -199,11 +199,11 @@ pub async fn create_chart_stats(
     let current_year = chrono::Local::now().year();
     let current_month = today.month0();
 
-    if range == "weekly" {
+    if range == "daily" {
         final_data = vec![0.0; 6];
-    } else if range == "monthly" {
+    } else if range == "weekly" {
         final_data = vec![0.0; days_in_month.unwrap() as usize - 1];
-    } else if range == "yearly" {
+    } else if range == "monthly" {
         final_data = vec![0.0; 11];
     }
 
@@ -217,7 +217,7 @@ pub async fn create_chart_stats(
             let last_watched_at =
                 chrono::NaiveDate::parse_from_str(&entry.updated_at, "%Y-%m-%d").unwrap();
 
-            if range == "weekly" {
+            if range == "daily" {
                 let week = today.week(chrono::Weekday::Mon);
                 let days = week.days();
 
@@ -228,7 +228,7 @@ pub async fn create_chart_stats(
                 }
             }
 
-            if range == "monthly" {
+            if range == "weekly" {
                 let split_date: Vec<&str> = entry.updated_at.split('-').collect();
                 let mut _month: u8 = 0;
 
@@ -261,7 +261,7 @@ pub async fn create_chart_stats(
                 }
             }
 
-            if range == "yearly" && last_watched_at.year() == current_year {
+            if range == "monthly" && last_watched_at.year() == current_year {
                 let split_date: Vec<&str> = entry.updated_at.split('-').collect();
                 let mut _month: u8 = 0;
 
