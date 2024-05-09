@@ -14,29 +14,35 @@ import { useEffect, useState } from "react";
 import { Bar } from "react-chartjs-2";
 
 export default function MonthlyTab() {
-  let now = new Date();
-  let month = now.getMonth(); // get the current month
-  let year = now.getFullYear(); // get the current year
-  let daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  const labels = Array.from({ length: daysInMonth }, (_, i) =>
-    (i + 1).toString(),
-  );
+	const [stats, setStats] = useState<number[]>();
 
-  const [stats, setStats] = useState<number[]>();
-
-  useEffect(() => {
-    invoke("create_chart_stats", { range: "monthly", daysInMonth: labels.length }).then((daily) => {
-      console.log(daily);
-      setStats(daily as number[]);
-    });
-  }, []);
+	useEffect(() => {
+		invoke("create_chart_stats", { range: "monthly" }).then((daily) => {
+			console.log(daily);
+			setStats(daily as number[]);	
+		});
+		
+	}, [])
 
   const data = {
-    labels,
+    labels: [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ],
     datasets: [
       {
-        label: " Watchtime Per Day (H) ",
+        label: " Hours Watched ",
         data: stats,
         backgroundColor: [
           "rgba(255, 99, 132, 0.2)",
@@ -64,9 +70,7 @@ export default function MonthlyTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="pointer-events-none select-none">
-          Monthly
-        </CardTitle>
+        <CardTitle className="pointer-events-none select-none">Monthly</CardTitle>
         <CardDescription className="underline pointer-events-none select-none">
           Last Updated : {new Date().toLocaleDateString()} @{" "}
           {new Date().toLocaleTimeString()}{" "}
@@ -80,3 +84,4 @@ export default function MonthlyTab() {
     </Card>
   );
 }
+
