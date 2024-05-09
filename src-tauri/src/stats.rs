@@ -1,4 +1,5 @@
 use crate::db::{Folder, Video};
+use chrono::{Datelike, NaiveDate, Weekday};
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, SqlitePool};
 use tauri::{AppHandle, Manager};
@@ -12,6 +13,13 @@ pub struct Stats {
     videos_watched: u32,
     videos_remaining: u32,
     watchtime: u32,
+}
+
+#[derive(Serialize, Deserialize, Default, FromRow)]
+pub struct Chart {
+    user_id: u16,
+    watchtime: u32,
+    updated_at: String,
 }
 
 pub async fn create_new_stats(handle: AppHandle, user_id: u16) -> Option<Stats> {
