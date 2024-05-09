@@ -46,7 +46,7 @@ export default function VideoFile({
         <ContextMenuTrigger>
           <motion.li
             className={cn(
-              "flex flex-col items-start justify-center gap-1 border-b-2 py-1.5 px-4 cursor-pointer overflow-hidden",
+              "flex flex-col items-start justify-center gap-1 border-b-2 py-1.5 px-4 cursor-pointer overflow-hidden rounded-none",
               userSettings?.animations === "Off" && "hover:opacity-50",
               index % 2 && "brightness-150",
               !(index % 2) && "brightness-[1.35]",
@@ -144,7 +144,7 @@ export default function VideoFile({
               }) ? (
                 <motion.div
                   className={cn(
-                    `flex flex-row items-center justify-center gap-1 rounded-sm px-0.5 font-bold`,
+                    `flex flex-row items-center justify-center gap-1 px-0.5 font-bold`,
                     {
                       /* watched video eye icon next to file name */
                     },
@@ -230,7 +230,7 @@ export default function VideoFile({
                 <motion.div
                   key={"render-file-name" + file.name + "1"}
                   className={cn(
-                    "flex flex-row items-center justify-center gap-1 rounded-sm px-0.5 font-bold",
+                    "flex flex-row items-center justify-center gap-1 px-0.5 font-bold",
                   )}
                   initial={
                     userSettings?.animations === "On" ? { x: 20 } : undefined
@@ -257,12 +257,12 @@ export default function VideoFile({
               )}
             </motion.div>
           </motion.li>
-          {index === files.length - 1 && (
+          { /*index === files.length - 1 && (
             <div
               className="relative flex h-1.5 w-auto flex-row items-center justify-center gap-1 rounded-b-full"
               style={{ backgroundColor: `${currentFolderColor}` }}
             />
-          )}
+          ) */}
           {/* VideoContextMenu was moved out of the motion.li, if something is wrong it might be this */}
 
           <VideoContextMenu
