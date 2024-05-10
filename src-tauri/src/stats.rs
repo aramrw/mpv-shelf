@@ -196,6 +196,7 @@ async fn insert_or_ignore_vid(video_path: &str, user_id: u16, pool: &SqlitePool)
 pub async fn create_chart_stats(
     range: String,
     days_in_month: Option<u8>,
+    user_id: u16, 
     handle: AppHandle,
 ) -> Vec<f32> {
     let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
@@ -216,7 +217,8 @@ pub async fn create_chart_stats(
     }
 
     {
-        let data: Vec<Chart> = sqlx::query_as("SELECT * FROM chart ORDER BY updated_at DESC")
+        let data: Vec<Chart> = sqlx::query_as("SELECT * FROM chart WHERE user_id = ? ORDER BY updated_at DESC")
+            .bind(user_id)
             .fetch_all(&pool)
             .await
             .unwrap();
