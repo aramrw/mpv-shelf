@@ -196,7 +196,7 @@ async fn insert_or_ignore_vid(video_path: &str, user_id: u16, pool: &SqlitePool)
 pub async fn create_chart_stats(
     range: String,
     days_in_month: Option<u8>,
-    user_id: u16, 
+    user_id: u16,
     handle: AppHandle,
 ) -> Vec<f32> {
     let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
@@ -217,11 +217,12 @@ pub async fn create_chart_stats(
     }
 
     {
-        let data: Vec<Chart> = sqlx::query_as("SELECT * FROM chart WHERE user_id = ? ORDER BY updated_at DESC")
-            .bind(user_id)
-            .fetch_all(&pool)
-            .await
-            .unwrap();
+        let data: Vec<Chart> =
+            sqlx::query_as("SELECT * FROM chart WHERE user_id = ? ORDER BY updated_at DESC")
+                .bind(user_id)
+                .fetch_all(&pool)
+                .await
+                .unwrap();
 
         for entry in data {
             let last_watched_at =
@@ -234,7 +235,8 @@ pub async fn create_chart_stats(
                 if days.contains(&last_watched_at) {
                     let weekday_index = last_watched_at.weekday().num_days_from_sunday();
                     //println!("{}", weekday_index);
-                    final_data[weekday_index as usize] = entry.watchtime as f32 / 3600.0;
+                    final_data[weekday_index as usize] =
+                        ((entry.watchtime as f32 / 3600.0) * 100.0).round() / 100.0;
                 }
             }
 
@@ -267,7 +269,8 @@ pub async fn create_chart_stats(
                         _day = split_date[2].parse().unwrap();
                     }
 
-                    final_data[_day - 1] = entry.watchtime as f32 / 3600.0;
+                    final_data[_day - 1] =
+                        ((entry.watchtime as f32 / 3600.0) * 100.0).round() / 100.0;
                 }
             }
 
@@ -287,7 +290,8 @@ pub async fn create_chart_stats(
                     }
                 }
 
-                final_data[_month as usize - 1] += entry.watchtime as f32 / 3600.0
+                final_data[_month as usize - 1] +=
+                    ((entry.watchtime as f32 / 3600.0) * 100.0).round() / 100.0
             }
         }
     }
