@@ -74,9 +74,6 @@ export default function DailyTab() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-1">
-        <h1 className="text-sm font-bold pointer-events-none select-none">
-          Updated Today
-        </h1>
         <div className="w-fit h-fit">
           <Bar data={data} />
         </div>
