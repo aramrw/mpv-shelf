@@ -12,6 +12,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import "chart.js/auto";
 import { useEffect, useState } from "react";
 import { Bar } from "react-chartjs-2";
+import { getCurrentUserGlobal } from "../../../../../../lib/prisma-commands/global/global-cmds";
 
 export default function WeeklyTab() {
   let now = new Date();
@@ -26,9 +27,15 @@ export default function WeeklyTab() {
   const [stats, setStats] = useState<number[]>();
 
   useEffect(() => {
-    invoke("create_chart_stats", { range: "weekly", daysInMonth: labels.length }).then((daily) => {
-      console.log(daily);
-      setStats(daily as number[]);
+    getCurrentUserGlobal().then((user) => {
+      invoke("create_chart_stats", {
+        range: "weekly",
+        daysInMonth: labels.length,
+				userId: user?.userId
+      }).then((daily) => {
+        console.log(daily);
+        setStats(daily as number[]);
+      });
     });
   }, []);
 

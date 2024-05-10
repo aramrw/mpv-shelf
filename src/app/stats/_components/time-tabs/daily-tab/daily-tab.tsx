@@ -12,29 +12,31 @@ import { invoke } from "@tauri-apps/api/tauri";
 import "chart.js/auto";
 import { useEffect, useState } from "react";
 import { Bar } from "react-chartjs-2";
+import { getCurrentUserGlobal } from "../../../../../../lib/prisma-commands/global/global-cmds";
 
 export default function DailyTab() {
 
-	const [stats, setStats] = useState<number[]>();
+  const [stats, setStats] = useState<number[]>();
 
-	useEffect(() => {
-		invoke("create_chart_stats", { range: "daily"}).then((daily) => {
-			console.log("daily : " + daily);
-			setStats(daily as number[]);	
-		});
-		
-	}, [])
+  useEffect(() => {
+    getCurrentUserGlobal().then((user) => {
+      invoke("create_chart_stats", { range: "daily", userId: user?.userId }).then((daily) => {
+        console.log("daily : " + daily);
+        setStats(daily as number[]);
+      });
+    })
+  }, [])
 
   const data = {
     labels: [
-          "Sun",
-          "Mon",
-          "Tue",
-          "Wed",
-          "Thu",
-          "Fri",
-          "Sat",
-        ],
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+    ],
     datasets: [
       {
         label: " Watchtime Per Day (H) ",

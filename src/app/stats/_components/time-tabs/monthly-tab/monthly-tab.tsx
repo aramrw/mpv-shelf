@@ -12,34 +12,37 @@ import { invoke } from "@tauri-apps/api/tauri";
 import "chart.js/auto";
 import { useEffect, useState } from "react";
 import { Bar } from "react-chartjs-2";
+import { getCurrentUserGlobal } from "../../../../../../lib/prisma-commands/global/global-cmds";
 
 export default function MonthlyTab() {
+  const [stats, setStats] = useState<number[]>();
 
-	const [stats, setStats] = useState<number[]>();
-
-	useEffect(() => {
-		invoke("create_chart_stats", { range: "monthly" }).then((daily) => {
-			console.log(daily);
-			setStats(daily as number[]);	
-		});
-		
-	}, [])
+  useEffect(() => {
+    getCurrentUserGlobal().then((user) => {
+      invoke("create_chart_stats", { range: "monthly", userId: user?.userId }).then(
+        (daily) => {
+          console.log("daily : " + daily);
+          setStats(daily as number[]);
+        },
+      );
+    });
+  }, []);
 
   const data = {
     labels: [
-          "Jan",
-          "Feb",
-          "Mar",
-          "Apr",
-          "May",
-          "Jun",
-          "Jul",
-          "Aug",
-          "Sep",
-          "Oct",
-          "Nov",
-          "Dec",
-        ],
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ],
     datasets: [
       {
         label: " Hours Watched ",
@@ -70,7 +73,9 @@ export default function MonthlyTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="pointer-events-none select-none">Monthly</CardTitle>
+        <CardTitle className="pointer-events-none select-none">
+          Monthly
+        </CardTitle>
         <CardDescription className="underline pointer-events-none select-none">
           Last Updated : {new Date().toLocaleDateString()} @{" "}
           {new Date().toLocaleTimeString()}{" "}
@@ -84,4 +89,3 @@ export default function MonthlyTab() {
     </Card>
   );
 }
-
