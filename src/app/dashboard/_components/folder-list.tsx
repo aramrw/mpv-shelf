@@ -446,7 +446,7 @@ const FolderList = ({
     <main
       className={cn(
         "mb-2 h-full w-full rounded-b-md ",
-        expanded && folders.length === 1 && "max-h-60",
+        //expanded && folders.length === 1 && "max-h-60",
       )}
       key={folderPath + "main-parent-folder"}
     >
@@ -613,8 +613,8 @@ const FolderList = ({
       {/* Renders Video Files */}
       <div
         className={cn(
-          "max-h-60 overflow-y-auto rounded-b-lg overflow-x-hidden h-fit",
-          //folders.length < 2 && "max-h-60",
+          "overflow-y-auto rounded-b-lg overflow-x-hidden h-fit",
+          folders.length < 1 && "max-h-60",
         )}
         style={{
           ...(currentFolderColor
@@ -654,7 +654,7 @@ const FolderList = ({
             return (
               <motion.li
                 className={cn(
-                  "max-h-40 flex flex-col items-start justify-self-center gap-1 p-0.5 px-2 cursor-pointer overflow-x-hidden overflow-y-auto select-none",
+                  "h-fit flex flex-col items-start justify-self-center gap-1 p-0.5 px-2 cursor-pointer overflow-x-hidden overflow-y-auto select-none",
                   index === folders.length - 1 && !asChild && "border-tertiary",
                   asChild && "rounded-b-md border-none border-tertiary",
                 )}
