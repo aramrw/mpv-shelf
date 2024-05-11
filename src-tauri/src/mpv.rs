@@ -147,7 +147,7 @@ pub async fn open_video(
         tokio::time::sleep(Duration::from_secs(1)).await;
     }
 
-    println!("mpv-shelf was closed");
+    //println!("mpv-shelf was closed");
     Ok(())
 }
 
@@ -180,6 +180,35 @@ fn find_video_index(parent_path: &str, selected_video_path: &str) -> u32 {
         .filter_map(|entry| entry.ok())
         .collect();
 
+    let video_extensions = vec![
+        "mp4", "mkv", "avi", "mov", "wmv", "flv", "webm", "vob", "ogv", "ogg", "drc", "gif",
+        "gifv", "mng", "avi", "mov", "qt", "wmv", "yuv", "rm", "rmvb", "asf", "amv", "mp4", "m4p",
+        "m4v", "mpg", "mp2", "mpeg", "mpe", "mpv", "mpg", "mpeg", "m2v", "m4v", "svi", "3gp",
+        "3g2", "mxf", "roq", "nsv", "flv", "f4v", "f4p", "f4a", "f4b",
+    ];
+
+    let subtitle_extensions = vec![
+        "srt", "sub", "sbv", "idx", "ass", "ssa", "usf", "vtt", "stl", "rt", "smi", "smil", "sami",
+    ];
+
+    video_files_vec = video_files_vec
+        .into_iter()
+        .filter(|entry| {
+            if let Ok(metadata) = entry.metadata() {
+                if metadata.is_file() {
+                    if let Some(extension) = entry.path().extension() {
+                        if let Some(extension_str) = extension.to_str() {
+                            let extension_str = extension_str.to_lowercase();
+                            return video_extensions.contains(&extension_str.as_str())
+                                || subtitle_extensions.contains(&extension_str.as_str());
+                        }
+                    }
+                }
+            }
+            false
+        })
+        .collect::<Vec<_>>();
+
     video_files_vec.sort_by(|a, b| {
         let a = a.path();
         let b = b.path();
@@ -204,13 +233,6 @@ fn find_video_index(parent_path: &str, selected_video_path: &str) -> u32 {
 
     // video_files_vec.iter().for_each(|file| {
     //     println!("{}", file.file_name().to_str().unwrap());
-    // });
-
-    let current_video_index = video_files_vec
-        .iter()
-        .position(|file| file.path().to_str().unwrap() == selected_video_path)
-        .unwrap() as u32;
-
     //println!("{}", current_video_index);
     current_video_index
 }
