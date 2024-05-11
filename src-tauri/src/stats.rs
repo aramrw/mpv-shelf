@@ -209,7 +209,7 @@ pub async fn create_chart_stats(
     let current_month = today.month0();
 
     if range == "daily" {
-        final_data = vec![0.0; 6];
+        final_data = vec![0.0; 7];
     } else if range == "weekly" {
         final_data = vec![0.0; days_in_month.unwrap() as usize - 1];
     } else if range == "monthly" {
