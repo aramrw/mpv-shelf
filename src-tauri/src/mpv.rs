@@ -93,7 +93,7 @@ pub async fn open_video(
 
         let status = Command::new("mpv.exe")
             // --playlist-start should be the index of the video in the parent folder
-            .arg(format!("--playlist-start={}", current_video_index))
+            .arg(format!("--playlist-start={}", current_video_index.unwrap()))
             // --playlist should be the path of the parent folder
             .arg(format!("--playlist={}", parent_path))
             //.arg(format!("--title={} - mpv.exe", current_video_name))
@@ -174,7 +174,7 @@ fn open_new_window(handle: tauri::AppHandle) {
     }
 }
 
-fn find_video_index(parent_path: &str, selected_video_path: &str) -> u32 {
+fn find_video_index(parent_path: &str, selected_video_path: &str) -> Result<u32, OpenVideoError> {
     let mut video_files_vec: Vec<fs::DirEntry> = fs::read_dir(parent_path)
         .unwrap()
         .filter_map(|entry| entry.ok())
@@ -234,7 +234,25 @@ fn find_video_index(parent_path: &str, selected_video_path: &str) -> u32 {
     // video_files_vec.iter().for_each(|file| {
     //     println!("{}", file.file_name().to_str().unwrap());
     //println!("{}", current_video_index);
-    current_video_index
+
+    let selected_video_file_name = Path::new(selected_video_path)
+        .file_name()
+        .unwrap()
+        .to_str()
+        .unwrap();
+    let current_video_index = video_files_vec
+        .iter()
+        .position(|entry| entry.file_name().to_str().unwrap() == selected_video_file_name);
+    let current_video_index = match current_video_index {
+        Some(index) => index as u32,
+        None => {
+            return Err(OpenVideoError::Error {
+                message: "Video file not found in directory.".to_string(),
+            })
+        }
+    };
+
+    Ok(current_video_index)
 }
 
 fn get_last_mpv_win_title() -> String {
@@ -251,7 +269,7 @@ fn get_last_mpv_win_title() -> String {
                 && !window.contains('\\')
                 && !window.contains("Visual Studio")
             {
-                //println!("{}", window);
+                println!("{}", window);
                 current_episode = window.to_string();
             }
         });
@@ -307,6 +325,8 @@ async fn update_last_watched_videos(
         } else {
             video_start_path.clone()
         };
+
+        //println!("updating: {}", starting_new_path);
 
         sqlx::query(
             "INSERT OR REPLACE INTO video (path, userId, watched, lastWatchedAt) VALUES (?, ?, ?, datetime('now', 'localtime'))",
