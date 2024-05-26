@@ -158,22 +158,22 @@ async fn read_anime_folder_dirs(folder_path: String, user_id: u16, pool: &Sqlite
 
     // read it's video files
 
-    let parent = std::fs::read_dir(folder_path).unwrap();
+    if let Ok(parent) = std::fs::read_dir(folder_path) {
+        for file in parent {
+            let entry = file.unwrap();
+            let file_name = entry.file_name();
+            let path = entry.path();
 
-    for file in parent {
-        let entry = file.unwrap();
-        let file_name = entry.file_name();
-        let path = entry.path();
-
-        if path.is_dir() {
-            let path_str = path.to_str().unwrap().to_string();
-            let pool_clone = pool.clone();
-            Box::pin(read_anime_folder_dirs(path_str, user_id, &pool_clone)).await;
-        } else if path.is_file() {
-            for format in &vid_formats {
-                if file_name.to_str().unwrap().contains(format) {
-                    let path_str = path.to_str().unwrap().to_string();
-                    insert_or_ignore_vid(&path_str, user_id, pool).await;
+            if path.is_dir() {
+                let path_str = path.to_str().unwrap().to_string();
+                let pool_clone = pool.clone();
+                Box::pin(read_anime_folder_dirs(path_str, user_id, &pool_clone)).await;
+            } else if path.is_file() {
+                for format in &vid_formats {
+                    if file_name.to_str().unwrap().contains(format) {
+                        let path_str = path.to_str().unwrap().to_string();
+                        insert_or_ignore_vid(&path_str, user_id, pool).await;
+                    }
                 }
             }
         }
