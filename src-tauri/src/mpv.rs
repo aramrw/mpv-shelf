@@ -97,7 +97,7 @@ pub async fn open_video(
             // --playlist should be the path of the parent folder
             .arg(format!("--playlist={}", parent_path))
             //.arg(format!("--title={} - mpv.exe", current_video_name))
-            .arg("--title=${filename} - mpv.exe")
+            .arg("--title=${filename} | mpvshelf")
             .spawn()
             .map_err(|e| e.to_string());
 
@@ -115,7 +115,7 @@ pub async fn open_video(
     }
 
     let instant = std::time::Instant::now();
-    let mut last_watched_video = String::new();
+    let mut watched_vids: Vec<String> = Vec::new();
 
     loop {
         let mut mpv_running = false; // Flag to check if mpv is running.
@@ -123,7 +123,12 @@ pub async fn open_video(
 
         sys.processes().iter().for_each(|(_pid, process)| {
             if process.name().to_lowercase().contains("mpv.exe") {
-                last_watched_video = get_last_mpv_win_title();
+                let mut vid = get_last_mpv_win_title().replace(" | mpvshelf", "");
+                vid = vid.trim().to_string(); 
+                if !vid.is_empty() && !watched_vids.contains(&vid.to_string()) {
+                    print!("current window: {}", vid);
+                    watched_vids.push(vid);
+                }
                 mpv_running = true;
             }
         });
@@ -140,7 +145,7 @@ pub async fn open_video(
 
             // open a new window and close the first exe (not a window anymore) in the system tray
             open_new_window(handle.clone());
-            update_last_watched_videos(handle, path.clone(), last_watched_video, user_id).await;
+            update_last_watched_videos(handle, watched_vids, parent_path, user_id).await;
             break;
         }
 
@@ -264,12 +269,7 @@ fn get_last_mpv_win_title() -> String {
         .unwrap()
         .iter()
         .for_each(|window| {
-            if window.contains("mpv")
-                && window.contains('.')
-                && !window.contains('\\')
-                && !window.contains("Visual Studio")
-            {
-                println!("{}", window);
+            if window.contains("| mpvshelf") {
                 current_episode = window.to_string();
             }
         });
@@ -279,67 +279,30 @@ fn get_last_mpv_win_title() -> String {
 
 async fn update_last_watched_videos(
     handle: tauri::AppHandle,
-    video_start_path: String,
-    last_video_watched_title: String,
+    watched_vids: Vec<String>,
+    parent_path: &str,
     user_id: u32,
 ) {
-    let video_start_title = Path::new(&video_start_path)
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap();
+    println!("watched_vids_vec: {:?}", watched_vids);
 
     //println!("last video watched: {}", last_video_watched_title);
-    let video_start_episode_num: u32 = extract_episode_number(video_start_title).unwrap_or(0);
-    let last_video_episode_num: u32 =
-        extract_episode_number(&last_video_watched_title).unwrap_or(0);
-    let mut sum: u32 = 0;
+    let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
 
-    if video_start_episode_num == 0 && last_video_episode_num == 0 {
-        return;
-    }
-
-    if video_start_episode_num != last_video_episode_num
-        && last_video_episode_num > video_start_episode_num
-    {
-        sum = last_video_episode_num - video_start_episode_num;
-    }
-
-    let db_url = handle
-        .path_resolver()
-        .app_data_dir()
-        .unwrap()
-        .join("main.db");
-
-    let mut conn = SqliteConnection::connect(db_url.to_str().unwrap())
-        .await
-        .unwrap();
-
-    for x in 1..=sum {
-        let video_index = x + video_start_episode_num;
-        let parts: Vec<&str> = video_start_path
-            .rsplitn(2, &video_start_episode_num.to_string())
-            .collect();
-        let starting_new_path = if parts.len() == 2 {
-            parts[1].to_owned() + &video_index.to_string() + parts[0]
-        } else {
-            video_start_path.clone()
-        };
-
-        //println!("updating: {}", starting_new_path);
+    for v in watched_vids {
+        let path = format!("{}\\{}", parent_path, v);
 
         sqlx::query(
             "INSERT OR REPLACE INTO video (path, userId, watched, lastWatchedAt) VALUES (?, ?, ?, datetime('now', 'localtime'))",
         )
-        .bind(starting_new_path)
+        .bind(&path)
         .bind(user_id)
         .bind(true)
-        .execute(&mut conn)
+        .execute(&pool)
         .await
         .unwrap();
-    }
 
-    conn.close().await.unwrap();
+        //println!("updating: {}", &path);
+    }
 }
 
 async fn update_folder_watchtime(parent_path: &str, watch_time: &u32, handle: &tauri::AppHandle) {
@@ -355,7 +318,6 @@ async fn update_folder_watchtime(parent_path: &str, watch_time: &u32, handle: &t
 
 async fn update_chart_watchtime(user_id: u32, watch_time: &u32, handle: &tauri::AppHandle) {
     let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
-
     let today = chrono::Local::now().naive_local().date();
 
     sqlx::query("INSERT OR IGNORE INTO chart (user_id, watchtime, updated_at) VALUES (?, 0, date('now', 'localtime'))")
