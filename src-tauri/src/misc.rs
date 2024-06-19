@@ -1,14 +1,24 @@
-
-use std::path::Path;
-use std::fs::{self};
-use regex::Regex;
-use std::u32;
-use std::process::Command;
 use random_color::{Luminosity, RandomColor};
+use regex::Regex;
+use sqlx::SqlitePool;
+use std::fs::{self};
+use std::path::Path;
+use std::process::Command;
+use std::u32;
+use tauri::{AppHandle, Manager};
+use tokio::sync::Mutex;
 
 // Subtitles
 #[tauri::command]
-pub fn rename_subs(sub_paths: String, vid_paths: String, folder_path: String) {
+pub async fn rename_subs(
+    user_id: u32,
+    sub_paths: String,
+    vid_paths: String,
+    folder_path: String,
+    handle: AppHandle,
+) {
+    let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
+
     let sub_v: Vec<String> = serde_json::from_str(&sub_paths).unwrap();
     let vid_v: Vec<String> = serde_json::from_str(&vid_paths).unwrap();
     let folder_name = Path::new(&folder_path)
@@ -40,9 +50,9 @@ pub fn rename_subs(sub_paths: String, vid_paths: String, folder_path: String) {
 
     //println!("{}", folder_path);
 
-    for vid in vid_v {
+    for vid_path in vid_v {
         //println!("{}", vid);
-        let video_file_name = Path::new(&vid)
+        let video_file_name = Path::new(&vid_path)
             .file_name()
             .unwrap()
             .to_str()
@@ -52,17 +62,18 @@ pub fn rename_subs(sub_paths: String, vid_paths: String, folder_path: String) {
             .rsplit_once('.')
             .map(|(name, file_type)| (name.to_string(), file_type.to_string()))
             .unwrap_or(("".to_string(), "".to_string()));
-        let video_episode = extract_episode_number(&vid).unwrap();
+        let video_episode = extract_episode_number(&vid_path).unwrap();
         let new_video_path = format!(
             "{}\\{} - {}.{}",
             folder_path, folder_name, video_episode, video_file_type
         );
         //println!("{}", new_video_path);
-        fs::rename(vid, new_video_path).unwrap();
+        update_vid_data(&vid_path, &new_video_path, &user_id, &pool).await;
+        fs::rename(vid_path, new_video_path).unwrap();
     }
 
-    for sub in sub_v {
-        let sub_file_name = Path::new(&sub)
+    for sub_path in sub_v {
+        let sub_file_name = Path::new(&sub_path)
             .file_name()
             .unwrap()
             .to_str()
@@ -72,14 +83,36 @@ pub fn rename_subs(sub_paths: String, vid_paths: String, folder_path: String) {
             .rsplit_once('.')
             .map(|(name, file_type)| (name.to_string(), file_type.to_string()))
             .unwrap_or(("".to_string(), "".to_string()));
-        let subtitle_episode = extract_episode_number(&sub).unwrap();
+        let subtitle_episode = extract_episode_number(&sub_path).unwrap();
         let new_subtitle_path = format!(
             "{}\\{} - {}.{}",
             folder_path, folder_name, subtitle_episode, sub_file_type
         );
-        println!("{}", new_subtitle_path);
-        fs::rename(sub, new_subtitle_path).unwrap();
+        //println!("{}", new_subtitle_path);
+        fs::rename(sub_path, new_subtitle_path).unwrap();
     }
+}
+
+// async fn if_watched(pool: &SqlitePool, path: &str) -> Result<bool, sqlx::Error> {
+//     println!("{}", path);
+//
+//     let video: Video = sqlx::query_as("SELECT * FROM video WHERE path = ?")
+//         .bind(path)
+//         .fetch_one(pool)
+//         .await?;
+//
+//     Ok(video.watched)
+// }
+
+async fn update_vid_data(old_path: &str, new_path: &str, user_id: &u32, pool: &SqlitePool) {
+    //println!("Setting {} to {}", old_path, new_path);
+    sqlx::query("UPDATE video SET path = ? WHERE userId = ? AND path = ?")
+        .bind(new_path)
+        .bind(user_id)
+        .bind(old_path)
+        .execute(pool)
+        .await
+        .unwrap();
 }
 
 pub fn extract_episode_number(title: &str) -> Option<u32> {
