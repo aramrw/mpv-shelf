@@ -179,7 +179,7 @@ const FolderList = ({
         expanded: expanded,
         userId: currentUser?.id,
         asChild: asChild || false,
-      }).then(() => {});
+      }).then(() => { });
     }
   }, [
     asChild,
@@ -234,6 +234,7 @@ const FolderList = ({
         vidPaths.push(vid.path);
       }
       invoke("rename_subs", {
+        userId: currentUser?.id,
         subPaths: JSON.stringify(subPaths),
         vidPaths: JSON.stringify(vidPaths),
         folderPath: folderPath,
@@ -469,22 +470,22 @@ const FolderList = ({
               style={{
                 ...(currentFolderColor
                   ? {
-                      backgroundColor: `${currentFolderColor}`,
-                      borderBottom: `1px solid ${currentFolderColor}`,
-                    }
+                    backgroundColor: `${currentFolderColor}`,
+                    borderBottom: `1px solid ${currentFolderColor}`,
+                  }
                   : {}),
                 ...(expanded && !asChild ? { padding: "6.5px" } : {}),
               }}
               className={cn(
                 "flex cursor-pointer flex-row items-center justify-between border-tertiary rounded-sm p-1 bg-muted break-keep",
                 expanded &&
-                  files.length > 0 &&
-                  !asChild &&
-                  "rounded-b-none border-b-4",
+                files.length > 0 &&
+                !asChild &&
+                "rounded-b-none border-b-4",
                 expanded &&
-                  folders.length > 0 &&
-                  !asChild &&
-                  "rounded-b-none border-b-4",
+                folders.length > 0 &&
+                !asChild &&
+                "rounded-b-none border-b-4",
                 expanded && asChild && "border-none rounded-sm",
                 expanded && asChild && "p-1 border-none rounded-b-none",
                 expanded && !asChild && "border-none",
@@ -619,9 +620,9 @@ const FolderList = ({
         style={{
           ...(currentFolderColor
             ? {
-                //backgroundColor: `${currentFolderColor}`,
-                borderBottom: `8px solid ${currentFolderColor}`,
-              }
+              //backgroundColor: `${currentFolderColor}`,
+              borderBottom: `8px solid ${currentFolderColor}`,
+            }
             : {}),
         }}
       >
@@ -661,8 +662,8 @@ const FolderList = ({
                 style={{
                   ...(currentFolderColor
                     ? {
-                        //borderBottom: `8px solid ${currentFolderColor}`,
-                      }
+                      //borderBottom: `8px solid ${currentFolderColor}`,
+                    }
                     : {}),
                   ...(expanded && !asChild
                     ? { padding: "5.5px 3.5px 0 3.5px" }
