@@ -1,3 +1,4 @@
+#![allow(non_snake_case, nonstandard_style)]
 use sqlx::{migrate::MigrateDatabase, Sqlite, SqlitePool};
 use tauri::{AppHandle, Manager};
 use tokio::sync::Mutex;
