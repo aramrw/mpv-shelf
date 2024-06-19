@@ -161,5 +161,5 @@ export async function deleteFolder({ folderPath }: { folderPath: string }) {
 
   await db.execute("DELETE from folder WHERE path LIKE $1", [`${folderPath}%`]);
 
-	await db.execute("DELETE from video WHERE path LIKE $1", [`${folderPath}%`])
+  await db.execute("DELETE from video WHERE path LIKE $1", [`${folderPath}%`])
 }
