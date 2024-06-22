@@ -108,6 +108,10 @@ const FolderList = ({
   const [currentFolderColor, setCurrentFolderColor] = useState<string>();
   const scrolledDiv = useRef<HTMLDivElement>(null);
 
+  const { scrollY } = useScroll({
+    container: scrolledDiv,
+  });
+
   // reading directory contents
   useEffect(() => {
     //console.log("CurrentFolderPath = ", folderPath);
