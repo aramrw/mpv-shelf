@@ -20,6 +20,7 @@ pub struct Folder {
     pub expanded: bool,
     pub asChild: bool,
     pub watchTime: u32,
+    pub scrollY: f32,
     pub color: String,
 }
 
@@ -75,6 +76,7 @@ pub async fn migrate_folders(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         expanded boolean NOT NULL DEFAULT 0,
         asChild boolean NOT NULL DEFAULT 0,
         watchTime INTEGER NOT NULL DEFAULT 0,
+        scrollY REAL DEFAULT 0,
         color TEXT, 
         FOREIGN KEY (userId) REFERENCES user(id)
     )",
