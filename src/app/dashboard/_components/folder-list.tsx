@@ -1,6 +1,6 @@
 import type { Folder as PrismaFolder, User, Video } from "@prisma/client";
 import { FileEntry, readDir } from "@tauri-apps/api/fs";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   getFolderColor,
   randomizeFolderColor,
@@ -15,7 +15,6 @@ import {
 import { cn } from "@/lib/utils";
 import { FolderInput, Palette } from "lucide-react";
 import { invoke } from "@tauri-apps/api/tauri";
-import { AnimatePresence, motion } from "framer-motion";
 import { SettingSchema } from "@/app/settings/page";
 // import { AnimeData } from "@/app/dashboard/page";
 import ParentTitleAndTags from "./parent-title-and-tags";
@@ -24,9 +23,13 @@ import VideoFile from "./_video-files/video-file";
 import {
   getFolders,
   updateFolderExpanded,
+  updateFolderScrollY,
   updateVideoWatched,
+  getFolderScrollY
 } from "../../../../lib/prisma-commands/folders/folder-cmds";
 import { getVideo } from "../../../../lib/prisma-commands/videos/video-cmds";
+import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-motion";
+import { updateUserScrollY } from "../../../../lib/prisma-commands/misc-cmds";
 
 let supportedVideoFormats = [
   "mp4",
@@ -120,6 +123,32 @@ const FolderList = ({
       })
   });
 
+  const setScrollPosition = (userYPos: any) => {
+    (scrolledDiv.current as HTMLElement | null)?.scrollTo({
+      top: userYPos,
+      behavior: "smooth",
+    });
+  };
+
+  // get and set the user's scroll position from the db once currentUser is set
+  useEffect(() => {
+    if (currentUser) {
+      getFolderScrollY({ userId: currentUser.id, folderPath }).then((userY: any) => {
+        let unlisten: NodeJS.Timeout;
+
+        if (userY > 0) {
+          unlisten = setTimeout(() => {
+            setScrollPosition(userY);
+          }, 500); // specify the timeout duration here
+        }
+
+        return () => {
+          clearTimeout(unlisten);
+        };
+      });
+    }
+  }, [currentUser, folderPaths]);
+
   // reading directory contents
   useEffect(() => {
     //console.log("CurrentFolderPath = ", folderPath);
@@ -165,7 +194,7 @@ const FolderList = ({
       setIsInvoking(true);
       getFolders({ userId: currentUser.id })
         .then((folders: PrismaFolder[]) => {
-          console.log(folders.length);
+          //console.log(folders.length);
           if (folders && folders.length > 0) {
             for (const folder of folders) {
               if (folder.path === folderPath && folder.expanded) {
@@ -370,91 +399,6 @@ const FolderList = ({
     });
   };
 
-  // const handleUnwatchMalAnime = (file: File) => {
-  //     // remove the file type
-  //     let split = file.name?.split(".");
-  //     if (split) {
-  //         let episodeN = split[split.length - 2].match(/\d+/);
-  //         if (episodeN && episodeN[0]) {
-  //             invoke("find_anime_from_title", { episodeTitle: split[split.length - 2], folderPath: folderPath })
-  //                 .then((res: any) => {
-  //                     if (res.includes("Error")) {
-  //                         console.log("🚀 ~ .then ~ res:", res)
-  //                         return;
-  //                     } else {
-  //                         let parsedData: AnimeData = JSON.parse(res as string);
-
-  //                         if (episodeN[0]) {
-  //                             // @ts-ignore
-  //                             invoke("check_mal_config", { animeData: res as string, episodeNumber: Number(episodeN[0]!) })
-  //                             //console.log(`Anime from title: ${parsed._sources}`);
-  //                         }
-  //                     }
-  //                 });
-  //         }
-  //     }
-  // }
-
-  // const handleUpdateWatchMalAnime = () => {
-  //     if (expanded && folderPath && prismaVideos.length > 0) {
-  //         // get the title of each episode that is watched to update it on mal
-  //         let episodeNames: string[] = [];
-  //         let episodeNumbers: number[] = [];
-  //         let highestNumberEpisode: String | undefined = "";
-  //         for (const v of prismaVideos) {
-  //             if (v.watched) {
-  //                 let episodeN = v.path.match(/\d+/);
-  //                 if (episodeN) {
-  //                     episodeNumbers.push(Number(episodeN[0]))
-  //                 }
-  //                 let split = v.path.split("\\");
-  //                 let name = split[split.length - 1].split(".");
-  //                 episodeNames.push(name[name.length - 2]);
-
-  //             }
-  //         }
-
-  //         if (episodeNumbers.length > 0) {
-  //             episodeNumbers.sort((a, b) => b - a);
-  //             highestNumberEpisode = episodeNames.find(name => name.includes(episodeNumbers[0].toString()))?.toString();
-  //             //console.log(highestNumberEpisode);
-  //         }
-
-  //         //console.log(episodeNames)
-  //         if (episodeNames.length > 0) {
-  //             // extract the episode number
-  //             if (highestNumberEpisode) {
-  //                 let episodeN = highestNumberEpisode.match(/\d+/);
-  //                 if (episodeN) {
-  //                     console.log(Number(episodeN[0]));
-  //                     invoke("find_anime_from_title", { episodeTitle: highestNumberEpisode, folderPath: folderPath })
-  //                         .then((res: any) => {
-  //                             if (res.includes("Error")) {
-  //                                 console.log("🚀 ~ .then ~ res:", res)
-  //                                 return;
-  //                             } else {
-  //                                 try {
-  //                                     let parsedAnimeData: AnimeData = JSON.parse(res);
-  //                                     console.log(parsedAnimeData);
-  //                                     // If MOVIE = no episode number so set it to 1.
-  //                                     if (parsedAnimeData._anime_type == "MOVIE") {
-  //                                         invoke("check_mal_config", { animeData: res as string, episodeNumber: 1 })
-  //                                     } else {
-  //                                         invoke("check_mal_config", { animeData: res as string, episodeNumber: Number(episodeN[0]) })
-  //                                     }
-  //                                 } catch (e) {
-  //                                     console.log("🚀 ~ .then ~ e:", e)
-  //                                 }
-  //                             }
-  //                         });
-  //                 } else {
-  //                     console.log("Episode N is glitchin! " + episodeN + highestNumberEpisode);
-  //                 }
-
-  //             }
-  //         }
-  //     }
-  // }
 
   return (
     <main
