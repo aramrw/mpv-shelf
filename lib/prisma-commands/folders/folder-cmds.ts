@@ -32,6 +32,28 @@ export async function addFolder({
   });
 }
 
+export async function getFolderScrollY({
+  userId,
+  folderPath
+}: {
+  userId: number,
+  folderPath: string
+}) {
+  const db = await Database.load("sqlite:main.db");
+
+  try {
+    const scrollY: any = await db.select("SELECT scrollY from folder WHERE userId = $1 AND path = $2", [userId, folderPath])
+
+    if (scrollY) {
+      return scrollY[0].scrollY;
+    }
+  } catch (e) {
+    // console.log (e);
+    await db.close();
+    return null;
+  }
+}
+
 export async function getFolders({ userId }: { userId: number }) {
   let db = await Database.load("sqlite:main.db");
 
