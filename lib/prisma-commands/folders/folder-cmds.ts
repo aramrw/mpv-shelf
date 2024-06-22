@@ -54,6 +54,22 @@ export async function getFolderScrollY({
   }
 }
 
+export async function updateFolderScrollY({
+  userId,
+  folderPath,
+  scrollY
+}: {
+  userId: number,
+  folderPath: string,
+  scrollY: number
+}) {
+  const db = await Database.load("sqlite:main.db");
+
+  let result = await db.execute("UPDATE folder SET scrollY = $1 WHERE userId = $2 AND path = $3", [scrollY, userId, folderPath])
+
+	return result.rowsAffected;
+}
+
 export async function getFolders({ userId }: { userId: number }) {
   let db = await Database.load("sqlite:main.db");
 
