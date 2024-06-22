@@ -106,6 +106,7 @@ const FolderList = ({
   const [finishedSettingFiles, setFinishedSettingFiles] = useState(false);
   const [isInvoking, setIsInvoking] = useState(false);
   const [currentFolderColor, setCurrentFolderColor] = useState<string>();
+  const scrolledDiv = useRef<HTMLDivElement>(null);
 
   // reading directory contents
   useEffect(() => {
@@ -617,6 +618,7 @@ const FolderList = ({
           "overflow-y-auto rounded-b-lg overflow-x-hidden h-fit",
           folders.length < 1 && "max-h-60",
         )}
+        ref={scrolledDiv}
         style={{
           ...(currentFolderColor
             ? {
