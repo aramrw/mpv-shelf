@@ -112,6 +112,14 @@ const FolderList = ({
     container: scrolledDiv,
   });
 
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    if (currentUser && latest > 50)
+      updateFolderScrollY({ userId: currentUser?.id, folderPath, scrollY: latest }).then((rows) => {
+        //console.log(`rows: ${rows}`);
+				console.log("update for path:", folderPath);
+      })
+  });
+
   // reading directory contents
   useEffect(() => {
     //console.log("CurrentFolderPath = ", folderPath);
