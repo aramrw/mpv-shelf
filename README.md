@@ -20,7 +20,7 @@
 - #### clone the project ⬇️
 
 ```
-git clone https://github.com/aramrw/ydict
+git clone https://github.com/aramrw/mpv-shelf
 ```
 
 - install dev-dependencies.
