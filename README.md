@@ -10,7 +10,7 @@
 - Renames subtitle files to match videos.
 - Allows for deeply nested folder navigation.
 - Tracks various stats + watchtime.
-- Tiny memory usage when video's are playing.
+- Shuts down while videos are playing to save memory.
 
  **mpv-shelf is made with [Tuari](https://tauri.app/about/intro) & [NextJS](https://nextjs.org/).**
 
