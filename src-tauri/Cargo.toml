@@ -41,6 +41,7 @@ tokio = { version = "1.36.0" }
 regex = { version = "1.10.4" }
 window_titles = { git = "https://github.com/HiruNya/window_titles", branch = "master" }
 chrono = { version = "0.4.38" }
+thiserror = "1.0.61"
 
 [dependencies.tauri-plugin-sql]
 git = "https://github.com/tauri-apps/plugins-workspace"
