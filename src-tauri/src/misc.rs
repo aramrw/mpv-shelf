@@ -194,6 +194,33 @@ async fn insert_imported_bdata(
     Ok(())
 }
 
+#[tauri::command]
+pub async fn delete_user(handle: AppHandle, user_id: u32) -> Result<(), errors::BackupDataErrors> {
+    let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
+    let tables_userId = vec!["settings", "video", "folder"]; // tables with 'userId'
+    let tables_user_id = vec!["stats", "chart"]; // tables with 'user_id'
+
+    for table in tables_userId {
+        let query = format!("DELETE FROM {} WHERE userId = ?", table);
+        sqlx::query(&query).bind(user_id).execute(&pool).await?;
+    }
+
+    for table in tables_user_id {
+        let query = format!("DELETE FROM {} WHERE user_id = ?", table);
+        sqlx::query(&query).bind(user_id).execute(&pool).await?;
+    }
+
+    sqlx::query("DELETE FROM user WHERE id = $1")
+        .bind(user_id)
+        .execute(&pool)
+        .await?;
+
+    sqlx::query("UPDATE global SET userId = -1")
+        .execute(&pool)
+        .await?;
+    Ok(())
+}
+
 // Subtitles
 #[tauri::command]
 pub async fn rename_subs(
