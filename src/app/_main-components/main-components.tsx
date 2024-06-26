@@ -1,21 +1,28 @@
 "use client";
 // import React, { useEffect, useState } from 'react'
 import { motion /*useMotionValueEvent, useScroll*/ } from "framer-motion";
-import { LineChart, MoveLeft, PieChart, Sliders } from "lucide-react";
+import { LineChart, MoveLeft, Sliders } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useScrollTop } from "../../../lib/hooks/scroll-y-check";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { closeDatabase } from "../../../lib/prisma-commands/misc-cmds";
 import { emit, listen } from "@tauri-apps/api/event";
+import { getCurrentUserGlobal } from "../../../lib/prisma-commands/global/global-cmds";
+
+import { Global } from "@prisma/client";
 
 export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const scrolled = useScrollTop();
+  //const [currentUser, setCurrentUser] = useState<Global | null>(null);
 
   useEffect(() => {
+    // getCurrentUserGlobal().then((user) => {
+    //   setCurrentUser(user);
+    // });
     const handleWindowClose = async () => {
       const { appWindow } = await import("@tauri-apps/api/window");
       const unlisten = appWindow.onCloseRequested((event) => {
@@ -75,7 +82,7 @@ export function Navbar() {
         !pathname.includes("/profile") &&
         pathname !== "/login" &&
         pathname !== "/" && (
-          <div className="flex flex-row justify-center items-center gap-1">
+          <div className="flex flex-row items-center justify-center gap-1">
             {pathname !== "/stats" && (
               <Link href="/stats" scroll={false} className="">
                 <motion.div
