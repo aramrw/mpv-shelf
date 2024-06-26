@@ -7,12 +7,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { User } from "@prisma/client";
-import { closeDatabase } from "../../../../../lib/prisma-commands/misc-cmds";
 import { ConfirmDeleteProfile } from "../confirm";
 import { useRouter } from "next/navigation";
 import { Delete } from "lucide-react";
-import { deleteProfile } from "../../../../../lib/prisma-commands/settings/setting-cmds";
 import { setCurrentUserGlobal } from "../../../../../lib/prisma-commands/global/global-cmds";
+import { invoke } from "@tauri-apps/api/tauri";
 
 export default function ProfileDeleteButton({
   currentUser,
@@ -44,15 +43,12 @@ export default function ProfileDeleteButton({
                 if (res) {
                   if (currentUser?.id) {
                     //router.prefetch('/');
-                    deleteProfile({
+                    invoke("delete_user", {
                       userId: currentUser.id,
                     }).then(() => {
                       setCurrentUserGlobal({
                         userId: -1,
                       })
-                        .then(() => {
-                          return closeDatabase();
-                        })
                         .finally(() => {
                           router.push("/");
                         });
