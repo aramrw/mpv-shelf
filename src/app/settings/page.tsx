@@ -26,6 +26,7 @@ import {
 } from "../../../lib/prisma-commands/settings/setting-cmds";
 import AddNewProfileButton from "./_components/profile-buttons/add-new-profile-button";
 import SaveChangesButton from "./_components/save-changes-button";
+import DataSection from "./_components/form-sections/data";
 
 const formSchema = z.object({
   fontSize: z.enum(["Small", "Medium", "Large", "XLarge"]),
@@ -262,6 +263,14 @@ export default function Settings() {
             setSavedChanges={handleSetSavedChanges}
             currentUser={currentUser}
             locked={locked}
+          />
+          <DataSection
+            formState={formState}
+            setFormState={setFormState}
+            setCurrentUser={handleSetCurrentUser}
+            setSavedChangesFormState={handleSetSavedChangesFormState}
+            setSavedChanges={handleSetSavedChanges}
+            currentUser={currentUser}
           />
         </ul>
 
