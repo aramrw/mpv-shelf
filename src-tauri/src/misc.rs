@@ -11,19 +11,20 @@ use tauri::{AppHandle, Manager};
 use tokio::sync::Mutex;
 
 use crate::db::{Folder, Settings, Video};
+//use crate::mpv::update_chart_watchtime;
 use crate::stats::{Chart, Stats};
 use crate::{errors, Global, User};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
-struct BackupData {
-    chart: Chart,
-    folders: Vec<Folder>,
-    global: Global,
-    settings: Settings,
-    stats: Stats,
-    user: User,
-    videos: Vec<Video>,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct BackupData {
+    pub chart: Chart,
+    pub folders: Vec<Folder>,
+    pub global: Global,
+    pub settings: Settings,
+    pub stats: Stats,
+    pub user: User,
+    pub videos: Vec<Video>,
 }
 
 async fn combine_data_structs(
