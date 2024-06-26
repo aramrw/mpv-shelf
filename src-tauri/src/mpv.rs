@@ -1,5 +1,5 @@
-use crate::misc::extract_episode_number;
-use sqlx::{Connection, SqliteConnection, SqlitePool};
+//use crate::misc::extract_episode_number;
+use sqlx::{/* Connection, SqliteConnection */ SqlitePool};
 use std::fs;
 use std::path::Path;
 use std::process::Command;
@@ -124,7 +124,7 @@ pub async fn open_video(
         sys.processes().iter().for_each(|(_pid, process)| {
             if process.name().to_lowercase().contains("mpv.exe") {
                 let mut vid = get_last_mpv_win_title().replace(" | mpvshelf", "");
-                vid = vid.trim().to_string(); 
+                vid = vid.trim().to_string();
                 if !vid.is_empty() && !watched_vids.contains(&vid.to_string()) {
                     print!("current window: {}", vid);
                     watched_vids.push(vid);
