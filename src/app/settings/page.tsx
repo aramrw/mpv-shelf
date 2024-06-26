@@ -266,10 +266,6 @@ export default function Settings() {
           />
           <DataSection
             formState={formState}
-            setFormState={setFormState}
-            setCurrentUser={handleSetCurrentUser}
-            setSavedChangesFormState={handleSetSavedChangesFormState}
-            setSavedChanges={handleSetSavedChanges}
             currentUser={currentUser}
           />
         </ul>
