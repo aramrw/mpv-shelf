@@ -2,7 +2,6 @@ use random_color::{Luminosity, RandomColor};
 use regex::Regex;
 use sqlx::SqlitePool;
 use std::fs::{self};
-use std::path::Path;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::mpsc;
@@ -75,6 +74,43 @@ async fn combine_data_structs(
         user,
         videos,
     })
+}
+
+// Data
+#[tauri::command]
+pub async fn export_data(
+    handle: AppHandle,
+    user_id: u32,
+) -> Result<Option<String>, errors::BackupDataErrors> {
+    let (sender, receiver) = mpsc::channel();
+
+    dialog::FileDialogBuilder::new().pick_folder(move |path: Option<PathBuf>| {
+        let _ = sender.send(path);
+    });
+
+    // Wait for the folder selection
+    let folder_path = receiver.recv()?;
+
+    if let Some(path) = folder_path {
+        let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
+
+        let backup_data = combine_data_structs(&pool, &user_id).await?;
+
+        let stats_json = serde_json::to_string_pretty(&backup_data)?;
+        let file_name = format!(
+            "{}\\{}{}_user{}_bdata.json",
+            path.to_str().unwrap(),
+            "mpv-shelf_v",
+            handle.package_info().version,
+            user_id,
+        );
+        fs::write(&file_name, stats_json)?;
+
+        Ok(Some(format!("Data exported to: `{}`", file_name)))
+    } else {
+        // The user closed the dialog box without selecting a folder
+        Ok(None)
+    }
 }
 
 // Subtitles
