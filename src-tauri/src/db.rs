@@ -4,7 +4,7 @@ use sqlx::{migrate::MigrateDatabase, Sqlite, SqlitePool};
 use tauri::{AppHandle, Manager};
 use tokio::sync::Mutex;
 
-#[derive(sqlx::FromRow, Serialize, Deserialize)]
+#[derive(sqlx::FromRow, Serialize, Deserialize, Debug)]
 pub struct Video {
     pub id: u32,
     pub path: String,
@@ -13,7 +13,7 @@ pub struct Video {
     pub lastWatchedAt: String,
 }
 
-#[derive(sqlx::FromRow, Serialize, Deserialize)]
+#[derive(sqlx::FromRow, Serialize, Deserialize, Debug)]
 pub struct Settings {
     pub id: i32,
     pub userId: i32,
@@ -24,7 +24,7 @@ pub struct Settings {
     pub usePin: String,
 }
 
-#[derive(sqlx::FromRow, Serialize, Deserialize)]
+#[derive(sqlx::FromRow, Serialize, Deserialize, Debug)]
 pub struct Folder {
     pub id: u32,
     pub userId: u32,

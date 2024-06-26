@@ -1,5 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![allow(non_snake_case)]
 
 mod db;
 mod errors;
@@ -23,13 +24,16 @@ use tauri::{
     SystemTrayMenu, SystemTrayMenuItem,
 };
 
-#[derive(Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Serialize, Deserialize, sqlx::FromRow, Debug)]
 struct User {
     id: i64,
     pin: String,
+    imagePath: Option<String>,
+    color: Option<String>,
+    scrollY: u32,
 }
 
-#[derive(Serialize, Deserialize, sqlx::FromRow)]
+#[derive(Serialize, Deserialize, sqlx::FromRow, Debug)]
 struct Global {
     id: String,
     userId: i64,
@@ -132,6 +136,8 @@ fn main() {
                 misc::generate_random_mono_color,
                 misc::rename_subs,
                 misc::export_data,
+                misc::import_data,
+                misc::delete_user,
             ])
             .build(tauri::generate_context!())
             .expect("error while building tauri application")
