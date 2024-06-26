@@ -1,10 +1,11 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod db;
+mod errors;
 mod mal;
 mod misc;
 mod mpv;
-mod db;
 mod stats;
 
 use core::str;
@@ -22,16 +23,16 @@ use tauri::{
     SystemTrayMenu, SystemTrayMenuItem,
 };
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, sqlx::FromRow)]
 struct User {
     id: i64,
-    pin: i64,
+    pin: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, sqlx::FromRow)]
 struct Global {
     id: String,
-    user_id: i64,
+    userId: i64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -112,7 +113,7 @@ fn main() {
                         "quit" => {
                             if app.windows().is_empty() {
                                 println!("No windows open, emitting quit_app event.");
-                                    exit(0);
+                                exit(0);
                             } else {
                                 check_for_mpv();
                             }
@@ -130,6 +131,7 @@ fn main() {
                 misc::generate_random_color,
                 misc::generate_random_mono_color,
                 misc::rename_subs,
+                misc::export_data,
             ])
             .build(tauri::generate_context!())
             .expect("error while building tauri application")
