@@ -1,9 +1,10 @@
 #![allow(non_snake_case, nonstandard_style)]
+use serde::{Deserialize, Serialize};
 use sqlx::{migrate::MigrateDatabase, Sqlite, SqlitePool};
 use tauri::{AppHandle, Manager};
 use tokio::sync::Mutex;
 
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Serialize, Deserialize)]
 pub struct Video {
     pub id: u32,
     pub path: String,
@@ -12,7 +13,18 @@ pub struct Video {
     pub lastWatchedAt: String,
 }
 
-#[derive(sqlx::FromRow)]
+#[derive(sqlx::FromRow, Serialize, Deserialize)]
+pub struct Settings {
+    pub id: i32,
+    pub userId: i32,
+    pub fontSize: String,
+    pub animations: String,
+    pub autoPlay: String,
+    pub autoRename: String,
+    pub usePin: String,
+}
+
+#[derive(sqlx::FromRow, Serialize, Deserialize)]
 pub struct Folder {
     pub id: u32,
     pub userId: u32,
