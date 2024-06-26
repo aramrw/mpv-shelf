@@ -316,7 +316,7 @@ async fn update_folder_watchtime(parent_path: &str, watch_time: &u32, handle: &t
         .unwrap();
 }
 
-async fn update_chart_watchtime(user_id: u32, watch_time: &u32, handle: &tauri::AppHandle) {
+pub async fn update_chart_watchtime(user_id: u32, watch_time: &u32, handle: &tauri::AppHandle) {
     let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
     let today = chrono::Local::now().naive_local().date();
 
