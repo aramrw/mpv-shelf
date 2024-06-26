@@ -1,33 +1,25 @@
-use crate::{
-    db::{Folder, Video},
-    errors,
-};
+use crate::db::{Folder, Video};
 use chrono::{Datelike /* NaiveDate, Weekday */};
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, SqlitePool};
-use std::path::PathBuf;
-use std::{fs, sync::mpsc};
-use tauri::{
-    api::{dialog, file},
-    AppHandle, Manager,
-};
+use tauri::{AppHandle, Manager};
 use tokio::sync::Mutex;
 
-#[derive(Serialize, Deserialize, Default, FromRow)]
+#[derive(Serialize, Deserialize, Default, FromRow, Debug)]
 pub struct Stats {
-    user_id: u16,
-    total_anime: u32,
-    total_videos: u32,
-    videos_watched: u32,
-    videos_remaining: u32,
-    watchtime: u32,
+    pub user_id: u16,
+    pub total_anime: u32,
+    pub total_videos: u32,
+    pub videos_watched: u32,
+    pub videos_remaining: u32,
+    pub watchtime: u32,
 }
 
-#[derive(Serialize, Deserialize, Default, FromRow)]
+#[derive(Serialize, Deserialize, Default, FromRow, Debug)]
 pub struct Chart {
-    user_id: u16,
-    watchtime: u32,
-    updated_at: String,
+    pub user_id: u16,
+    pub watchtime: u32,
+    pub updated_at: String,
 }
 
 pub async fn create_new_stats(handle: AppHandle, user_id: u16) -> Option<Stats> {
