@@ -16,12 +16,12 @@ export default function ApplicationSection({
 }) {
   return (
     <li className="flex h-fit flex-col justify-center rounded-b-sm bg-muted">
-      <h1 className="select-none rounded-t-sm bg-accent px-1 font-bold">
+      <h1 className="select-none rounded-t-sm bg-accent p-1 font-bold">
         Application
       </h1>
       <ul className="flex flex-col gap-3 p-2">
         <li className="flex h-fit w-full items-center justify-between bg-muted">
-          <div className="flex w-full flex-row gap-1 justify-start items-center">
+          <div className="flex w-full flex-row items-center justify-start gap-1">
             <h1 className="w-fit select-none font-medium">Auto Play</h1>
             <Repeat2
               className={cn(

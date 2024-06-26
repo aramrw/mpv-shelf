@@ -1,11 +1,11 @@
 import { ALargeSmall, Move3d } from "lucide-react";
-import { motion} from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-export default function UiUxSection({formState, setFormState}: {formState: any, setFormState: (value: any) => void}) {
+export default function UiUxSection({ formState, setFormState }: { formState: any, setFormState: (value: any) => void }) {
   return (
     <li className="flex h-fit flex-col justify-center rounded-b-sm bg-muted">
-      <h1 className="select-none rounded-t-sm bg-accent px-1 font-bold">
+      <h1 className="select-none rounded-t-sm bg-accent p-1 font-bold">
         UI / UX
       </h1>
       <ul className="flex flex-col gap-3 p-2">
