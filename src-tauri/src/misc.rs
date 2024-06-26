@@ -78,6 +78,7 @@ async fn combine_data_structs(
 }
 
 // Data
+
 #[tauri::command]
 pub async fn export_data(
     handle: AppHandle,
@@ -219,6 +220,45 @@ pub async fn delete_user(handle: AppHandle, user_id: u32) -> Result<(), errors::
         .execute(&pool)
         .await?;
     Ok(())
+}
+
+#[tauri::command]
+pub async fn import_data(handle: AppHandle, user_id: u32, color: String) -> Result<(), errors::BackupDataErrors> {
+    let (sender, receiver) = mpsc::channel();
+
+    dialog::FileDialogBuilder::new().pick_file(move |path: Option<PathBuf>| {
+        let _ = sender.send(path);
+    });
+
+    // Wait for the folder selection
+    let folder_path = receiver.recv()?;
+
+    if let Some(path) = folder_path {
+        let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
+        let file = fs::read(&path)?;
+        let mut backup_data: BackupData = serde_json::from_slice(&file)?;
+
+        backup_data.user.color = Some(color);
+
+        match sqlx::query("SELECT * FROM user WHERE id = ?")
+            .bind(user_id)
+            .fetch_one(&pool)
+            .await
+        {
+            Ok(_) => {
+                delete_user(handle, user_id).await?;
+                insert_imported_bdata(&pool, backup_data, user_id).await?;
+            }
+            Err(_) => {
+                insert_imported_bdata(&pool, backup_data, user_id).await?;
+            }
+        };
+
+        Ok(())
+    } else {
+        // The user closed the dialog box without selecting a folder
+        Ok(())
+    }
 }
 
 // Subtitles
