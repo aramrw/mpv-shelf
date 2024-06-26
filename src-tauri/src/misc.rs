@@ -3,10 +3,79 @@ use regex::Regex;
 use sqlx::SqlitePool;
 use std::fs::{self};
 use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::mpsc;
 use std::u32;
+use tauri::api::dialog;
 use tauri::{AppHandle, Manager};
 use tokio::sync::Mutex;
+
+use crate::db::{Folder, Settings, Video};
+use crate::stats::{Chart, Stats};
+use crate::{errors, Global, User};
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize)]
+struct BackupData {
+    chart: Chart,
+    folders: Vec<Folder>,
+    global: Global,
+    settings: Settings,
+    stats: Stats,
+    user: User,
+    videos: Vec<Video>,
+}
+
+async fn combine_data_structs(
+    pool: &SqlitePool,
+    user_id: &u32,
+) -> Result<BackupData, errors::BackupDataErrors> {
+    let chart: Chart = sqlx::query_as("SELECT * FROM chart WHERE user_id = ?")
+        .bind(user_id)
+        .fetch_one(pool)
+        .await?;
+
+    let folders: Vec<Folder> = sqlx::query_as("SELECT * FROM folder WHERE userId = ?")
+        .bind(user_id)
+        .fetch_all(pool)
+        .await?;
+
+    let global: Global = sqlx::query_as("SELECT * FROM global WHERE userId = ?")
+        .bind(user_id)
+        .fetch_one(pool)
+        .await?;
+
+    let settings: Settings = sqlx::query_as("SELECT * FROM settings WHERE userId = ?")
+        .bind(user_id)
+        .fetch_one(pool)
+        .await?;
+
+    let stats: Stats = sqlx::query_as("SELECT * FROM stats WHERE user_id = ?")
+        .bind(user_id)
+        .fetch_one(pool)
+        .await?;
+
+    let user: User = sqlx::query_as("SELECT * FROM user WHERE id = ?")
+        .bind(user_id)
+        .fetch_one(pool)
+        .await?;
+
+    let videos: Vec<Video> = sqlx::query_as("SELECT * FROM video WHERE userId = ?")
+        .bind(user_id)
+        .fetch_all(pool)
+        .await?;
+
+    Ok(BackupData {
+        chart,
+        folders,
+        global,
+        settings,
+        stats,
+        user,
+        videos,
+    })
+}
 
 // Subtitles
 #[tauri::command]
