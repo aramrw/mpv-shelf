@@ -97,6 +97,11 @@
       },
       "globalShortcut": {
         "all": false
+      },
+      "app": {
+        "all": false,
+        "hide": false,
+        "show": false
       }
     },
     "bundle": {
