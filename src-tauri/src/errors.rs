@@ -17,3 +17,15 @@ pub enum BackupDataErrors {
     Channels(#[from] mpsc::RecvError),
 }
 
+impl Serialize for BackupDataErrors {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+        let mut state = serializer.serialize_struct("StatErrors", 2)?;
+        state.serialize_field("type", &format!("{:?}", self))?;
+        state.serialize_field("message", &self.to_string())?;
+        state.end()
+    }
+}
