@@ -114,6 +114,86 @@ pub async fn export_data(
     }
 }
 
+async fn insert_imported_bdata(
+    pool: &SqlitePool,
+    data: BackupData,
+    user_id: u32,
+) -> Result<(), errors::BackupDataErrors> {
+    // Insert User
+    sqlx::query("INSERT INTO user (id, pin, imagePath, color, scrollY) VALUES (?, ?, ?, ?, ?)")
+        .bind(user_id)
+        .bind(data.user.pin)
+        .bind(data.user.imagePath)
+        .bind(data.user.color)
+        .bind(data.user.scrollY)
+        .execute(pool)
+        .await?;
+
+    // Insert Videos
+    for vid in data.videos {
+        sqlx::query("INSERT INTO video (path, userId, watched, lastWatchedAt) VALUES (?, ?, ?, ?)")
+            .bind(vid.path)
+            .bind(user_id)
+            .bind(vid.watched)
+            .bind(vid.lastWatchedAt)
+            .execute(pool)
+            .await?;
+    }
+
+    // Insert Settings
+    sqlx::query("INSERT INTO settings (userId, fontSize, animations, autoPlay, autoRename, usePin) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(user_id)
+    .bind(data.settings.fontSize)
+    .bind(data.settings.animations)
+    .bind(data.settings.autoPlay)
+    .bind(data.settings.autoRename)
+    .bind(data.settings.usePin)
+    .execute(pool)
+    .await?;
+
+    // Insert Folders
+
+    for folder in data.folders {
+        sqlx::query("INSERT INTO folder (userId, path, expanded, asChild, watchTime, scrollY, color) VALUES (?, ?, ?, ?, ?, ?, ?)")
+    .bind(user_id)
+    .bind(folder.path)
+    .bind(folder.expanded)
+    .bind(folder.asChild)
+    .bind(folder.watchTime)
+    .bind(folder.scrollY)
+    .bind(folder.color)
+    .execute(pool)
+    .await?;
+    }
+
+    // Insert Stats
+    sqlx::query("INSERT INTO stats (user_id, total_anime, total_videos, videos_watched, videos_remaining, watchtime) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(user_id)
+    .bind(data.stats.total_anime)
+    .bind(data.stats.total_videos)
+    .bind(data.stats.videos_watched)
+    .bind(data.stats.videos_remaining)
+    .bind(data.stats.watchtime)
+    .execute(pool)
+    .await?;
+
+    // Insert Chart
+    sqlx::query("INSERT INTO chart (user_id, watchtime, updated_at) VALUES (?, ?, datetime('now', 'localtime'))")
+        .bind(user_id)
+        .bind(data.chart.watchtime)
+        .execute(pool)
+        .await?;
+
+    // Insert Global
+    sqlx::query("UPDATE global SET userId = ? WHERE id = ?")
+        .bind(user_id)
+        .bind(data.global.id)
+        .execute(pool)
+        .await?;
+
+    Ok(())
+}
+
 // Subtitles
 #[tauri::command]
 pub async fn rename_subs(
