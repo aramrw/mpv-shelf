@@ -34,17 +34,25 @@ const formSchema = z.object({
   autoPlay: z.enum(["On", "Off"]),
   autoRename: z.enum(["On", "Off"]),
   usePin: z.enum(["On", "Off"]),
+  persistOnDelete: z.enum(["On", "Off"]),
 });
 
 export type SettingSchema = z.infer<typeof formSchema>;
 
 export default function Settings() {
+  // ! UPDATE WHEN ADDING A NEW SETTING: 
+  // 1. This Page's useStates;
+  // 2. lib/primsa-commands/settings/settings-cmds.ts -> updateSettings();
+  // 3. profiles/newUser ->  const [defaultSettings, _setDefaultSettings] = useState<SettingSchema>();
+  // 4. src-tauri/db.rs -> Settings struct;
+  // 5. src-tauri/misc.rs -> insert_imported_bdata() -> "// Insert Settings" Statement;
   const [formState, setFormState] = useState({
     fontSize: "Large",
     animations: "On",
     autoPlay: "Off",
     autoRename: "Off",
     usePin: "On",
+    persistOnDelete: "On",
   });
 
   const [currentUser, setCurrentUser] = useState<User>();
@@ -70,6 +78,7 @@ export default function Settings() {
       autoPlay: formData.get("autoPlay"),
       autoRename: formData.get("autoRename"),
       usePin: formData.get("usePin"),
+      persistOnDelete: formData.get("persistOnDelete"),
     };
 
     let newPin = formData.get("pin");
@@ -77,7 +86,7 @@ export default function Settings() {
     // Validate form data
     const validationResult = formSchema.safeParse(formValues);
     if (!validationResult.success) {
-      console.error("Validation failed", validationResult.error);
+      console.error("Validation failed; app/settings/page.tsx", validationResult.error);
       return;
     }
 
@@ -266,6 +275,7 @@ export default function Settings() {
           />
           <DataSection
             formState={formState}
+            setFormState={setFormState}
             currentUser={currentUser}
           />
         </ul>
