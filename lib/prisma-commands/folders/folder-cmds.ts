@@ -1,6 +1,7 @@
 import Database from "tauri-plugin-sql-api";
 import { User, Folder, Video } from "@prisma/client";
 import { invoke } from "@tauri-apps/api/tauri";
+import { SettingSchema } from "@/app/settings/page";
 
 export async function addFolder({
   userId,
@@ -67,7 +68,7 @@ export async function updateFolderScrollY({
 
   let result = await db.execute("UPDATE folder SET scrollY = $1 WHERE userId = $2 AND path = $3", [scrollY, userId, folderPath])
 
-	return result.rowsAffected;
+  return result.rowsAffected;
 }
 
 export async function getFolders({ userId }: { userId: number }) {
@@ -149,12 +150,11 @@ export async function updateFolderExpanded({
 }
 
 
+export async function deleteFolder({ folderPath, settings, userId }: { folderPath: string, settings: SettingSchema, userId: number }) {
   let db = await Database.load("sqlite:main.db");
+  await db.execute("DELETE from folder WHERE path LIKE $1 AND userId = $2", [`${folderPath}%`, userId]);
+  if (settings.persistOnDelete === "Off") {
+		console.log("Deleting videos along with folders for user:" + userId);
+    await db.execute("DELETE from video WHERE path LIKE $1 AND userId = $2", [`${folderPath}%`, userId])
   }
-export async function deleteFolder({ folderPath }: { folderPath: string }) {
-  let db = await Database.load("sqlite:main.db");
-
-  await db.execute("DELETE from folder WHERE path LIKE $1", [`${folderPath}%`]);
-
-  await db.execute("DELETE from video WHERE path LIKE $1", [`${folderPath}%`])
 }
