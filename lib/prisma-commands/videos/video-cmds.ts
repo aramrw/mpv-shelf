@@ -1,5 +1,5 @@
 import Database from "tauri-plugin-sql-api";
-import { Video } from "@prisma/client";
+import { User, Video } from "@prisma/client";
 
 export async function getVideo({
   videoPath,
@@ -29,6 +29,53 @@ export async function getVideo({
   } else {
     return null;
   }
+}
+
+
+export async function updateVideoWatched({
+  videoPath,
+  user,
+  watched,
+}: {
+  videoPath: string;
+  user: User | undefined;
+  watched: boolean;
+}) {
+  console.log("Updating watched: ", videoPath.split("\\").pop(), "as", watched, "for user", user?.id);
+
+  let db = await Database.load("sqlite:main.db");
+
+  try {
+    await db.execute(`
+			CREATE UNIQUE INDEX IF NOT EXISTS idx_video_user_path ON video(userId, path)
+        `);
+
+    // Check if the video already exists in the database
+    const videos: Video[] = await db.select(
+      "SELECT * from video WHERE path = $1 AND userId = $2",
+      [videoPath, user?.id],
+    );
+
+    if (videos.length === 0) {
+      // Insert new video record if it does not exist
+      await db.execute(
+        "INSERT INTO video (path, userId, watched, lastWatchedAt) VALUES ($1, $2, $3, (datetime('now', 'localtime')))",
+        [videoPath, user?.id, watched ? 1 : 0],
+      );
+    } else {
+      // Update existing video record
+      await db.execute(
+        "UPDATE video SET watched = $3, lastWatchedAt = (datetime('now', 'localtime')) WHERE path = $1 AND userId = $2",
+        [videoPath, user?.id, watched ? 1 : 0],
+      );
+    }
+  } catch (e) {
+    await db.close();
+    console.error(`failed to update: ${videoPath}\nfor user: ${user?.id}\n${e}`);
+    return false;
+  }
+
+  return true;
 }
 
 export async function unwatchVideo({
