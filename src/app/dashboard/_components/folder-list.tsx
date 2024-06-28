@@ -24,10 +24,9 @@ import {
   getFolders,
   updateFolderExpanded,
   updateFolderScrollY,
-  updateVideoWatched,
   getFolderScrollY
 } from "../../../../lib/prisma-commands/folders/folder-cmds";
-import { getVideo } from "../../../../lib/prisma-commands/videos/video-cmds";
+import { getVideo, updateVideoWatched } from "../../../../lib/prisma-commands/videos/video-cmds";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-motion";
 import { updateUserScrollY } from "../../../../lib/prisma-commands/misc-cmds";
 
@@ -118,8 +117,7 @@ const FolderList = ({
   useMotionValueEvent(scrollY, "change", (latest) => {
     if (currentUser && latest > 50)
       updateFolderScrollY({ userId: currentUser?.id, folderPath, scrollY: latest }).then((rows) => {
-        //console.log(`rows: ${rows}`);
-				console.log("update for path:", folderPath);
+				console.log(`${folderPath}: ${latest}`);
       })
   });
 
@@ -136,7 +134,7 @@ const FolderList = ({
       getFolderScrollY({ userId: currentUser.id, folderPath }).then((userY: any) => {
         let unlisten: NodeJS.Timeout;
 
-        if (userY > 0) {
+        if (userY > 55) {
           unlisten = setTimeout(() => {
             setScrollPosition(userY);
           }, 500); // specify the timeout duration here
@@ -147,7 +145,7 @@ const FolderList = ({
         };
       });
     }
-  }, [currentUser, folderPaths]);
+  }, [currentUser, folderPath]);
 
   // reading directory contents
   useEffect(() => {
@@ -291,9 +289,10 @@ const FolderList = ({
   };
 
   const handleWatchVideo = (file: FileEntry) => {
+		// update in db
     updateVideoWatched({
       videoPath: file.path,
-      user: currentUser!,
+      user: currentUser,
       watched: true,
     }).then(() => {
       // Check if the video exists in prismaVideos
@@ -488,6 +487,7 @@ const FolderList = ({
               {/* Only display trashcan when its a main parent folder */}
               {!asChild && (
                 <ParentTrashcan
+									currentUser={currentUser}
                   folderPath={folderPath}
                   folderPaths={folderPaths}
                   parentFolderPaths={parentFolderPaths}
