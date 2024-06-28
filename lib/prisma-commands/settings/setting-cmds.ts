@@ -2,8 +2,18 @@ import Database from "tauri-plugin-sql-api";
 import { SettingSchema } from "../../../src/app/settings/page";
 import { convertFileSrc } from "@tauri-apps/api/tauri";
 
-// when adding a new setting value, update the default state in newUser
-// update this when adding a new setting value
+/**
+  * ! UPDATE THIS FUNCTION WHEN ADDING NEW SETTINGS!
+	*
+  * **INSERT INTO** rows's keys 
+	* `INSERT INTO settings (...autoRename, usePin, persistOnDelete)` 
+	*
+  * **VALUES**
+  * `VALUES (...$5, $6, $7)`
+	*
+  * **ON CONFLICT**  
+  * `ON CONFLICT(userId) DO UPDATE SET...persistOnDelete = excluded.persistOnDelete`
+*/
 export async function updateSettings({
   formData,
   userId,
@@ -15,18 +25,18 @@ export async function updateSettings({
 
   console.log("updating settings for user:", userId, formData);
 
-  // if new setting add into first row and update values + $
   await db
     .execute(
       `
-        INSERT INTO settings (userId, fontSize, animations, autoPlay, autoRename, usePin)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO settings (userId, fontSize, animations, autoPlay, autoRename, usePin, persistOnDelete)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         ON CONFLICT(userId) DO UPDATE SET
         fontSize = excluded.fontSize,
         animations = excluded.animations,
         autoPlay = excluded.autoPlay,
         autoRename = excluded.autoRename,
-        usePin = excluded.usePin
+        usePin = excluded.usePin,
+				persistOnDelete = excluded.persistOnDelete
     `,
       [
         userId,
@@ -35,6 +45,7 @@ export async function updateSettings({
         formData.autoPlay,
         formData.autoRename,
         formData.usePin,
+        formData.persistOnDelete,
       ],
     )
     .catch(() => {
