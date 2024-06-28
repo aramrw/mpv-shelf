@@ -130,42 +130,28 @@ async fn insert_imported_bdata(
         .execute(pool)
         .await?;
 
-    // Insert Videos
-    for vid in data.videos {
-        sqlx::query("INSERT INTO video (path, userId, watched, lastWatchedAt) VALUES (?, ?, ?, ?)")
-            .bind(vid.path)
-            .bind(user_id)
-            .bind(vid.watched)
-            .bind(vid.lastWatchedAt)
-            .execute(pool)
-            .await?;
-    }
-
     // Insert Settings
-    sqlx::query("INSERT INTO settings (userId, fontSize, animations, autoPlay, autoRename, usePin) VALUES (?, ?, ?, ?, ?, ?)")
+    // ! WHEN ADD A NEW SETTING:
+    // update "INSERT INTO" keys
+    // add a `?` to "VALUES" -> (...?, ?, ?)
+    // .bind() the new setting from `data.settings.newSetting`
+    sqlx::query("INSERT INTO settings (userId, fontSize, animations, autoPlay, autoRename, usePin, persistOnDelete) VALUES (?, ?, ?, ?, ?, ?, ?)")
     .bind(user_id)
     .bind(data.settings.fontSize)
     .bind(data.settings.animations)
     .bind(data.settings.autoPlay)
     .bind(data.settings.autoRename)
     .bind(data.settings.usePin)
+    .bind(data.settings.persistOnDelete)
     .execute(pool)
     .await?;
 
-    // Insert Folders
-
-    for folder in data.folders {
-        sqlx::query("INSERT INTO folder (userId, path, expanded, asChild, watchTime, scrollY, color) VALUES (?, ?, ?, ?, ?, ?, ?)")
-    .bind(user_id)
-    .bind(folder.path)
-    .bind(folder.expanded)
-    .bind(folder.asChild)
-    .bind(folder.watchTime)
-    .bind(folder.scrollY)
-    .bind(folder.color)
-    .execute(pool)
-    .await?;
-    }
+    // Insert Global
+    sqlx::query("UPDATE global SET userId = ? WHERE id = ?")
+        .bind(user_id)
+        .bind(data.global.id)
+        .execute(pool)
+        .await?;
 
     // Insert Stats
     sqlx::query("INSERT INTO stats (user_id, total_anime, total_videos, videos_watched, videos_remaining, watchtime) VALUES (?, ?, ?, ?, ?, ?)")
@@ -185,12 +171,30 @@ async fn insert_imported_bdata(
         .execute(pool)
         .await?;
 
-    // Insert Global
-    sqlx::query("UPDATE global SET userId = ? WHERE id = ?")
-        .bind(user_id)
-        .bind(data.global.id)
-        .execute(pool)
-        .await?;
+    // Insert Videos
+    for vid in data.videos {
+        sqlx::query("INSERT INTO video (path, userId, watched, lastWatchedAt) VALUES (?, ?, ?, ?)")
+            .bind(vid.path)
+            .bind(user_id)
+            .bind(vid.watched)
+            .bind(vid.lastWatchedAt)
+            .execute(pool)
+            .await?;
+    }
+
+    // Insert Folders
+    for folder in data.folders {
+        sqlx::query("INSERT INTO folder (userId, path, expanded, asChild, watchTime, scrollY, color) VALUES (?, ?, ?, ?, ?, ?, ?)")
+    .bind(user_id)
+    .bind(folder.path)
+    .bind(folder.expanded)
+    .bind(folder.asChild)
+    .bind(folder.watchTime)
+    .bind(folder.scrollY)
+    .bind(folder.color)
+    .execute(pool)
+    .await?;
+    }
 
     Ok(())
 }
@@ -223,7 +227,11 @@ pub async fn delete_user(handle: AppHandle, user_id: u32) -> Result<(), errors::
 }
 
 #[tauri::command]
-pub async fn import_data(handle: AppHandle, user_id: u32, color: String) -> Result<(), errors::BackupDataErrors> {
+pub async fn import_data(
+    handle: AppHandle,
+    user_id: u32,
+    color: String,
+) -> Result<String, errors::BackupDataErrors> {
     let (sender, receiver) = mpsc::channel();
 
     dialog::FileDialogBuilder::new().pick_file(move |path: Option<PathBuf>| {
@@ -254,10 +262,10 @@ pub async fn import_data(handle: AppHandle, user_id: u32, color: String) -> Resu
             }
         };
 
-        Ok(())
+        Ok("Ok".to_string())
     } else {
         // The user closed the dialog box without selecting a folder
-        Ok(())
+        Ok("Closed".to_string())
     }
 }
 
