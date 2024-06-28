@@ -10,7 +10,7 @@ import type { User, Video } from "@prisma/client";
 import { closeDatabase } from "../../../../../lib/prisma-commands/misc-cmds";
 import { invoke } from "@tauri-apps/api/tauri";
 import VideoContextMenu from "./video-context-menu";
-import { updateVideoWatched } from "../../../../../lib/prisma-commands/folders/folder-cmds";
+import { updateVideoWatched } from "../../../../../lib/prisma-commands/videos/video-cmds";
 import OpenVideoError from "../error-dialogs/open-video-error";
 
 export default function VideoFile({
