@@ -6,6 +6,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Info, PenLine, Repeat2 } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 export default function ApplicationSection({
   formState,
@@ -79,17 +80,16 @@ export default function ApplicationSection({
                 )}
               >
                 <div className="font-medium">
-                  <span className="rounded-sm px-1 font-bold">
-                    Renames subtitle files to match videos
+                  <span className="rounded-sm px-1 font-bold underline">
+                    Rename Subtitle Files (to Match Videos)
                   </span>
                   <br />
                   <span className="font-semibold">
-                    Subtitle files must be in the same directory as the video
-                    files
+                    Subtitle files must be in the directory as the video files
                   </span>
                   <br />
                   <span className="font-semibold">
-                    for mpv to match them to the video.
+                    for mpv to match them to a video.
                   </span>
                 </div>
               </TooltipContent>
