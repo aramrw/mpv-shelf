@@ -22,6 +22,7 @@ pub struct Settings {
     pub autoPlay: String,
     pub autoRename: String,
     pub usePin: String,
+    pub persistOnDelete: String,
 }
 
 #[derive(sqlx::FromRow, Serialize, Deserialize, Debug)]
@@ -129,6 +130,7 @@ pub async fn migrate_settings(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         autoPlay TEXT NOT NULL,
         autoRename TEXT NOT NULL,
         usePin TEXT NOT NULL,
+        persistOnDelete TEXT NOT NULL, 
         FOREIGN KEY (userId) REFERENCES user(id)
     )",
     )
