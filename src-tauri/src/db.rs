@@ -22,7 +22,7 @@ pub struct Settings {
     pub autoPlay: String,
     pub autoRename: String,
     pub usePin: String,
-    pub persistOnDelete: String,
+    //pub persistOnDelete: String,
 }
 
 #[derive(sqlx::FromRow, Serialize, Deserialize, Debug)]
@@ -121,6 +121,8 @@ pub async fn migrate_videos(pool: &SqlitePool) -> Result<(), sqlx::Error> {
 }
 
 pub async fn migrate_settings(pool: &SqlitePool) -> Result<(), sqlx::Error> {
+    // I removed this setting cuz its kind of useless
+    // persistOnDelete TEXT NOT NULL, 
     sqlx::query(
         "CREATE TABLE IF NOT EXISTS settings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -130,7 +132,6 @@ pub async fn migrate_settings(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         autoPlay TEXT NOT NULL,
         autoRename TEXT NOT NULL,
         usePin TEXT NOT NULL,
-        persistOnDelete TEXT NOT NULL, 
         FOREIGN KEY (userId) REFERENCES user(id)
     )",
     )
