@@ -115,8 +115,8 @@ const FolderList = ({
   });
 
   useMotionValueEvent(scrollY, "change", (latest) => {
-    if (currentUser && latest > 50)
-      updateFolderScrollY({ userId: currentUser?.id, folderPath, scrollY: latest }).then((rows) => {
+    if (currentUser && latest)
+      updateFolderScrollY({ userId: currentUser?.id, folderPath, scrollY: latest }).then((_rows) => {
 				console.log(`${folderPath}: ${latest}`);
       })
   });
