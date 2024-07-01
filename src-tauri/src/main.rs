@@ -86,7 +86,7 @@ fn main() {
             .system_tray(tray.clone())
             .plugin(tauri_plugin_sql::Builder::default().build())
             .on_system_tray_event(move |app, event| {
-                if let SystemTrayEvent::MenuItemClick { id, .. } = event {
+                if let SystemTrayEvent::MenuItemClick { ref id, .. } = event {
                     match id.as_str() {
                         "toggle_window" => {
                             if let Some(window) = app.get_window("main") {
