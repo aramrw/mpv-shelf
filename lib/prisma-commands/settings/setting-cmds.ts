@@ -25,18 +25,19 @@ export async function updateSettings({
 
   console.log("updating settings for user:", userId, formData);
 
+	// removed this because its kind of useless
+	//persistOnDelete = excluded.persistOnDelete
   await db
     .execute(
       `
-        INSERT INTO settings (userId, fontSize, animations, autoPlay, autoRename, usePin, persistOnDelete)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO settings (userId, fontSize, animations, autoPlay, autoRename, usePin)
+        VALUES ($1, $2, $3, $4, $5, $6)
         ON CONFLICT(userId) DO UPDATE SET
         fontSize = excluded.fontSize,
         animations = excluded.animations,
         autoPlay = excluded.autoPlay,
         autoRename = excluded.autoRename,
-        usePin = excluded.usePin,
-				persistOnDelete = excluded.persistOnDelete
+        usePin = excluded.usePin
     `,
       [
         userId,
@@ -45,11 +46,11 @@ export async function updateSettings({
         formData.autoPlay,
         formData.autoRename,
         formData.usePin,
-        formData.persistOnDelete,
+        //formData.persistOnDelete,
       ],
     )
-    .catch(() => {
-      // console.log ("error", e);
+    .catch((e) => {
+			console.error ("updateSettings cmd:", e);
     });
 }
 
