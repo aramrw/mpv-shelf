@@ -153,8 +153,9 @@ export async function updateFolderExpanded({
 export async function deleteFolder({ folderPath, settings, userId }: { folderPath: string, settings: SettingSchema, userId: number }) {
   let db = await Database.load("sqlite:main.db");
   await db.execute("DELETE from folder WHERE path LIKE $1 AND userId = $2", [`${folderPath}%`, userId]);
-  if (settings.persistOnDelete === "Off") {
-		console.log("Deleting videos along with folders for user:" + userId);
-    await db.execute("DELETE from video WHERE path LIKE $1 AND userId = $2", [`${folderPath}%`, userId])
-  }
+  await db.execute("DELETE from video WHERE path LIKE $1 AND userId = $2", [`${folderPath}%`, userId])
+  // if (settings.persistOnDelete === "Off") {
+		// console.log("Deleting videos along with folders for user:" + userId);
+		//await db.execute("DELETE from video WHERE path LIKE $1 AND userId = $2", [`${folderPath}%`, userId])
+  // }
 }
