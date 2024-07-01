@@ -114,6 +114,7 @@ export default function DataSection({
             </Button>
           </div>
         </li>
+				{/*
         <li className="flex h-fit w-full bg-muted">
           <TooltipProvider>
             <Tooltip delayDuration={400}>
@@ -176,6 +177,7 @@ export default function DataSection({
             <option className="font-medium">Off</option>
           </select>
         </li>
+				*/ }
       </ul>
     </li>
   )

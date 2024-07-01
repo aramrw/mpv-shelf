@@ -15,7 +15,7 @@ export default function NewUser() {
     autoPlay: "Off",
     autoRename: "Off",
     usePin: "On",
-    persistOnDelete: "On",
+    //persistOnDelete: "Off",
   });
 
   let router = useRouter();

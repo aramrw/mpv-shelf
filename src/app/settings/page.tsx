@@ -34,7 +34,7 @@ const formSchema = z.object({
   autoPlay: z.enum(["On", "Off"]),
   autoRename: z.enum(["On", "Off"]),
   usePin: z.enum(["On", "Off"]),
-  persistOnDelete: z.enum(["On", "Off"]),
+  //persistOnDelete: z.enum(["On", "Off"]),
 });
 
 export type SettingSchema = z.infer<typeof formSchema>;
@@ -52,7 +52,7 @@ export default function Settings() {
     autoPlay: "Off",
     autoRename: "Off",
     usePin: "On",
-    persistOnDelete: "On",
+    //persistOnDelete: "On",
   });
 
   const [currentUser, setCurrentUser] = useState<User>();
@@ -78,7 +78,7 @@ export default function Settings() {
       autoPlay: formData.get("autoPlay"),
       autoRename: formData.get("autoRename"),
       usePin: formData.get("usePin"),
-      persistOnDelete: formData.get("persistOnDelete"),
+      //persistOnDelete: formData.get("persistOnDelete"),
     };
 
     let newPin = formData.get("pin");
