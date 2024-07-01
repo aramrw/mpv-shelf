@@ -130,29 +130,6 @@ async fn insert_imported_bdata(
         .execute(pool)
         .await?;
 
-    // Insert Settings
-    // ! WHEN ADD A NEW SETTING:
-    // update "INSERT INTO" keys
-    // add a `?` to "VALUES" -> (...?, ?, ?)
-    // .bind() the new setting from `data.settings.newSetting`
-    sqlx::query("INSERT INTO settings (userId, fontSize, animations, autoPlay, autoRename, usePin, persistOnDelete) VALUES (?, ?, ?, ?, ?, ?, ?)")
-    .bind(user_id)
-    .bind(data.settings.fontSize)
-    .bind(data.settings.animations)
-    .bind(data.settings.autoPlay)
-    .bind(data.settings.autoRename)
-    .bind(data.settings.usePin)
-    .bind(data.settings.persistOnDelete)
-    .execute(pool)
-    .await?;
-
-    // Insert Global
-    sqlx::query("UPDATE global SET userId = ? WHERE id = ?")
-        .bind(user_id)
-        .bind(data.global.id)
-        .execute(pool)
-        .await?;
-
     // Insert Stats
     sqlx::query("INSERT INTO stats (user_id, total_anime, total_videos, videos_watched, videos_remaining, watchtime) VALUES (?, ?, ?, ?, ?, ?)")
     .bind(user_id)
@@ -163,6 +140,29 @@ async fn insert_imported_bdata(
     .bind(data.stats.watchtime)
     .execute(pool)
     .await?;
+
+    // Insert Settings
+    // ! WHEN ADD A NEW SETTING:
+    // update "INSERT INTO" keys
+    // add a `?` to "VALUES" -> (...?, ?, ?)
+    // .bind() the new setting from `data.settings.newSetting`
+    sqlx::query("INSERT INTO settings (userId, fontSize, animations, autoPlay, autoRename, usePin) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(user_id)
+    .bind(data.settings.fontSize)
+    .bind(data.settings.animations)
+    .bind(data.settings.autoPlay)
+    .bind(data.settings.autoRename)
+    .bind(data.settings.usePin)
+    //.bind(data.settings.persistOnDelete)
+    .execute(pool)
+    .await?;
+
+    // Insert Global
+    sqlx::query("UPDATE global SET userId = ? WHERE id = ?")
+        .bind(user_id)
+        .bind(data.global.id)
+        .execute(pool)
+        .await?;
 
     // Insert Chart
     sqlx::query("INSERT INTO chart (user_id, watchtime, updated_at) VALUES (?, ?, datetime('now', 'localtime'))")
