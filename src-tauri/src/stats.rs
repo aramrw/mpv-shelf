@@ -2,7 +2,7 @@ use crate::db::{Folder, Video};
 use chrono::{Datelike /* NaiveDate, Weekday */};
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, SqlitePool};
-use tauri::{AppHandle, Manager};
+use tauri::{command, AppHandle, Manager};
 use tokio::sync::Mutex;
 
 #[derive(Serialize, Deserialize, Default, FromRow, Debug)]
@@ -24,6 +24,7 @@ pub struct Chart {
 
 pub async fn create_new_stats(handle: AppHandle, user_id: u16) -> Option<Stats> {
     let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
+    let mut watchtime = 0;
 
     let total_anime_vec: Vec<Folder> = sqlx::query_as("SELECT * FROM folder WHERE userId = ?")
         .bind(user_id)
@@ -31,22 +32,26 @@ pub async fn create_new_stats(handle: AppHandle, user_id: u16) -> Option<Stats> 
         .await
         .unwrap();
 
-    let mut watchtime = 0;
+    let mut added_folder_vid_paths: Vec<String> = Vec::new();
 
     for folder in &total_anime_vec {
-        read_anime_folder_dirs(folder.path.clone(), user_id, &pool).await;
+        let paths = read_anime_folder_dirs(folder.path.clone(), user_id, &pool).await;
+        added_folder_vid_paths.extend(paths);
         watchtime += folder.watchTime;
     }
 
-    let videos_vec: Vec<Video> = sqlx::query_as("SELECT * FROM video WHERE userId = ?")
+    let mut videos_vec: Vec<Video> = sqlx::query_as("SELECT * FROM video WHERE userId = ?")
         .bind(user_id)
         .fetch_all(&pool)
         .await
         .unwrap();
 
+    let videos_watched = videos_vec.iter().filter(|vid| vid.watched).count() as u32;
+
+    videos_vec.retain(|vid| added_folder_vid_paths.contains(&vid.path));
+
     let total_anime = total_anime_vec.len() as u32;
     let total_videos = videos_vec.len() as u32;
-    let videos_watched = videos_vec.iter().filter(|vid| vid.watched).count() as u32;
     let videos_remaining = videos_vec.iter().filter(|vid| !vid.watched).count() as u32;
 
     //println!("new: {}", total_anime);
@@ -148,15 +153,19 @@ fn stats_to_vec(stats: &Stats) -> Vec<u32> {
     vec
 }
 
-async fn read_anime_folder_dirs(folder_path: String, user_id: u16, pool: &SqlitePool) {
+async fn read_anime_folder_dirs(
+    folder_path: String,
+    user_id: u16,
+    pool: &SqlitePool,
+) -> Vec<String> {
     let vid_formats = [
         "mp4", "mkv", "avi", "mov", "wmv", "flv", "webm", "vob", "ogv", "ogg", "drc", "gif",
         "gifv", "mng", "avi", "mov", "qt", "wmv", "yuv", "rm", "rmvb", "asf", "amv", "mp4", "m4p",
         "m4v", "mpg", "mp2", "mpeg", "mpe", "mpv", "mpg", "mpeg", "m2v", "m4v", "svi", "3gp",
-        "3g2", "mxf", "roq", "nsv", "flv", "f4v", "f4p", "f4a", "f4b",
+        "3g2", "mxf", "roq", "nsv", "flv", "f4v", "f4p", "f4a", "f4b", "m4b", "m4a",
     ];
 
-    // read it's video files
+    let mut vid_paths = Vec::new();
 
     if let Ok(parent) = std::fs::read_dir(folder_path) {
         for file in parent {
@@ -173,23 +182,30 @@ async fn read_anime_folder_dirs(folder_path: String, user_id: u16, pool: &Sqlite
                     if file_name.to_str().unwrap().contains(format) {
                         let path_str = path.to_str().unwrap().to_string();
                         insert_or_ignore_vid(&path_str, user_id, pool).await;
+                        vid_paths.push(path_str);
                     }
                 }
             }
         }
     }
+
+    vid_paths
 }
 
 async fn insert_or_ignore_vid(video_path: &str, user_id: u16, pool: &SqlitePool) {
     //println!("Inserting {}", video_path);
 
-    sqlx::query("INSERT OR IGNORE INTO video (path, userId, watched, lastWatchedAt) VALUES (?, ?, ?, (datetime('now', 'localtime')))")
-        .bind(video_path)
-        .bind(user_id)
-        .bind(false)
-        .execute(&pool.clone())
-        .await
-        .unwrap();
+    sqlx::query(
+        "INSERT OR IGNORE INTO video 
+        (path, userId, watched, lastWatchedAt) 
+        VALUES (?, ?, ?, (datetime('now', 'localtime')))",
+    )
+    .bind(video_path)
+    .bind(user_id)
+    .bind(false)
+    .execute(&pool.clone())
+    .await
+    .unwrap();
 }
 
 #[tauri::command]
