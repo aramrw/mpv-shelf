@@ -16,17 +16,17 @@ export default function ApplicationSection({
   setFormState: (value: any) => void;
 }) {
   return (
-    <li className="flex h-fit flex-col justify-center rounded-b-sm bg-muted">
-      <h1 className="select-none rounded-t-sm bg-accent p-1 font-bold">
+    <li className="flex h-fit flex-col justify-center bg-muted outline outline-zinc-200">
+      <h1 className="select-none bg-accent p-1 font-bold">
         Application
       </h1>
-      <ul className="flex flex-col gap-3 p-2">
+      <ul className="flex flex-col gap-3 p-2.5">
         <li className="flex h-fit w-full items-center justify-between bg-muted">
           <div className="flex w-full flex-row items-center justify-start gap-1">
             <h1 className="w-fit select-none font-medium">Auto Play</h1>
             <Repeat2
               className={cn(
-                "h-auto w-4",
+                "h-auto w-4 stroke-[2.5]",
                 formState?.fontSize === "Medium" && "h-auto w-[18px]",
                 formState?.fontSize === "Large" && "h-auto w-5",
                 formState?.fontSize === "XLarge" && "h-auto w-6",
@@ -61,7 +61,7 @@ export default function ApplicationSection({
                   <h1 className="select-none font-medium">Auto Rename</h1>
                   <PenLine
                     className={cn(
-                      "h-auto w-3.5",
+                      "h-auto w-3.5 stroke-[2.5]",
                       formState?.fontSize === "Medium" && "h-auto w-4",
                       formState?.fontSize === "Large" && "h-auto w-5",
                       formState?.fontSize === "XLarge" && "h-auto w-6",

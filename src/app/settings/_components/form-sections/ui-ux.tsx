@@ -4,17 +4,17 @@ import { cn } from "@/lib/utils";
 
 export default function UiUxSection({ formState, setFormState }: { formState: any, setFormState: (value: any) => void }) {
   return (
-    <li className="flex h-fit flex-col justify-center rounded-b-sm bg-muted">
-      <h1 className="select-none rounded-t-sm bg-accent p-1 font-bold">
+    <li className="flex h-fit flex-col justify-center bg-muted outline outline-zinc-200">
+      <h1 className="select-none bg-accent p-1 font-bold">
         UI / UX
       </h1>
-      <ul className="flex flex-col gap-3 p-2">
+      <ul className="flex flex-col gap-3 p-2.5">
         <li className="flex h-fit w-full bg-muted">
           <div className="flex w-1/2 items-center justify-start gap-1">
             <h1 className="select-none font-medium">Font Size</h1>
             <ALargeSmall
               className={cn(
-                "h-auto w-4",
+                "h-auto w-4 stroke-[2.2]",
                 formState?.fontSize === "Medium" && "h-auto w-5",
                 formState?.fontSize === "Large" && "h-auto w-6",
                 formState?.fontSize === "XLarge" && "h-auto w-7",
@@ -50,16 +50,10 @@ export default function UiUxSection({ formState, setFormState }: { formState: an
                   ? { type: "spring", stiffness: 800, damping: 17 }
                   : undefined
               }
-              drag
-              dragConstraints={
-                formState.animations
-                  ? { left: 0, right: 0, top: 0, bottom: 0 }
-                  : undefined
-              }
             >
               <Move3d
                 className={cn(
-                  "h-auto w-3.5 cursor-pointer",
+                  "h-auto w-3.5 cursor-pointer stroke-[2.5]",
                   formState?.fontSize === "Medium" && "h-auto w-4",
                   formState?.fontSize === "Large" && "h-auto w-5",
                   formState?.fontSize === "XLarge" && "h-auto w-6",

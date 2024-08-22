@@ -200,12 +200,12 @@ export default function Settings() {
       transition={{ duration: 0.5, bounce: 1, type: "spring", damping: 10 }}
     >
       <form
-        className="h-fit w-full md:px-16 lg:px-32 xl:px-48"
+        className="h-fit w-full md:px-20 lg:px-36 xl:px-80"
         onSubmit={handleSubmit}
       >
         <ul className="flex h-full w-full flex-col gap-2 p-2">
-          <li className="flex h-fit flex-col justify-center rounded-b-sm bg-muted">
-            <h1 className="select-none rounded-t-sm bg-accent px-1 font-bold">
+          <li className="flex h-fit flex-col justify-center rounded-t-sm bg-muted outline outline-zinc-200">
+            <h1 className="select-none rounded-t-sm bg-accent p-1 font-bold">
               User
             </h1>
             <ul className="flex flex-col gap-3 p-2">
