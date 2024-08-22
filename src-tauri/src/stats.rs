@@ -298,3 +298,17 @@ pub async fn create_chart_stats(
 
     final_data
 }
+
+#[command]
+pub async fn recently_watched(handle: AppHandle, user_id: u16) -> Vec<Video> {
+    let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
+    let videos_vec: Vec<Video> = sqlx::query_as::<_, Video>(
+        "SELECT * FROM video WHERE userId = ? AND date(lastWatchedAt, 'localtime') = date('now', 'localtime')"
+    )
+    .bind(user_id)
+    .fetch_all(&pool)
+    .await
+    .unwrap();
+
+    videos_vec
+}
