@@ -29,54 +29,16 @@ import {
 import { getVideo, updateVideoWatched } from "../../../../lib/prisma-commands/videos/video-cmds";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-motion";
 import { updateUserScrollY } from "../../../../lib/prisma-commands/misc-cmds";
+import FolderContexMenuContent from "./folder_contex_menu_content";
 
-let supportedVideoFormats = [
-  "mp4",
-  "mkv",
-  "avi",
-  "mov",
-  "wmv",
-  "flv",
-  "webm",
-  "vob",
-  "ogv",
-  "ogg",
-  "drc",
-  "gif",
-  "gifv",
-  "mng",
-  "avi",
-  "mov",
-  "qt",
-  "wmv",
-  "yuv",
-  "rm",
-  "rmvb",
-  "asf",
-  "amv",
-  "mp4",
-  "m4p",
-  "m4v",
-  "mpg",
-  "mp2",
-  "mpeg",
-  "mpe",
-  "mpv",
-  "mpg",
-  "mpeg",
-  "m2v",
-  "m4v",
-  "svi",
-  "3gp",
-  "3g2",
-  "mxf",
-  "roq",
-  "nsv",
-  "flv",
-  "f4v",
-  "f4p",
-  "f4a",
-  "f4b",
+let supportedFormats = [
+  "mp4", "mkv", "avi", "mov", "wmv", "flv", "webm", "vob", "ogv", "ogg",
+  "drc", "gif", "gifv", "mng", "avi", "mov", "qt", "wmv", "yuv", "rm",
+  "rmvb", "asf", "amv", "mp4", "m4p", "m4v", "mpg", "mp2", "mpeg", "mpe",
+  "mpv", "mpg", "mpeg", "m2v", "m4v", "svi", "3gp", "3g2", "mxf", "roq",
+  "nsv", "flv", "f4v", "f4p", "f4a", "f4b", "m4a", "m4b", "aac", "ac3",
+  "aiff", "alac", "ape", "au", "dsd", "dts", "flac", "m4a", "m4b", "mka",
+  "mp2", "mp3", "oga", "ogg", "opus", "pcm", "tak", "tta", "wav", "wma", "wv"
 ];
 
 let supportedSubtitleFormats = ["srt", "ass", "vtt", "stl", "scc", "ttml"];
@@ -117,7 +79,7 @@ const FolderList = ({
   useMotionValueEvent(scrollY, "change", (latest) => {
     if (currentUser && latest)
       updateFolderScrollY({ userId: currentUser?.id, folderPath, scrollY: latest }).then((_rows) => {
-				console.log(`${folderPath}: ${latest}`);
+        //console.log(`${folderPath}: ${latest}`);
       })
   });
 
@@ -156,7 +118,7 @@ const FolderList = ({
         // console.log("res:", res);
         const videoFiles = res.filter(
           (file) =>
-            supportedVideoFormats.includes(file.path.replace(/^.*\./, "")) &&
+            supportedFormats.includes(file.path.replace(/^.*\./, "")) &&
             !file.children,
         );
         // console.log(videoFiles.map(vid => vid.name));
@@ -167,7 +129,9 @@ const FolderList = ({
             const numB = parseInt(b.name!.replace(/[^0-9]/g, ""));
             return numA - numB;
           }) as FileEntry[];
-        // console.log(filteredVideos.map(vid => vid.name));
+
+        //console.log(filteredVideos.map(vid => vid.name));
+
         const subtitleFiles = res.filter((file) =>
           supportedSubtitleFormats.some(
             (format) => format === file.path.split(".").pop(),
@@ -175,10 +139,27 @@ const FolderList = ({
         );
         const folders = res.filter((file) => file.children);
 
-        // let uniqueFolders: FileEntry[] = [];
+        const filtered_folders = folders
+          .filter((folder) => folder !== null && folder !== undefined)
+          .sort((a, b) => {
+            const normalizeNumber = (str: string) => {
+              // Convert full-width numbers to half-width
+              const normalizedStr = str.replace(/[\uFF10-\uFF19]/g, (match) => String.fromCharCode(match.charCodeAt(0) - 0xFEE0));
+              // Extract and parse the number
+              const match = normalizedStr.match(/\d+/);
+              return match ? parseInt(match[0], 10) : 0;
+            };
 
-        setFiles(filteredVideos as FileEntry[]);
-        setFolders(folders as FileEntry[]);
+            const numA = normalizeNumber(a.name!.trim());
+            const numB = normalizeNumber(b.name!.trim());
+
+            return numA - numB;
+          }) as FileEntry[];
+
+        console.log(filtered_folders.map(vid => vid.name));
+
+        setFiles(filteredVideos);
+        setFolders(filtered_folders);
         setSubtitleFiles(subtitleFiles as FileEntry[]);
 
         setFinishedSettingFiles(true);
@@ -289,7 +270,7 @@ const FolderList = ({
   };
 
   const handleWatchVideo = (file: FileEntry) => {
-		// update in db
+    // update in db
     updateVideoWatched({
       videoPath: file.path,
       user: currentUser,
@@ -402,7 +383,7 @@ const FolderList = ({
   return (
     <main
       className={cn(
-        "mb-2 h-full w-full rounded-b-md ",
+        "h-full w-full rounded-md",
         //expanded && folders.length === 1 && "max-h-60",
       )}
       key={folderPath + "main-parent-folder"}
@@ -423,11 +404,13 @@ const FolderList = ({
               }
               transition={{ duration: 0.5, damping: 0.5 }}
               key={"main-parent-folder-motion-div"}
+              id="MAIN_PARENT_FOLDER_TITLE"
               style={{
                 ...(currentFolderColor
                   ? {
                     backgroundColor: `${currentFolderColor}`,
                     borderBottom: `1px solid ${currentFolderColor}`,
+                    filter: "brightness(0.98)",
                   }
                   : {}),
                 ...(expanded && !asChild ? { padding: "6.5px" } : {}),
@@ -487,7 +470,7 @@ const FolderList = ({
               {/* Only display trashcan when its a main parent folder */}
               {!asChild && (
                 <ParentTrashcan
-									currentUser={currentUser}
+                  currentUser={currentUser}
                   folderPath={folderPath}
                   folderPaths={folderPaths}
                   parentFolderPaths={parentFolderPaths}
@@ -500,90 +483,31 @@ const FolderList = ({
             {/* END Main Parent Folder END */}
           </AnimatePresence>
         </ContextMenuTrigger>
-
-        <ContextMenuContent>
-          <ContextMenuItem
-            className="flex cursor-pointer items-center gap-1 font-medium"
-            onClick={(e) => {
-              if (e.button === 0 && !isInvoking) {
-                setIsInvoking(true);
-                invoke("show_in_folder", { path: `${folderPath}` }).then(() => {
-                  setIsInvoking(false);
-                });
-              }
-            }}
-          >
-            <span
-              className={cn(
-                "",
-                userSettings?.fontSize === "Medium" && "text-base",
-                userSettings?.fontSize === "Large" && "text-lg",
-                userSettings?.fontSize === "XLarge" && "text-xl",
-              )}
-            >
-              Open In Explorer
-            </span>
-            <FolderInput
-              className={cn(
-                "h-auto w-4",
-                userSettings?.fontSize === "Medium" && "h-auto w-5",
-                userSettings?.fontSize === "Large" && "h-auto w-6",
-                userSettings?.fontSize === "XLarge" && "h-auto w-7",
-              )}
-            />
-          </ContextMenuItem>
-          <ContextMenuSeparator />
-          <ContextMenuItem
-            className="flex cursor-pointer items-center gap-1 font-medium"
-            onClick={(e) => {
-              if (e.button === 0 && !isInvoking) {
-                randomizeFolderColor({ folderPath: folderPath }).then(
-                  (color: any) => {
-                    console.log(color);
-                    setCurrentFolderColor(color);
-                  },
-                );
-              }
-            }}
-          >
-            <span
-              className={cn(
-                "",
-                userSettings?.fontSize === "Medium" && "text-base",
-                userSettings?.fontSize === "Large" && "text-lg",
-                userSettings?.fontSize === "XLarge" && "text-xl",
-              )}
-            >
-              Randomize Color
-            </span>
-            <Palette
-              className={cn(
-                "h-auto w-4",
-                userSettings?.fontSize === "Medium" && "h-auto w-5",
-                userSettings?.fontSize === "Large" && "h-auto w-6",
-                userSettings?.fontSize === "XLarge" && "h-auto w-7",
-              )}
-            />
-          </ContextMenuItem>
-        </ContextMenuContent>
+        <FolderContexMenuContent
+          folderPath={folderPath}
+          userSettings={userSettings}
+          setCurrentFolderColor={setCurrentFolderColor}
+        />
       </ContextMenu>
 
-      {/* Renders Video Files */}
+      {/* Main folder div that holds all videos and child folders */}
       <div
         className={cn(
-          "overflow-y-auto rounded-b-lg overflow-x-hidden h-fit",
-          folders.length < 1 && "max-h-60",
+          "overflow-y-auto rounded-b-lg overflow-x-hidden max-h-60",
         )}
         ref={scrolledDiv}
+        id="MAIN_FOLDER_DIV"
         style={{
           ...(currentFolderColor
             ? {
               //backgroundColor: `${currentFolderColor}`,
               borderBottom: `8px solid ${currentFolderColor}`,
+              //filter: "brightness(1.1)",
             }
             : {}),
         }}
       >
+        {/* Renders Video Files */}
         {expanded &&
           files
             .filter((file) => !file.children)
@@ -606,25 +530,33 @@ const FolderList = ({
                 />
               );
             })}
-
         {/* Renders Child Folders */}
         {expanded &&
           folders.map((folder, index) => {
             return (
               <motion.li
+                id="CHILD-FOLDER-WRAPPER"
                 className={cn(
-                  "h-fit flex flex-col items-start justify-self-center gap-1 p-0.5 px-2 cursor-pointer overflow-x-hidden overflow-y-auto select-none",
-                  index === folders.length - 1 && !asChild && "border-tertiary",
+                  `h-fit 
+									flex 
+									flex-col 
+									items-start 
+									justify-self-center gap-1 px-2 overflow-x-hidden overflow-y-auto select-none`,
+                  index === folders.length - 1 && !asChild && "border-tertiary mb-1.5",
                   asChild && "rounded-b-md border-none border-tertiary",
                 )}
                 style={{
                   ...(currentFolderColor
                     ? {
                       //borderBottom: `8px solid ${currentFolderColor}`,
+                      //filter: "brightness(1.3)", // Adjust the brightness value as needed
                     }
                     : {}),
                   ...(expanded && !asChild
-                    ? { padding: "5.5px 3.5px 0 3.5px" }
+                    ? {
+                      padding: "5.5px 3.5px 0 3.5px",
+
+                    }
                     : {}),
                 }}
                 key={folder.name + "current-child" + index}
@@ -640,9 +572,6 @@ const FolderList = ({
                   userSettings?.animations === "On"
                     ? { y: -40, opacity: 0 }
                     : undefined
-                }
-                whileHover={
-                  userSettings?.animations === "On" ? { x: 0.2 } : undefined
                 }
                 transition={{ duration: 0.3, stiffness: 30 }}
               >
