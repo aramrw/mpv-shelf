@@ -30,7 +30,7 @@ struct User {
     pin: String,
     imagePath: Option<String>,
     color: Option<String>,
-    scrollY: u32,
+    scrollY: f32,
 }
 
 #[derive(Serialize, Deserialize, sqlx::FromRow, Debug)]
@@ -118,9 +118,8 @@ fn main() {
                             if app.windows().is_empty() {
                                 println!("No windows open, emitting quit_app event.");
                                 exit(0);
-                            } else {
-                                check_for_mpv();
                             }
+                            check_for_mpv();
                         }
                         _ => {}
                     }
@@ -131,9 +130,9 @@ fn main() {
                 mpv::open_video,
                 stats::update_global_stats,
                 stats::create_chart_stats,
+                stats::recently_watched,
                 misc::show_in_folder,
                 misc::generate_random_color,
-                misc::generate_random_mono_color,
                 misc::rename_subs,
                 misc::export_data,
                 misc::import_data,
@@ -174,22 +173,31 @@ fn check_for_mpv() {
 
 fn close_open_mpv_shelf_instance() -> bool {
     let mut sys = System::new_all();
-
     sys.refresh_all();
 
+    // Collect and sort processes matching "mpv-shelf"
     let mut mpv_shelf_processes: Vec<_> = sys
         .processes()
         .iter()
         .filter(|(_pid, process)| process.name().to_lowercase().contains("mpv-shelf"))
         .collect();
 
-    mpv_shelf_processes.sort_by_key(|(pid, _process)| *pid);
-    //println!("{:?}", mpv_shelf_processes.len());
+    mpv_shelf_processes.sort_by_key(|(pid, _process)| pid.as_u32());
 
-    // If there is more than one process, kill the first one (with the lowest PID)
+    // Get the current process ID
+    let this_proc_id = std::process::id();
+
     if mpv_shelf_processes.len() > 1 {
-        let (pid, _process) = mpv_shelf_processes[1];
-        sys.process(*pid).unwrap().kill();
+        for (pid, _process) in mpv_shelf_processes {
+            // Skip the current process
+            if pid.as_u32() == this_proc_id {
+                continue;
+            }
+            // Attempt to kill the other instances
+            if let Some(proc) = sys.process(*pid) {
+                proc.kill();
+            }
+        }
     }
 
     true
