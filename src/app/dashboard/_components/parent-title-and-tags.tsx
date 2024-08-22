@@ -10,6 +10,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { SettingSchema } from "@/app/settings/page";
 import { FileEntry } from "@tauri-apps/api/fs";
+import NameFromPath from "../../../../lib/hooks/name-from-path";
 
 export default function ParentTitleAndTags({
   asChild,
@@ -33,7 +34,7 @@ export default function ParentTitleAndTags({
   return (
     <div
       className={cn(
-        "flex flex-row items-center justify-start gap-1 font-medium text-primary text-sm text-center pb-1.5 drop-shadow-md ",
+        "flex flex-row items-center justify-start gap-1 font-medium text-primary text-sm text-center ",
       )}
     >
       {asChild && !expanded ? (
@@ -57,10 +58,10 @@ export default function ParentTitleAndTags({
         >
           <Folder
             className={cn(
-              "h-auto w-4",
-              userSettings?.fontSize === "Medium" && "h-auto w-5",
-              userSettings?.fontSize === "Large" && "h-auto w-6",
-              userSettings?.fontSize === "XLarge" && "h-auto w-7",
+              "h-auto w-4 stroke-[3px]",
+              userSettings?.fontSize === "Medium" && "h-auto w-4",
+              userSettings?.fontSize === "Large" && "h-auto w-5",
+              userSettings?.fontSize === "XLarge" && "h-auto w-6",
             )}
           />
         </motion.div>
@@ -109,7 +110,7 @@ export default function ParentTitleAndTags({
             userSettings?.fontSize === "XLarge" && asChild && "text-2xl",
           )}
         >
-          {folderPath.replace(/\\/g, "/").split("/").pop()}
+          {NameFromPath({ path: folderPath })}
         </span>
       ) : (
         <span
@@ -121,9 +122,10 @@ export default function ParentTitleAndTags({
             userSettings?.fontSize === "Medium" && asChild && "text-lg",
             userSettings?.fontSize === "Large" && asChild && "text-xl",
             userSettings?.fontSize === "XLarge" && asChild && "text-2xl",
+						NameFromPath({path: folderPath}).length > 11 && "text-ellipsis overflow-hidden"
           )}
         >
-          {folderPath.replace(/\\/g, "/").split("/").pop()}
+          {NameFromPath({path: folderPath})}
         </span>
       )}
       {folders.length > 0 && (
@@ -137,7 +139,7 @@ export default function ParentTitleAndTags({
         >
           <Folders
             className={cn(
-              "h-auto w-4",
+              "h-auto w-4 stroke-[2.5px]",
               userSettings?.fontSize === "Medium" && !asChild && "h-auto w-4",
               userSettings?.fontSize === "Large" && !asChild && "h-auto w-5",
               userSettings?.fontSize === "XLarge" && !asChild && "h-auto w-6",
@@ -160,13 +162,13 @@ export default function ParentTitleAndTags({
           className="flex flex-row items-center justify-center text-sm rounded-md bg-tertiary px-0.5 gap-0.5 brightness-[1.15]"
           style={{
             ...(currentFolderColor
-              ? { backgroundColor: `${currentFolderColor} ` }
+              ? { backgroundColor: currentFolderColor }
               : {}),
           }}
         >
           <VideoIcon
             className={cn(
-              "h-auto w-4",
+              "h-auto w-4 stroke-[2.3px]",
               userSettings?.fontSize === "Medium" && !asChild && "h-auto w-4",
               userSettings?.fontSize === "Large" && !asChild && "h-auto w-5",
               userSettings?.fontSize === "XLarge" && !asChild && "h-auto w-6",
