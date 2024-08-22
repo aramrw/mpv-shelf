@@ -16,7 +16,7 @@ export async function addFolder({
 }) {
   let db = await Database.load("sqlite:main.db");
 
-  await invoke("generate_random_mono_color").then(async (color: any) => {
+  await invoke("generate_random_color").then(async (color: any) => {
     await db
       .execute(
         "INSERT into folder (expanded, path, userId, asChild, color) VALUES ($1, $2, $3, $4, $5)",
@@ -154,8 +154,4 @@ export async function deleteFolder({ folderPath, settings, userId }: { folderPat
   let db = await Database.load("sqlite:main.db");
   await db.execute("DELETE from folder WHERE path LIKE $1 AND userId = $2", [`${folderPath}%`, userId]);
   await db.execute("DELETE from video WHERE path LIKE $1 AND userId = $2", [`${folderPath}%`, userId])
-  // if (settings.persistOnDelete === "Off") {
-		// console.log("Deleting videos along with folders for user:" + userId);
-		//await db.execute("DELETE from video WHERE path LIKE $1 AND userId = $2", [`${folderPath}%`, userId])
-  // }
 }
