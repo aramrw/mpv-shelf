@@ -185,11 +185,13 @@ fn find_video_index(parent_path: &str, selected_video_path: &str) -> Result<u32,
         .filter_map(|entry| entry.ok())
         .collect();
 
-    let video_extensions = vec![
+    let supported_formats = [
         "mp4", "mkv", "avi", "mov", "wmv", "flv", "webm", "vob", "ogv", "ogg", "drc", "gif",
         "gifv", "mng", "avi", "mov", "qt", "wmv", "yuv", "rm", "rmvb", "asf", "amv", "mp4", "m4p",
         "m4v", "mpg", "mp2", "mpeg", "mpe", "mpv", "mpg", "mpeg", "m2v", "m4v", "svi", "3gp",
-        "3g2", "mxf", "roq", "nsv", "flv", "f4v", "f4p", "f4a", "f4b",
+        "3g2", "mxf", "roq", "nsv", "flv", "f4v", "f4p", "f4a", "f4b", "m4a", "m4b", "aac", "ac3",
+        "aiff", "alac", "ape", "au", "dsd", "dts", "flac", "m4a", "m4b", "mka", "mp2", "mp3",
+        "oga", "ogg", "opus", "pcm", "tak", "tta", "wav", "wma", "wv",
     ];
 
     let subtitle_extensions = vec![
@@ -204,7 +206,7 @@ fn find_video_index(parent_path: &str, selected_video_path: &str) -> Result<u32,
                     if let Some(extension) = entry.path().extension() {
                         if let Some(extension_str) = extension.to_str() {
                             let extension_str = extension_str.to_lowercase();
-                            return video_extensions.contains(&extension_str.as_str())
+                            return supported_formats.contains(&extension_str.as_str())
                                 || subtitle_extensions.contains(&extension_str.as_str());
                         }
                     }
