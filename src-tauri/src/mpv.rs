@@ -214,31 +214,25 @@ fn find_video_index(parent_path: &str, selected_video_path: &str) -> Result<u32,
         })
         .collect::<Vec<_>>();
 
+    let re = regex::Regex::new(r"\d+").unwrap();
+
     video_files_vec.sort_by(|a, b| {
-        let a = a.path();
-        let b = b.path();
-        let a_str = a.file_name().unwrap().to_string_lossy();
-        let b_str = b.file_name().unwrap().to_string_lossy();
+        let nums_a: Vec<u32> = re
+            .find_iter(&a.file_name().to_string_lossy())
+            .filter_map(|m| m.as_str().parse::<u32>().ok())
+            .collect();
+        let nums_b: Vec<u32> = re
+            .find_iter(&b.file_name().to_string_lossy())
+            .filter_map(|m| m.as_str().parse::<u32>().ok())
+            .collect();
 
-        let a_num: i32 = a_str
-            .chars()
-            .filter(|c| c.is_ascii_digit())
-            .collect::<String>()
-            .parse()
-            .unwrap_or(0);
-        let b_num: i32 = b_str
-            .chars()
-            .filter(|c| c.is_ascii_digit())
-            .collect::<String>()
-            .parse()
-            .unwrap_or(0);
-
-        a_num.cmp(&b_num)
+        nums_a.cmp(&nums_b)
     });
 
-    // video_files_vec.iter().for_each(|file| {
-    //     println!("{}", file.file_name().to_str().unwrap());
-    //println!("{}", current_video_index);
+    video_files_vec.iter().for_each(|file| {
+        println!("{}", file.file_name().to_str().unwrap());
+        // println!("{}", current);
+    });
 
     let selected_video_file_name = Path::new(selected_video_path)
         .file_name()
