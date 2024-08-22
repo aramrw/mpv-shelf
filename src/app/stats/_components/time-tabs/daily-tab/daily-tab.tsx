@@ -13,16 +13,23 @@ import "chart.js/auto";
 import { useEffect, useState } from "react";
 import { Bar } from "react-chartjs-2";
 import { getCurrentUserGlobal } from "../../../../../../lib/prisma-commands/global/global-cmds";
+import { Video } from "@prisma/client";
+import RecentCard from "./recent-card";
 
 export default function DailyTab() {
 
   const [stats, setStats] = useState<number[]>();
+  const [recentlyWatched, setRecentlyWatched] = useState<Video[]>();
 
   useEffect(() => {
     getCurrentUserGlobal().then((user) => {
       invoke("create_chart_stats", { range: "daily", userId: user?.userId }).then((daily) => {
-        console.log("daily : " + daily);
+        //console.log("daily : " + daily);
         setStats(daily as number[]);
+      });
+      invoke("recently_watched", { userId: user?.userId }).then((res) => {
+        //console.log(`recently watched: ${res as Video[]}`);
+        setRecentlyWatched(res as Video[]);
       });
     })
   }, [])
@@ -65,19 +72,31 @@ export default function DailyTab() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="pointer-events-none select-none">Daily</CardTitle>
-        <CardDescription className="underline pointer-events-none select-none">
-          Last Updated : {new Date().toLocaleDateString()} @{" "}
-          {new Date().toLocaleTimeString()}{" "}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-1">
-        <div className="w-fit h-fit">
-          <Bar data={data} />
-        </div>
-      </CardContent>
+    <Card className="flex flex-row justify-center items-start">
+      <div className="w-fit">
+        <CardHeader className="w-fit">
+          <CardTitle className="pointer-events-none select-none w-fit">Daily</CardTitle>
+          <CardDescription className="underline pointer-events-none select-none">
+            Last Updated : {new Date().toLocaleDateString()} @{" "}
+            {new Date().toLocaleTimeString()}{" "}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="w-full h-full space-y-1 flex flex-row items-center">
+          <div className="w-fit h-fit">
+            <Bar data={data} />
+          </div>
+        </CardContent>
+      </div>
+      <div className="w-full h-full flex flex-col justify-center items-start select-none px-6">
+        <CardHeader className="w-fit">
+          <CardTitle className="pointer-events-none select-none w-fit">Recently Updated</CardTitle>
+        </CardHeader>
+        <ul className="w-fit flex flex-col items-center justify-self-start max-h-44 overflow-y-auto gap-2 p-2 rounded-sm shadow-md outline outline-zinc-100">
+          {recentlyWatched?.map((vid, i) => (
+            <RecentCard key={i} item={vid} />
+          ))}
+        </ul>
+      </div>
     </Card>
   );
 }
