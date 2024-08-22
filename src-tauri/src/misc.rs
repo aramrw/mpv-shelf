@@ -1,11 +1,10 @@
-use random_color::{Luminosity, RandomColor};
+use random_color::{Color, Luminosity, RandomColor};
 use regex::Regex;
 use sqlx::SqlitePool;
 use std::fs::{self};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::mpsc;
-use std::u32;
 use tauri::api::dialog;
 use tauri::{AppHandle, Manager};
 use tokio::sync::Mutex;
@@ -433,22 +432,31 @@ pub fn show_in_folder(path: String) {
 
 // Color Generation
 #[tauri::command]
-pub fn generate_random_color() -> String {
-    let color = RandomColor::new()
-        .luminosity(Luminosity::Light)
-        .alpha(0.2)
-        .to_hex()
-        .to_string();
-    color
-}
+pub fn generate_random_color(hue: Option<String>) -> String {
+    if let Some(hue) = hue {
+        let hue: Color = match hue.as_str() {
+            "red" => Color::Red,
+            "orange" => Color::Orange,
+            "yellow" => Color::Yellow,
+            "green" => Color::Green,
+            "blue" => Color::Blue,
+            "purple" => Color::Purple,
+            "pink" => Color::Pink,
+            _ => Color::Monochrome,
+        };
 
-#[tauri::command]
-pub fn generate_random_mono_color() -> String {
+        return RandomColor::new()
+            .hue(hue)
+            .luminosity(Luminosity::Light)
+            .alpha(1.2)
+            .to_hex()
+            .to_string();
+    }
+
     let color = RandomColor::new()
         .luminosity(Luminosity::Light)
         .alpha(1.2)
         .to_hex()
         .to_string();
-
     color
 }
