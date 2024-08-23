@@ -402,7 +402,7 @@ const FolderList = ({
               exit={
                 userSettings?.animations === "On" ? { opacity: 0 } : undefined
               }
-              transition={{ duration: 0.5, damping: 0.5 }}
+              transition={{ duration: 0.2, damping: 0.5 }}
               key={"main-parent-folder-motion-div"}
               id="MAIN_PARENT_FOLDER_TITLE"
               style={{
@@ -416,7 +416,7 @@ const FolderList = ({
                 ...(expanded && !asChild ? { padding: "6.5px" } : {}),
               }}
               className={cn(
-                "flex cursor-pointer flex-row items-center justify-between border-tertiary rounded-sm p-1 bg-muted break-keep",
+                "flex cursor-default flex-row items-center justify-between border-tertiary rounded-sm p-1 bg-muted break-keep",
                 expanded &&
                 files.length > 0 &&
                 !asChild &&
@@ -428,7 +428,7 @@ const FolderList = ({
                 expanded && asChild && "border-none rounded-sm",
                 expanded && asChild && "p-1 border-none rounded-b-none",
                 expanded && !asChild && "border-none",
-                asChild && "shadow-sm rounded-t-none bg-muted flex flex-col",
+                asChild && "shadow-sm rounded-t-none bg-muted flex flex-col cursor-default",
                 userSettings?.animations === "Off" && "hover:opacity-80",
               )}
               onClick={() => {
@@ -450,8 +450,8 @@ const FolderList = ({
               }}
               whileHover={
                 userSettings?.animations === "On" && !asChild && files.length > 0 || folders.length > 0
-                  ? { padding: "6.5px" }
-                  : undefined
+                  ? { padding: "6.5px", opacity: 0.7 }
+                  : { opacity: 0.7 }
               }
             >
               {/* Displays all the tags and name for main parent folder. */}
