@@ -98,6 +98,7 @@ export default function ParentTitleAndTags({
         </motion.div>
       )}
 
+      {/************** FOLDER NAME ************** */}
       {folders.length === 0 && files.length === 0 ? (
         <span
           className={cn(
@@ -116,18 +117,21 @@ export default function ParentTitleAndTags({
         <span
           className={cn(
             "text-base font-bold",
+            asChild && "text-sm",
             userSettings?.fontSize === "Medium" && "text-lg",
             userSettings?.fontSize === "Large" && "text-2xl",
             userSettings?.fontSize === "XLarge" && "text-3xl",
-            userSettings?.fontSize === "Medium" && asChild && "text-lg",
+            userSettings?.fontSize === "Medium" && asChild && "text-base",
             userSettings?.fontSize === "Large" && asChild && "text-xl",
             userSettings?.fontSize === "XLarge" && asChild && "text-2xl",
-						NameFromPath({path: folderPath}).length > 11 && "text-ellipsis overflow-hidden"
+            NameFromPath({ path: folderPath }).length > 11 && "text-ellipsis overflow-hidden"
           )}
         >
-          {NameFromPath({path: folderPath})}
+          {NameFromPath({ path: folderPath })}
         </span>
       )}
+
+      {/************** FOLDERS LENGTH ************** */}
       {folders.length > 0 && (
         <div
           className="flex flex-row items-center justify-center gap-0.5 rounded-md bg-tertiary px-0.5 brightness-[1.15]"
@@ -157,6 +161,8 @@ export default function ParentTitleAndTags({
           </span>
         </div>
       )}
+
+      {/************** VIDEOS LENGTH ************** */}
       {files.length > 0 && (
         <div
           className="flex flex-row items-center justify-center text-sm rounded-md bg-tertiary px-0.5 gap-0.5 brightness-[1.15]"
@@ -186,6 +192,8 @@ export default function ParentTitleAndTags({
           </span>
         </div>
       )}
+
+      {/************** SUBTITLES LENGTH ************** */}
       {subtitleFiles.length > 0 && (
         <div
           className="flex flex-row items-center justify-center text-xs rounded-md bg-tertiary px-0.5 gap-0.5 brightness-[1.15]"
