@@ -23,6 +23,7 @@ import {
 import { getCurrentUserGlobal } from "../../../lib/prisma-commands/global/global-cmds";
 import { getUsers } from "../../../lib/prisma-commands/user/user-cmds";
 import { getUserSettings } from "../../../lib/prisma-commands/settings/setting-cmds";
+import DashboardFooter from "./_components/footer";
 // import { WebviewWindow, appWindow } from "@tauri-apps/api/window"
 
 export type AnimeType = "TV" | "MOVIE" | "OVA" | "ONA" | "SPECIAL" | "UNKOWN";
@@ -265,98 +266,101 @@ export default function Dashboard() {
   };
 
   return (
-    <main
-      className={cn(
-        "h-full pl-3 lg:px-16 xl:px-36 2xl:px-48 mt-3 max-h-screen overflow-auto pb-20",
-      )}
-      ref={scrolledDiv}
-      style={{ scrollbarGutter: "stable" }}
-    >
-      <Button
-        variant="outline"
+    <main className="h-[90dvh]">
+      <div
         className={cn(
-          "select-none flex flex-row justify-center items-center gap-1.5 font-bold mb-2",
-          userSettings?.fontSize === "Medium" && "text-lg mx-0",
-          userSettings?.fontSize === "Large" && "text-xl mx-0",
-          userSettings?.fontSize === "XLarge" && "text-2xl mx-0",
+          "h-full pl-3 lg:px-16 xl:px-36 2xl:px-48 mt-3 max-h-screen overflow-auto pb-20",
         )}
-        onClick={() => {
-          handleAddFolder();
-        }}
+        ref={scrolledDiv}
+        style={{ scrollbarGutter: "stable" }}
       >
-        <span>Add Folder</span>
-        <FolderPlus
+        <Button
+          variant="outline"
           className={cn(
-            "h-auto w-4",
-            userSettings?.fontSize === "Medium" && "h-auto w-5",
-            userSettings?.fontSize === "Large" && "h-auto w-6",
-            userSettings?.fontSize === "XLarge" && "h-auto w-7",
+            "select-none flex flex-row justify-center items-center gap-1.5 font-bold mb-2",
+            userSettings?.fontSize === "Medium" && "text-lg mx-0",
+            userSettings?.fontSize === "Large" && "text-xl mx-0",
+            userSettings?.fontSize === "XLarge" && "text-2xl mx-0",
           )}
-        />
-      </Button>
-      {/* Render Top-Level-Parent Folders */}
-      <motion.div
-        className="grid grid-cols-3 h-fit items-start justify-center gap-2 rounded-b-sm drop-shadow-sm"
-        key={"main-parent-folder" + folderPaths.length + 1}
-      >
-        <div className="w-full h-fit flex flex-col gap-2">
-          {folderPaths.map((folder, index) => {
-            if (index % 3 === 0) {
-              return (
-                <FolderList
-                  folderPath={folder}
-                  userSettings={userSettings}
-                  currentUser={currentUser}
-                  folderPaths={folderPaths}
-                  parentFolderPaths={parentFolderPaths}
-                  setFolderPathsHook={setFolderPathsHook}
-                  setParentFolderPathsHook={setParentFolderPathsHook}
-                  key={index.toString() + folder}
-                />
-              );
-            }
-            return null;
-          })}
-        </div>
-        <div className="w-full h-fit flex flex-col gap-2">
-          {folderPaths.map((folder, index) => {
-            if (index % 3 === 1) {
-              return (
-                <FolderList
-                  folderPath={folder}
-                  userSettings={userSettings}
-                  currentUser={currentUser}
-                  folderPaths={folderPaths}
-                  parentFolderPaths={parentFolderPaths}
-                  setFolderPathsHook={setFolderPathsHook}
-                  setParentFolderPathsHook={setParentFolderPathsHook}
-                  key={index.toString() + folder}
-                />
-              );
-            }
-            return null;
-          })}
-        </div>
-        <div className="w-full h-fit flex flex-col gap-2">
-          {folderPaths.map((folder, index) => {
-            if (index % 3 === 2) {
-              return (
-                <FolderList
-                  folderPath={folder}
-                  userSettings={userSettings}
-                  currentUser={currentUser}
-                  folderPaths={folderPaths}
-                  parentFolderPaths={parentFolderPaths}
-                  setFolderPathsHook={setFolderPathsHook}
-                  setParentFolderPathsHook={setParentFolderPathsHook}
-                  key={index.toString() + folder}
-                />
-              );
-            }
-            return null;
-          })}
-        </div>
-      </motion.div>
+          onClick={() => {
+            handleAddFolder();
+          }}
+        >
+          <span>Add Folder</span>
+          <FolderPlus
+            className={cn(
+              "h-auto w-4",
+              userSettings?.fontSize === "Medium" && "h-auto w-5",
+              userSettings?.fontSize === "Large" && "h-auto w-6",
+              userSettings?.fontSize === "XLarge" && "h-auto w-7",
+            )}
+          />
+        </Button>
+        {/* Render Top-Level-Parent Folders */}
+        <motion.div
+          className="grid grid-cols-3 h-fit items-start justify-center gap-2 rounded-b-sm drop-shadow-sm"
+          key={"main-parent-folder" + folderPaths.length + 1}
+        >
+          <div className="w-full h-fit flex flex-col gap-2">
+            {folderPaths.map((folder, index) => {
+              if (index % 3 === 0) {
+                return (
+                  <FolderList
+                    folderPath={folder}
+                    userSettings={userSettings}
+                    currentUser={currentUser}
+                    folderPaths={folderPaths}
+                    parentFolderPaths={parentFolderPaths}
+                    setFolderPathsHook={setFolderPathsHook}
+                    setParentFolderPathsHook={setParentFolderPathsHook}
+                    key={index.toString() + folder}
+                  />
+                );
+              }
+              return null;
+            })}
+          </div>
+          <div className="w-full h-fit flex flex-col gap-2">
+            {folderPaths.map((folder, index) => {
+              if (index % 3 === 1) {
+                return (
+                  <FolderList
+                    folderPath={folder}
+                    userSettings={userSettings}
+                    currentUser={currentUser}
+                    folderPaths={folderPaths}
+                    parentFolderPaths={parentFolderPaths}
+                    setFolderPathsHook={setFolderPathsHook}
+                    setParentFolderPathsHook={setParentFolderPathsHook}
+                    key={index.toString() + folder}
+                  />
+                );
+              }
+              return null;
+            })}
+          </div>
+          <div className="w-full h-fit flex flex-col gap-2">
+            {folderPaths.map((folder, index) => {
+              if (index % 3 === 2) {
+                return (
+                  <FolderList
+                    folderPath={folder}
+                    userSettings={userSettings}
+                    currentUser={currentUser}
+                    folderPaths={folderPaths}
+                    parentFolderPaths={parentFolderPaths}
+                    setFolderPathsHook={setFolderPathsHook}
+                    setParentFolderPathsHook={setParentFolderPathsHook}
+                    key={index.toString() + folder}
+                  />
+                );
+              }
+              return null;
+            })}
+          </div>
+        </motion.div>
+      </div>
+      <DashboardFooter />
     </main>
   );
 }
