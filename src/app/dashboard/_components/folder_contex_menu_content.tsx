@@ -75,11 +75,13 @@ export default function FolderContexMenuContent({
             )}
           />
         </ContextMenuSubTrigger>
-        <ContextMenuSubContent className='mx-2 w-fit min-w-[1px] max-w-fit p-0.5'>
+        <ContextMenuSubContent 
+					sideOffset={7}
+					className='w-fit min-w-[1px] max-w-fit p-0.5 grid grid-flow-row grid-cols-3'>
           {Object.entries(colors).map((color, i) => (
             <ContextMenuItem
               key={i}
-              className="flex cursor-pointer items-center gap-1 font-medium max-w-fit p-0.5"
+              className="flex cursor-pointer items-center gap-1 font-medium max-w-fit p-0.5 "
               onClick={() => {
                 randomizeFolderColor(folderPath, color[0]).then(
                   (color: any) => {
@@ -91,7 +93,7 @@ export default function FolderContexMenuContent({
             >
               <SquareIcon
                 className={cn(
-                  "h-auto w-3",
+                  "h-auto w-5",
                   userSettings?.fontSize === "Medium" && "h-auto w-7",
                   userSettings?.fontSize === "Large" && "h-auto w-6",
                   userSettings?.fontSize === "XLarge" && "h-auto w-7",
