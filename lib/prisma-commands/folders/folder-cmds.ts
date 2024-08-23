@@ -128,7 +128,7 @@ export async function updateFolderExpanded({
         );
         // console.log ("Updated", folderPath.split("\\").pop(), "expanded:", expanded, "for user", userId);
       } else {
-        await invoke("generate_random_mono_color").then(async (color: any) => {
+        await invoke("generate_random_color").then(async (color: any) => {
           await db
             .execute(
               "INSERT into folder (expanded, path, userId, asChild, color) VALUES ($1, $2, $3, $4, $5)",
