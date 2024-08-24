@@ -72,7 +72,7 @@ export default function DailyTab() {
   };
 
   return (
-    <Card className="flex flex-row justify-center items-start">
+    <Card className="h-96 flex flex-col justify-start items-start md:flex-row md:h-fit overflow-auto">
       <div className="w-fit">
         <CardHeader className="w-fit">
           <CardTitle className="pointer-events-none select-none w-fit">Daily</CardTitle>
@@ -81,17 +81,20 @@ export default function DailyTab() {
             {new Date().toLocaleTimeString()}{" "}
           </CardDescription>
         </CardHeader>
-        <CardContent className="w-full h-full space-y-1 flex flex-row items-center">
-          <div className="w-fit h-fit">
-            <Bar data={data} />
+        <CardContent className="w-full h-fit space-y-1 flex flex-row items-center">
+          <div className="w-fit h-fit" id="CHART_PARENT_DIV">
+            <Bar data={data} className="h-fit" id="CHART_GRAPH" />
           </div>
         </CardContent>
       </div>
-      <div className="w-full h-full flex flex-col justify-center items-start select-none px-6">
-        <CardHeader className="w-fit">
+      <div className="w-full h-full flex flex-col justify-center items-start select-none px-6 pb-4">
+        <CardHeader className="w-fit pt-0 pl-0 md:pt-6">
           <CardTitle className="pointer-events-none select-none w-fit">Recently Updated</CardTitle>
         </CardHeader>
-        <ul className="w-fit flex flex-col items-center justify-self-start max-h-44 overflow-y-auto gap-2 p-2 rounded-sm shadow-md outline outline-zinc-100">
+        <ul className="
+					min-w-2/3 max-w-96 flex flex-col items-start justify-self-start 
+					max-h-44 overflow-y-auto gap-2 p-2 rounded-sm 
+					shadow-md outline outline-zinc-100">
           {recentlyWatched?.map((vid, i) => (
             <RecentCard key={i} item={vid} />
           ))}
