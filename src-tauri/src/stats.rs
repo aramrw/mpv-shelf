@@ -1,3 +1,5 @@
+use std::ffi::OsStr;
+
 use crate::db::{Folder, Video};
 use chrono::{Datelike /* NaiveDate, Weekday */};
 use serde::{Deserialize, Serialize};
@@ -40,15 +42,14 @@ pub async fn create_new_stats(handle: AppHandle, user_id: u16) -> Option<Stats> 
         watchtime += folder.watchTime;
     }
 
-    let mut videos_vec: Vec<Video> = sqlx::query_as("SELECT * FROM video WHERE userId = ?")
+    let videos_vec: Vec<Video> = sqlx::query_as("SELECT * FROM video WHERE userId = ?")
         .bind(user_id)
         .fetch_all(&pool)
         .await
         .unwrap();
 
     let videos_watched = videos_vec.iter().filter(|vid| vid.watched).count() as u32;
-
-    videos_vec.retain(|vid| added_folder_vid_paths.contains(&vid.path));
+    //videos_vec.retain(|vid| added_folder_vid_paths.contains(&vid.path));
 
     let total_anime = total_anime_vec.len() as u32;
     let total_videos = videos_vec.len() as u32;
@@ -78,17 +79,13 @@ pub async fn update_global_stats(handle: AppHandle, user_id: u16) -> Stats {
     let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
     let mut is_stale: bool = false;
 
-    let old_stats: Stats = match sqlx::query_as("SELECT * FROM stats WHERE user_id = ?")
+    let old_stats: Stats = sqlx::query_as("SELECT * FROM stats WHERE user_id = ?")
         .bind(user_id)
-        .fetch_one(&pool)
+        .fetch_optional(&pool)
         .await
-    {
-        Ok(stats) => stats,
-        Err(err) => {
-            println!("Err fetching old stats: {}", err);
-            Stats::default()
-        }
-    };
+        .unwrap()
+        .unwrap_or_default();
+
     let mut new_stats = create_new_stats(handle, user_id).await.unwrap();
 
     let old_stats_vec = stats_to_vec(&old_stats);
@@ -170,7 +167,6 @@ async fn read_anime_folder_dirs(
     if let Ok(parent) = std::fs::read_dir(folder_path) {
         for file in parent {
             let entry = file.unwrap();
-            let file_name = entry.file_name();
             let path = entry.path();
 
             if path.is_dir() {
@@ -178,8 +174,8 @@ async fn read_anime_folder_dirs(
                 let pool_clone = pool.clone();
                 Box::pin(read_anime_folder_dirs(path_str, user_id, &pool_clone)).await;
             } else if path.is_file() {
-                for format in &vid_formats {
-                    if file_name.to_str().unwrap().contains(format) {
+                if let Some(ext) = path.extension().and_then(OsStr::to_str) {
+                    if vid_formats.contains(&ext) {
                         let path_str = path.to_str().unwrap().to_string();
                         insert_or_ignore_vid(&path_str, user_id, pool).await;
                         vid_paths.push(path_str);
@@ -193,8 +189,6 @@ async fn read_anime_folder_dirs(
 }
 
 async fn insert_or_ignore_vid(video_path: &str, user_id: u16, pool: &SqlitePool) {
-    //println!("Inserting {}", video_path);
-
     sqlx::query(
         "INSERT OR IGNORE INTO video 
         (path, userId, watched, lastWatchedAt) 
@@ -283,6 +277,7 @@ pub async fn create_chart_stats(
                         _day = split_day[1].parse().unwrap();
                     } else {
                         _day = split_date[2].parse().unwrap();
+                        println!("{}", split_date[2]);
                     }
 
                     final_data[_day - 1] =
@@ -319,7 +314,10 @@ pub async fn create_chart_stats(
 pub async fn recently_watched(handle: AppHandle, user_id: u16) -> Vec<Video> {
     let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
     let videos_vec: Vec<Video> = sqlx::query_as::<_, Video>(
-        "SELECT * FROM video WHERE userId = ? AND date(lastWatchedAt, 'localtime') = date('now', 'localtime')"
+        "SELECT * FROM video 
+        WHERE userId = ? 
+        AND date(lastWatchedAt, 'localtime') = date('now', 'localtime') 
+        ORDER BY lastWatchedAt DESC",
     )
     .bind(user_id)
     .fetch_all(&pool)

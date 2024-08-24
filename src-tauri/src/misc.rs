@@ -11,28 +11,29 @@ use tokio::sync::Mutex;
 
 use crate::db::{Folder, Settings, Video};
 //use crate::mpv::update_chart_watchtime;
-use crate::stats::{Chart, Stats};
+use crate::stats::{self, Chart, Stats};
 use crate::{errors, Global, User};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BackupData {
-    pub chart: Chart,
+    pub chart: Option<Chart>,
     pub folders: Vec<Folder>,
     pub global: Global,
     pub settings: Settings,
-    pub stats: Stats,
+    pub stats: Option<Stats>,
     pub user: User,
     pub videos: Vec<Video>,
 }
 
-async fn combine_data_structs(
+async fn combine_data_structs_for_export(
     pool: &SqlitePool,
     user_id: &u32,
 ) -> Result<BackupData, errors::BackupDataErrors> {
-    let chart: Chart = sqlx::query_as("SELECT * FROM chart WHERE user_id = ?")
+    // Optional Settings
+    let chart: Option<Chart> = sqlx::query_as("SELECT * FROM chart WHERE user_id = ?")
         .bind(user_id)
-        .fetch_one(pool)
+        .fetch_optional(pool)
         .await?;
 
     let folders: Vec<Folder> = sqlx::query_as("SELECT * FROM folder WHERE userId = ?")
@@ -40,6 +41,17 @@ async fn combine_data_structs(
         .fetch_all(pool)
         .await?;
 
+    let stats: Option<Stats> = sqlx::query_as("SELECT * FROM stats WHERE user_id = ?")
+        .bind(user_id)
+        .fetch_optional(pool)
+        .await?;
+
+    let videos: Vec<Video> = sqlx::query_as("SELECT * FROM video WHERE userId = ?")
+        .bind(user_id)
+        .fetch_all(pool)
+        .await?;
+
+    // Non-Optional Settings
     let global: Global = sqlx::query_as("SELECT * FROM global WHERE userId = ?")
         .bind(user_id)
         .fetch_one(pool)
@@ -50,19 +62,9 @@ async fn combine_data_structs(
         .fetch_one(pool)
         .await?;
 
-    let stats: Stats = sqlx::query_as("SELECT * FROM stats WHERE user_id = ?")
-        .bind(user_id)
-        .fetch_one(pool)
-        .await?;
-
     let user: User = sqlx::query_as("SELECT * FROM user WHERE id = ?")
         .bind(user_id)
         .fetch_one(pool)
-        .await?;
-
-    let videos: Vec<Video> = sqlx::query_as("SELECT * FROM video WHERE userId = ?")
-        .bind(user_id)
-        .fetch_all(pool)
         .await?;
 
     Ok(BackupData {
@@ -77,7 +79,6 @@ async fn combine_data_structs(
 }
 
 // Data
-
 #[tauri::command]
 pub async fn export_data(
     handle: AppHandle,
@@ -95,7 +96,7 @@ pub async fn export_data(
     if let Some(path) = folder_path {
         let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
 
-        let backup_data = combine_data_structs(&pool, &user_id).await?;
+        let backup_data = combine_data_structs_for_export(&pool, &user_id).await?;
 
         let stats_json = serde_json::to_string_pretty(&backup_data)?;
         let file_name = format!(
@@ -129,23 +130,33 @@ async fn insert_imported_bdata(
         .execute(pool)
         .await?;
 
-    // Insert Stats
-    sqlx::query("INSERT INTO stats (user_id, total_anime, total_videos, videos_watched, videos_remaining, watchtime) VALUES (?, ?, ?, ?, ?, ?)")
-    .bind(user_id)
-    .bind(data.stats.total_anime)
-    .bind(data.stats.total_videos)
-    .bind(data.stats.videos_watched)
-    .bind(data.stats.videos_remaining)
-    .bind(data.stats.watchtime)
-    .execute(pool)
-    .await?;
+    if let Some(stats) = data.stats {
+        // Insert Stats
+        sqlx::query(
+            "INSERT INTO stats 
+            (user_id, total_anime, total_videos, videos_watched, videos_remaining, watchtime) 
+            VALUES (?, ?, ?, ?, ?, ?)",
+        )
+        .bind(user_id)
+        .bind(stats.total_anime)
+        .bind(stats.total_videos)
+        .bind(stats.videos_watched)
+        .bind(stats.videos_remaining)
+        .bind(stats.watchtime)
+        .execute(pool)
+        .await?;
+    }
 
     // Insert Settings
-    // ! WHEN ADD A NEW SETTING:
+    // WHEN ADD A NEW SETTING:
     // update "INSERT INTO" keys
     // add a `?` to "VALUES" -> (...?, ?, ?)
     // .bind() the new setting from `data.settings.newSetting`
-    sqlx::query("INSERT INTO settings (userId, fontSize, animations, autoPlay, autoRename, usePin) VALUES (?, ?, ?, ?, ?, ?)")
+    sqlx::query(
+        "INSERT INTO settings 
+        (userId, fontSize, animations, autoPlay, autoRename, usePin) 
+        VALUES (?, ?, ?, ?, ?, ?)",
+    )
     .bind(user_id)
     .bind(data.settings.fontSize)
     .bind(data.settings.animations)
@@ -163,36 +174,50 @@ async fn insert_imported_bdata(
         .execute(pool)
         .await?;
 
-    // Insert Chart
-    sqlx::query("INSERT INTO chart (user_id, watchtime, updated_at) VALUES (?, ?, datetime('now', 'localtime'))")
+    if let Some(chart) = data.chart {
+        // Insert Chart
+        sqlx::query(
+            "INSERT INTO chart 
+            (user_id, watchtime, updated_at) 
+            VALUES (?, ?, datetime('now', 'localtime'))",
+        )
         .bind(user_id)
-        .bind(data.chart.watchtime)
+        .bind(chart.watchtime)
         .execute(pool)
         .await?;
+    }
 
     // Insert Videos
     for vid in data.videos {
-        sqlx::query("INSERT INTO video (path, userId, watched, lastWatchedAt) VALUES (?, ?, ?, ?)")
-            .bind(vid.path)
-            .bind(user_id)
-            .bind(vid.watched)
-            .bind(vid.lastWatchedAt)
-            .execute(pool)
-            .await?;
+        sqlx::query(
+            "INSERT INTO video 
+                (path, userId, watched, lastWatchedAt) 
+                VALUES (?, ?, ?, ?)",
+        )
+        .bind(vid.path)
+        .bind(user_id)
+        .bind(vid.watched)
+        .bind(vid.lastWatchedAt)
+        .execute(pool)
+        .await?;
     }
 
     // Insert Folders
     for folder in data.folders {
-        sqlx::query("INSERT INTO folder (userId, path, expanded, asChild, watchTime, scrollY, color) VALUES (?, ?, ?, ?, ?, ?, ?)")
-    .bind(user_id)
-    .bind(folder.path)
-    .bind(folder.expanded)
-    .bind(folder.asChild)
-    .bind(folder.watchTime)
-    .bind(folder.scrollY)
-    .bind(folder.color)
-    .execute(pool)
-    .await?;
+        sqlx::query(
+            "INSERT INTO folder 
+                (userId, path, expanded, asChild, watchTime, scrollY, color) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(user_id)
+        .bind(folder.path)
+        .bind(folder.expanded)
+        .bind(folder.asChild)
+        .bind(folder.watchTime)
+        .bind(folder.scrollY)
+        .bind(folder.color)
+        .execute(pool)
+        .await?;
     }
 
     Ok(())

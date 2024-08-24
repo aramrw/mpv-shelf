@@ -70,7 +70,7 @@ pub async fn migrate_users(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         pin TEXT NOT NULL,
         imagePath TEXT,
         color TEXT,
-        scrollY INTEGER DEFAULT 0
+        scrollY REAL DEFAULT 0
     )",
     )
     .execute(pool)

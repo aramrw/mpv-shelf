@@ -46,6 +46,22 @@ export default function VideoFile({
     return split[split.length - 1];
   }
 
+  function calculateScrollX(fileNameLength: number): number {
+    if (fileNameLength < 20) {
+      return 3;
+    } else if (fileNameLength < 40) {
+      return 4.6;
+    } else if (fileNameLength < 60) {
+      return 6.9;
+    } else if (fileNameLength < 80) {
+      return 8.2;
+    } else if (fileNameLength <= 100) {
+      return 10.5;
+    } else {
+      return 12; // For any length above 100
+    }
+  }
+
   const audioFormats = [
     "aac", "ac3", "aiff", "alac", "ape", "au", "dsd", "dts", "flac",
     "m4a", "m4b", "mka", "mp2", "mp3", "oga", "ogg", "opus", "pcm",
@@ -134,11 +150,11 @@ export default function VideoFile({
               whileHover={
                 userSettings?.animations === "On" &&
                   file.name &&
-                  file.name?.length > 65
-                  ? { width: "-100%" }
+                  file.name?.length > 1
+                  ? { x: -calculateScrollX(file.name.length) * file.name.length }
                   : undefined
               }
-              transition={{ duration: 1, damping: 0.2 }}
+              transition={{ duration: calculateScrollX(file.name!.length / 2), damping: 0.2, delay: 1.2 }}
             >
               {audioFormats.includes(getFileType(file.name!)) ? (
                 <MusicIcon
