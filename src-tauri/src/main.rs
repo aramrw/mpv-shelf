@@ -8,6 +8,7 @@ mod mal;
 mod misc;
 mod mpv;
 mod stats;
+mod tray;
 
 use core::str;
 #[allow(unused_imports)]
@@ -15,14 +16,13 @@ use random_color::color_dictionary::{ColorDictionary, ColorInformation};
 #[allow(unused_imports)]
 use random_color::{Color, Luminosity, RandomColor};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::process::exit;
 use sysinfo::System;
 #[allow(unused_imports)]
 use tauri::{
     command, generate_handler, CustomMenuItem, Manager, SystemTray, SystemTrayEvent,
     SystemTrayMenu, SystemTrayMenuItem,
 };
+use tray::{handle_system_tray_events, instantiate_system_tray};
 
 #[derive(Serialize, Deserialize, sqlx::FromRow, Debug)]
 struct User {
@@ -54,18 +54,7 @@ struct VideoTable {
 }
 
 fn main() {
-    let toggle_window = CustomMenuItem::new("toggle_window".to_string(), "Toggle Window");
-    let restart = CustomMenuItem::new("restart".to_string(), "Restart");
-    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
-
-    let tray_menu = SystemTrayMenu::new()
-        .add_item(toggle_window)
-        .add_native_item(SystemTrayMenuItem::Separator)
-        .add_item(restart)
-        .add_native_item(SystemTrayMenuItem::Separator)
-        .add_item(quit);
-
-    let tray = SystemTray::new().with_menu(tray_menu).clone();
+    let tray = instantiate_system_tray();
     fn hack_builder(tray: SystemTray) {
         tauri::Builder::default()
             .setup(|app| {
@@ -85,46 +74,7 @@ fn main() {
             })
             .system_tray(tray.clone())
             .plugin(tauri_plugin_sql::Builder::default().build())
-            .on_system_tray_event(move |app, event| {
-                if let SystemTrayEvent::MenuItemClick { ref id, .. } = event {
-                    match id.as_str() {
-                        "toggle_window" => {
-                            if let Some(window) = app.get_window("main") {
-                                if window.is_visible().unwrap() {
-                                    window.hide().unwrap();
-                                } else {
-                                    window.center().unwrap();
-                                    window.show().unwrap();
-                                    window.set_focus().unwrap();
-                                }
-                            } else {
-                                tauri::WindowBuilder::new(
-                                    app,
-                                    "main".to_string(),
-                                    tauri::WindowUrl::App("/login".into()),
-                                )
-                                .center()
-                                .title("mpv-shelf")
-                                .inner_size(800.0, 600.0)
-                                .build()
-                                .unwrap();
-                            }
-                        }
-                        "restart" => {
-                            app.emit_all("closing_app", ()).unwrap();
-                            app.restart();
-                        }
-                        "quit" => {
-                            if app.windows().is_empty() {
-                                println!("No windows open, emitting quit_app event.");
-                                exit(0);
-                            }
-                            check_for_mpv();
-                        }
-                        _ => {}
-                    }
-                }
-            })
+            .on_system_tray_event(handle_system_tray_events)
             .plugin(tauri_plugin_sql::Builder::default().build())
             .invoke_handler(generate_handler![
                 mpv::open_video,
@@ -143,32 +93,11 @@ fn main() {
             .run(|_app_handle, event| {
                 if let tauri::RunEvent::ExitRequested { api, .. } = event {
                     api.prevent_exit();
-                    // _app_handle.get_window("main").unwrap().hide().unwrap();
                 }
             });
     }
 
     hack_builder(tray);
-}
-
-// Tray
-fn check_for_mpv() {
-    let mut sys = System::new_all();
-
-    sys.refresh_all();
-
-    let processes_hashmap = sys.processes().iter().collect::<HashMap<_, _>>();
-    let mut found = false;
-
-    processes_hashmap.iter().for_each(|(_pid, process)| {
-        if process.name().to_lowercase().contains("mpv.exe") {
-            found = true;
-        }
-    });
-
-    if !found {
-        exit(0);
-    }
 }
 
 fn close_open_mpv_shelf_instance() -> bool {
