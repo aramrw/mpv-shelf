@@ -4,7 +4,9 @@ import { cn } from '@/lib/utils';
 import { invoke } from '@tauri-apps/api/tauri';
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { randomizeFolderColor } from '../../../../lib/prisma-commands/misc-cmds';
-import { FolderInput, Palette, SquareIcon } from 'lucide-react';
+import { FolderInput, FolderInputIcon, Palette, PaletteIcon, SquareIcon } from 'lucide-react';
+import DynCustomIcon from '@/app/_main-components/_icon_components/dyn-custom-icon';
+import DynTextSpan from '@/app/_main-components/_icon_components/dyn-text-size-span';
 
 export default function FolderContexMenuContent({
   folderPath, userSettings, setCurrentFolderColor
@@ -34,50 +36,18 @@ export default function FolderContexMenuContent({
           }
         }}
       >
-        <span
-          className={cn(
-            "",
-            userSettings?.fontSize === "Medium" && "text-base",
-            userSettings?.fontSize === "Large" && "text-lg",
-            userSettings?.fontSize === "XLarge" && "text-xl",
-          )}
-        >
-          Open In Explorer
-        </span>
-        <FolderInput
-          className={cn(
-            "h-auto w-4",
-            userSettings?.fontSize === "Medium" && "h-auto w-5",
-            userSettings?.fontSize === "Large" && "h-auto w-6",
-            userSettings?.fontSize === "XLarge" && "h-auto w-7",
-          )}
-        />
+        <DynTextSpan text={"Open In Explorer"} userSettings={userSettings} />
+        <DynCustomIcon Icon={FolderInputIcon} userSettings={userSettings} />
       </ContextMenuItem>
       <ContextMenuSeparator />
       <ContextMenuSub>
         <ContextMenuSubTrigger className='flex flex-row gap-1'>
-          <span
-            className={cn(
-              "font-medium",
-              userSettings?.fontSize === "Medium" && "text-base",
-              userSettings?.fontSize === "Large" && "text-lg",
-              userSettings?.fontSize === "XLarge" && "text-xl",
-            )}
-          >
-            Randomize Color
-          </span>
-          <Palette
-            className={cn(
-              "h-auto w-4 stroke-[2.2]",
-              userSettings?.fontSize === "Medium" && "h-auto w-5",
-              userSettings?.fontSize === "Large" && "h-auto w-6",
-              userSettings?.fontSize === "XLarge" && "h-auto w-7",
-            )}
-          />
+          <DynTextSpan text={"Randomize Color"} userSettings={userSettings} />
+          <DynCustomIcon Icon={PaletteIcon} userSettings={userSettings} />
         </ContextMenuSubTrigger>
-        <ContextMenuSubContent 
-					sideOffset={7}
-					className='w-fit min-w-[1px] max-w-fit p-0.5 grid grid-flow-row grid-cols-3'>
+        <ContextMenuSubContent
+          sideOffset={7}
+          className='w-fit min-w-[1px] max-w-fit p-0.5 grid grid-flow-row grid-cols-3'>
           {Object.entries(colors).map((color, i) => (
             <ContextMenuItem
               key={i}
@@ -93,9 +63,9 @@ export default function FolderContexMenuContent({
             >
               <SquareIcon
                 className={cn(
-                  "h-auto w-5",
-                  userSettings?.fontSize === "Medium" && "h-auto w-7",
-                  userSettings?.fontSize === "Large" && "h-auto w-6",
+                  "h-auto w-6",
+                  userSettings?.fontSize === "Medium" && "h-auto w-6",
+                  userSettings?.fontSize === "Large" && "h-auto w-7",
                   userSettings?.fontSize === "XLarge" && "h-auto w-7",
                 )}
                 style={{ color: color[1], fill: color[1] }}
