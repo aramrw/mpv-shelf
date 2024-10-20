@@ -1,17 +1,36 @@
 import { ContextMenuContent, ContextMenuItem, ContextMenuSeparator, ContextMenuSub, ContextMenuSubContent, ContextMenuSubTrigger, } from '@/components/ui/context-menu'
 import React from 'react'
 import { cn } from '@/lib/utils'
-import { ChevronDown, ChevronUp, Eye, EyeOff, FolderInput } from 'lucide-react'
+import { ChevronDownIcon, ChevronUpIcon, FolderInputIcon, ScanEyeIcon } from 'lucide-react'
 import { SettingSchema } from '@/app/settings/page'
 import { FileEntry } from '@tauri-apps/api/fs'
 import type { User, } from "@prisma/client";
 import { invoke } from '@tauri-apps/api/tauri'
-import EyeIcon from '@/app/_main-components/_icon_components/eye-icon'
 import CustomEyeIcon from '@/app/_main-components/_icon_components/eye-icon'
 import CustomEyeOffIcon from '@/app/_main-components/_icon_components/eye-off-icon'
+import DynTextSpan from '@/app/_main-components/_icon_components/dyn-text-size-span'
+import DynCustomIcon from '@/app/_main-components/_icon_components/dyn-custom-icon'
 
-export default function VideoContextMenu({ userSettings, file, currentUser, index, handleUnwatchVideo, handleCheckWatched, handleWatchVideo, handleSliceToWatchVideo, handleSliceToUnwatchVideo }:
-  { userSettings: SettingSchema | undefined, file: FileEntry, currentUser: User | undefined, index: number, handleUnwatchVideo: (file: FileEntry) => void, handleCheckWatched: (file: FileEntry) => boolean, handleWatchVideo: (file: FileEntry) => void, handleSliceToWatchVideo: (index: number) => void, handleSliceToUnwatchVideo: (index: number) => void }) {
+export default function VideoContextMenu({
+  userSettings,
+  file,
+  currentUser,
+  index,
+  handleUnwatchVideo,
+  handleCheckWatched,
+  handleWatchVideo,
+  handleSliceToWatchVideo,
+  handleSliceToUnwatchVideo
+}: {
+  userSettings: SettingSchema | undefined,
+  file: FileEntry,
+  currentUser: User | undefined,
+  index: number, handleUnwatchVideo: (file: FileEntry) => void,
+  handleCheckWatched: (file: FileEntry) => boolean,
+  handleWatchVideo: (file: FileEntry) => void,
+  handleSliceToWatchVideo: (index: number) => void,
+  handleSliceToUnwatchVideo: (index: number) => void
+}) {
   return <ContextMenuContent className={cn(``,
     userSettings?.animations === "Off" && ``
   )}
@@ -24,45 +43,49 @@ export default function VideoContextMenu({ userSettings, file, currentUser, inde
         }
       }}
     >
-      <span className={cn("",
-        userSettings?.fontSize === "Medium" && 'text-base',
-        userSettings?.fontSize === "Large" && 'text-lg',
-        userSettings?.fontSize === "XLarge" && 'text-xl'
-      )}>Open In Explorer</span>
-      <FolderInput className={cn('h-auto w-4',
-        userSettings?.fontSize === "Medium" && 'h-auto w-5',
-        userSettings?.fontSize === "Large" && 'h-auto w-6',
-        userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-      )} />
+      <DynTextSpan text="Open In Explorer" userSettings={userSettings} />
+      <DynCustomIcon Icon={FolderInputIcon} userSettings={userSettings} />
     </ContextMenuItem>
+    {/* 
+    <ContextMenuSeparator className='my-1 h-[1px] bg-accent' />
+    <RenameContent
+      file={file}
+      index={index}
+      userSettings={userSettings}
+      currentUser={currentUser}
+      handleUnwatchVideo={handleUnwatchVideo}
+      handleCheckWatched={handleCheckWatched}
+      handleWatchVideo={handleWatchVideo}
+      handleSliceToWatchVideo={handleSliceToWatchVideo}
+      handleSliceToUnwatchVideo={handleSliceToUnwatchVideo}
+      key={index + 700}
+    />
+		*/}
     <ContextMenuSeparator className='my-1 h-[1px] bg-accent' />
     <ContextMenuSub>
-      <ContextMenuSubTrigger className={cn('gap-1 font-medium',
-        userSettings?.fontSize === "Medium" && 'text-base',
-        userSettings?.fontSize === "Large" && 'text-lg',
-        userSettings?.fontSize === "XLarge" && 'text-xl'
-      )}
-        inset>Watch
+      <ContextMenuSubTrigger inset>
+        <DynTextSpan text='Watch' userSettings={userSettings} />
+        <DynCustomIcon Icon={ScanEyeIcon} userSettings={userSettings} className='ml-1' />
       </ContextMenuSubTrigger>
-      <ContextMenuSubContent className="mx-2 overflow-hidden rounded-md border bg-popover p-1 font-medium text-popover-foreground shadow-md animate-in fade-in-80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
+      {/************** SET WATCHED & WATCH ****************/}
+      <ContextMenuSubContent className="mx-2 font-medium">
         {handleCheckWatched(file) ? (
           <ContextMenuItem
-            className='flex cursor-pointer gap-1'
+            className='flex flex-row cursor-pointer gap-1 justify-between'
             onClick={(e) => {
               e.stopPropagation()
               handleWatchVideo(file)
             }}
           >
-            <span className={cn("",
-              userSettings?.fontSize === "Medium" && 'text-base',
-              userSettings?.fontSize === "Large" && 'text-lg',
-              userSettings?.fontSize === "XLarge" && 'text-xl'
-            )}>Set Watched</span>
-
-            <CustomEyeIcon userSettings={userSettings} />
+            <DynTextSpan text="Set Watched" userSettings={userSettings} />
+            <div className='flex'>
+              <CustomEyeIcon userSettings={userSettings} />
+              <DynCustomIcon Icon={ChevronDownIcon} userSettings={userSettings} className='opacity-0' />
+            </div>
           </ContextMenuItem>
         ) : (
-          <ContextMenuItem className='flex cursor-pointer gap-1'
+          <ContextMenuItem
+            className='flex flex-row justify-between cursor-pointer gap-1'
             onClick={(e) => {
               e.stopPropagation();
               if (currentUser) {
@@ -70,15 +93,14 @@ export default function VideoContextMenu({ userSettings, file, currentUser, inde
               }
             }}
           >
-            <span className={cn("",
-              userSettings?.fontSize === "Medium" && 'text-base',
-              userSettings?.fontSize === "Large" && 'text-lg',
-              userSettings?.fontSize === "XLarge" && 'text-xl'
-            )}>Unwatch</span>
-
-            <CustomEyeOffIcon userSettings={userSettings} />
+            <DynTextSpan text="Unwatch" userSettings={userSettings} />
+            <div className='flex'>
+              <CustomEyeOffIcon userSettings={userSettings} />
+              <DynCustomIcon Icon={ChevronUpIcon} userSettings={userSettings} className='opacity-0' />
+            </div>
           </ContextMenuItem>
         )}
+        {/************** UNWATCH & WATCH TO ****************/}
         <ContextMenuSeparator className='my-1 h-[1px] bg-accent' />
         <ContextMenuItem className='cursor-pointer'
           onClick={(e) => {
@@ -88,19 +110,11 @@ export default function VideoContextMenu({ userSettings, file, currentUser, inde
             }
           }}
         >
-          <div className='flex gap-1'>
-            <span className={cn("",
-              userSettings?.fontSize === "Medium" && 'text-base',
-              userSettings?.fontSize === "Large" && 'text-lg',
-              userSettings?.fontSize === "XLarge" && 'text-xl'
-            )}>Unwatch To</span>
+          <div className='flex gap-1 w-full justify-between'>
+            <DynTextSpan text="Unwatch To" userSettings={userSettings} />
             <div className='flex'>
               <CustomEyeOffIcon userSettings={userSettings} />
-              <ChevronUp className={cn('h-auto w-4 ',
-                userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                userSettings?.fontSize === "Large" && 'h-auto w-6',
-                userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-              )} />
+              <DynCustomIcon Icon={ChevronUpIcon} userSettings={userSettings} />
             </div>
           </div>
         </ContextMenuItem>
@@ -114,22 +128,14 @@ export default function VideoContextMenu({ userSettings, file, currentUser, inde
           }}
         >
           <div className='flex gap-1 w-full justify-between'>
-            <span className={cn("",
-              userSettings?.fontSize === "Medium" && 'text-base',
-              userSettings?.fontSize === "Large" && 'text-lg',
-              userSettings?.fontSize === "XLarge" && 'text-xl'
-            )}>Watch To</span>
+            <DynTextSpan text="Watch To" userSettings={userSettings} />
             <div className='flex'>
               <CustomEyeIcon userSettings={userSettings} />
-              <ChevronDown className={cn('h-auto w-4 ',
-                userSettings?.fontSize === "Medium" && 'h-auto w-5',
-                userSettings?.fontSize === "Large" && 'h-auto w-6',
-                userSettings?.fontSize === "XLarge" && 'h-auto w-7'
-              )} />
+              <DynCustomIcon Icon={ChevronDownIcon} userSettings={userSettings} />
             </div>
           </div>
         </ContextMenuItem>
       </ContextMenuSubContent>
     </ContextMenuSub>
-  </ContextMenuContent>
+  </ContextMenuContent >
 }

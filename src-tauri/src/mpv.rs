@@ -1,4 +1,5 @@
 //use crate::misc::extract_episode_number;
+use crate::misc::NUMBER_REGEX;
 use sqlx::{/* Connection, SqliteConnection */ SqlitePool};
 use std::fs;
 use std::path::Path;
@@ -184,7 +185,6 @@ fn find_video_index(parent_path: &str, selected_video_path: &str) -> Result<u32,
         .unwrap()
         .filter_map(|entry| entry.ok())
         .collect();
-
     let supported_formats = [
         "mp4", "mkv", "avi", "mov", "wmv", "flv", "webm", "vob", "ogv", "ogg", "drc", "gif",
         "gifv", "mng", "avi", "mov", "qt", "wmv", "yuv", "rm", "rmvb", "asf", "amv", "mp4", "m4p",
@@ -193,49 +193,34 @@ fn find_video_index(parent_path: &str, selected_video_path: &str) -> Result<u32,
         "aiff", "alac", "ape", "au", "dsd", "dts", "flac", "m4a", "m4b", "mka", "mp2", "mp3",
         "oga", "ogg", "opus", "pcm", "tak", "tta", "wav", "wma", "wv",
     ];
-
     let subtitle_extensions = vec![
         "srt", "sub", "sbv", "idx", "ass", "ssa", "usf", "vtt", "stl", "rt", "smi", "smil", "sami",
     ];
-
-    video_files_vec = video_files_vec
-        .into_iter()
-        .filter(|entry| {
-            if let Ok(metadata) = entry.metadata() {
-                if metadata.is_file() {
-                    if let Some(extension) = entry.path().extension() {
-                        if let Some(extension_str) = extension.to_str() {
-                            let extension_str = extension_str.to_lowercase();
-                            return supported_formats.contains(&extension_str.as_str())
-                                || subtitle_extensions.contains(&extension_str.as_str());
-                        }
+    video_files_vec.retain(|entry| {
+        if let Ok(metadata) = entry.metadata() {
+            if metadata.is_file() {
+                if let Some(extension) = entry.path().extension() {
+                    if let Some(extension_str) = extension.to_str() {
+                        let extension_str = extension_str.to_lowercase();
+                        return supported_formats.contains(&extension_str.as_str())
+                            || subtitle_extensions.contains(&extension_str.as_str());
                     }
                 }
             }
-            false
-        })
-        .collect::<Vec<_>>();
-
-    let re = regex::Regex::new(r"\d+").unwrap();
-
+        }
+        false
+    });
     video_files_vec.sort_by(|a, b| {
-        let nums_a: Vec<u32> = re
+        let nums_a: Vec<u32> = NUMBER_REGEX
             .find_iter(&a.file_name().to_string_lossy())
             .filter_map(|m| m.as_str().parse::<u32>().ok())
             .collect();
-        let nums_b: Vec<u32> = re
+        let nums_b: Vec<u32> = NUMBER_REGEX
             .find_iter(&b.file_name().to_string_lossy())
             .filter_map(|m| m.as_str().parse::<u32>().ok())
             .collect();
-
         nums_a.cmp(&nums_b)
     });
-
-    video_files_vec.iter().for_each(|file| {
-        println!("{}", file.file_name().to_str().unwrap());
-        // println!("{}", current);
-    });
-
     let selected_video_file_name = Path::new(selected_video_path)
         .file_name()
         .unwrap()
@@ -244,16 +229,12 @@ fn find_video_index(parent_path: &str, selected_video_path: &str) -> Result<u32,
     let current_video_index = video_files_vec
         .iter()
         .position(|entry| entry.file_name().to_str().unwrap() == selected_video_file_name);
-    let current_video_index = match current_video_index {
-        Some(index) => index as u32,
-        None => {
-            return Err(OpenVideoError::Error {
-                message: "Video file not found in directory.".to_string(),
-            })
-        }
-    };
-
-    Ok(current_video_index)
+    match current_video_index {
+        Some(index) => Ok(index as u32),
+        None => Err(OpenVideoError::Error {
+            message: "Video file not found in directory.".to_string(),
+        }),
+    }
 }
 
 fn get_last_mpv_win_title() -> String {

@@ -10,10 +10,18 @@ use tauri::{AppHandle, Manager};
 use tokio::sync::Mutex;
 
 use crate::db::{Folder, Settings, Video};
-//use crate::mpv::update_chart_watchtime;
-use crate::stats::{self, Chart, Stats};
+use crate::stats::{Chart, Stats};
 use crate::{errors, Global, User};
 use serde::{Deserialize, Serialize};
+
+use std::sync::LazyLock;
+
+pub static NUMBER_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+    regex::Regex::new(
+        r"(?i)(?:S\d{1,2}E|第|EP?|Episode|Ch|Chapter|Vol|Volume|#)?\s*(\d{1,3})(?:話|巻|章|節|[._\-\s]|$)",
+    )
+    .unwrap()
+});
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BackupData {
@@ -305,6 +313,9 @@ pub async fn rename_subs(
     let pool = handle.state::<Mutex<SqlitePool>>().lock().await.clone();
 
     let sub_v: Vec<String> = serde_json::from_str(&sub_paths).unwrap();
+    if sub_v.is_empty() {
+        return;
+    }
     let vid_v: Vec<String> = serde_json::from_str(&vid_paths).unwrap();
     let folder_name = Path::new(&folder_path)
         .file_name()
@@ -312,82 +323,58 @@ pub async fn rename_subs(
         .to_str()
         .unwrap();
 
-    let first_video_file_name = Path::new(&vid_v[0])
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_string();
-
-    let first_sub_file_name = Path::new(&sub_v[0])
-        .file_name()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_string();
-
-    //println!("{}, {}", first_video_file_name, folder_name);
-
-    if first_video_file_name.contains(folder_name) && first_sub_file_name.contains(folder_name) {
-        //println!("{} and {} already have the correct name", first_video_file_name, first_sub_file_name);
-        return;
+    for vid_path in vid_v.iter() {
+        let new_video_path = rename_file(vid_path, &folder_path, folder_name).unwrap();
+        if let Some(new_video_path) = new_video_path {
+            update_vid_data(vid_path, &new_video_path, &user_id, &pool).await;
+            //println!("Updated Video: {new_video_path}");
+        }
     }
 
-    //println!("{}", folder_path);
-
-    for vid_path in vid_v {
-        //println!("{}", vid);
-        let video_file_name = Path::new(&vid_path)
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
-        let (_video_file_name, video_file_type) = video_file_name
-            .rsplit_once('.')
-            .map(|(name, file_type)| (name.to_string(), file_type.to_string()))
-            .unwrap_or(("".to_string(), "".to_string()));
-        let video_episode = extract_episode_number(&vid_path).unwrap();
-        let new_video_path = format!(
-            "{}\\{} - {}.{}",
-            folder_path, folder_name, video_episode, video_file_type
-        );
-        //println!("{}", new_video_path);
-        update_vid_data(&vid_path, &new_video_path, &user_id, &pool).await;
-        fs::rename(vid_path, new_video_path).unwrap();
-    }
-
-    for sub_path in sub_v {
-        let sub_file_name = Path::new(&sub_path)
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
-        let (_sub_file_name, sub_file_type) = sub_file_name
-            .rsplit_once('.')
-            .map(|(name, file_type)| (name.to_string(), file_type.to_string()))
-            .unwrap_or(("".to_string(), "".to_string()));
-        let subtitle_episode = extract_episode_number(&sub_path).unwrap();
-        let new_subtitle_path = format!(
-            "{}\\{} - {}.{}",
-            folder_path, folder_name, subtitle_episode, sub_file_type
-        );
-        //println!("{}", new_subtitle_path);
-        fs::rename(sub_path, new_subtitle_path).unwrap();
+    for sub_path in sub_v.iter() {
+        rename_file(sub_path, &folder_path, folder_name).unwrap();
     }
 }
 
-// async fn if_watched(pool: &SqlitePool, path: &str) -> Result<bool, sqlx::Error> {
-//     println!("{}", path);
-//
-//     let video: Video = sqlx::query_as("SELECT * FROM video WHERE path = ?")
-//         .bind(path)
-//         .fetch_one(pool)
-//         .await?;
-//
-//     Ok(video.watched)
-// }
+fn rename_file(
+    path: &str,
+    folder_path: &str,
+    folder_name: &str,
+) -> Result<Option<String>, std::io::Error> {
+    // Extract the filename
+    let sub_file_name = Path::new(path).file_name().unwrap().to_str().unwrap();
+
+    // Check if the filename already follows the renaming pattern
+    if sub_file_name.starts_with(&format!("{folder_name} - E")) {
+        // If the file is already renamed, skip further processing
+        return Ok(None);
+    }
+
+    // Split the filename to get the name and extension
+    let (sub_file_name, sub_file_type) = match sub_file_name.rsplit_once('.') {
+        Some((vfn, vft)) => (vfn, vft),
+        None => return Ok(None),
+    };
+
+    // Extract the episode number (or whatever number you're extracting)
+    let extracted_number = match extract_episode_number(sub_file_name) {
+        Some(en) => en,
+        None => {
+            println!("no number matched in: {sub_file_name}");
+            return Ok(None);
+        }
+    };
+
+    // Construct the new file path
+    let new_subtitle_path = format!(
+        "{}\\{} - E{}.{}",
+        folder_path, folder_name, extracted_number, sub_file_type
+    );
+
+    // Perform the file rename operation
+    fs::rename(path, new_subtitle_path.clone())?;
+    Ok(Some(new_subtitle_path))
+}
 
 async fn update_vid_data(old_path: &str, new_path: &str, user_id: &u32, pool: &SqlitePool) {
     //println!("Setting {} to {}", old_path, new_path);
@@ -401,9 +388,9 @@ async fn update_vid_data(old_path: &str, new_path: &str, user_id: &u32, pool: &S
 }
 
 pub fn extract_episode_number(title: &str) -> Option<u32> {
-    let re = Regex::new(r"(\d+)\D*$").unwrap();
-    re.captures_iter(title)
-        .last()
+    NUMBER_REGEX
+        .captures_iter(title)
+        .next()
         .and_then(|cap| cap.get(1).map(|m| m.as_str().parse::<u32>().ok()))
         .flatten()
 }

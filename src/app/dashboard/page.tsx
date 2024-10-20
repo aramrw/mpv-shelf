@@ -55,6 +55,18 @@ export default function Dashboard() {
     container: scrolledDiv,
   });
 
+  const backgroundStyle = {
+    backgroundImage: `
+   linear-gradient(150deg,rgb(254, 248, 228) 25%,rgb(252, 238, 203) 25%,rgb(252, 238, 203) 75%,rgb(254, 248, 228) 33%)  `,
+    backgroundSize: '8em 8em',
+    backgroundColor: '#ffffff',
+    opacity: 1,
+  };
+  // Usage in JSX
+  <div style={backgroundStyle}>
+    {/* Your content */}
+  </div>
+
   useMotionValueEvent(scrollY, "change", (latest) => {
     if (currentUser && latest > 0)
       updateUserScrollY({ userId: currentUser?.id, scrollY: latest });
@@ -266,7 +278,7 @@ export default function Dashboard() {
   };
 
   return (
-    <main className="h-[90dvh]">
+    <main className="h-[90dvh]" style={backgroundStyle}>
       <div
         className={cn(
           "h-full pl-3 lg:px-16 xl:px-36 2xl:px-48 mt-3 max-h-screen overflow-auto pb-20",
@@ -364,3 +376,5 @@ export default function Dashboard() {
     </main>
   );
 }
+
+

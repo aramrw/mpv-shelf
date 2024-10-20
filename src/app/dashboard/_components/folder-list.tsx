@@ -200,7 +200,7 @@ const FolderList = ({
         expanded: expanded,
         userId: currentUser?.id,
         asChild: asChild || false,
-      }).then(() => { });
+      });
     }
   }, [
     asChild,
