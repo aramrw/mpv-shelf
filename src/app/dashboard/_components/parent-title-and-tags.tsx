@@ -39,12 +39,6 @@ export default function ParentTitleAndTags({
       className={cn(
         "flex flex-row items-center justify-start gap-1 font-medium text-primary text-sm text-center ",
       )}
-      whileHover={
-        userSettings?.animations === "On" && !asChild &&
-          folderName.length > 10
-          ? { x: -folderName.length * (3 + folders.length + subtitleFiles.length + files.length) }
-          : undefined
-      }
       transition={{ duration: 2, damping: 0.2, delay: 1.3 }}
     >
       {asChild && !expanded ? (
