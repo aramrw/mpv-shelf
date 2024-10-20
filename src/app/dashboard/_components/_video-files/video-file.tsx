@@ -3,7 +3,7 @@ import { ContextMenu } from "@/components/ui/context-menu";
 import React from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Eye, Film, MusicIcon } from "lucide-react";
+import { Film, MusicIcon } from "lucide-react";
 import { SettingSchema } from "@/app/settings/page";
 import { FileEntry } from "@tauri-apps/api/fs";
 import type { User, Video } from "@prisma/client";
@@ -12,6 +12,8 @@ import { invoke } from "@tauri-apps/api/tauri";
 import VideoContextMenu from "./video-context-menu";
 import { updateVideoWatched } from "../../../../../lib/prisma-commands/videos/video-cmds";
 import OpenVideoError from "../error-dialogs/open-video-error";
+import DynTextSpan from "@/app/_main-components/_icon_components/dyn-text-size-span";
+import CustomEyeIcon from "@/app/_main-components/_icon_components/eye-icon";
 
 export default function VideoFile({
   userSettings,
@@ -147,13 +149,13 @@ export default function VideoFile({
                 "overflow-hidden whitespace-nowrap",
               )}
               key={"current-video-file-name-motion-div" + file.name + index}
-              whileHover={
-                userSettings?.animations === "On" &&
-                  file.name &&
-                  file.name?.length > 1
-                  ? { x: -calculateScrollX(file.name.length) * file.name.length }
-                  : undefined
-              }
+              // whileHover={
+              //   userSettings?.animations === "On" &&
+              //     file.name &&
+              //     file.name?.length > 1
+              //     ? { x: -calculateScrollX(file.name.length) * file.name.length }
+              //     : undefined
+              // }
               transition={{ duration: calculateScrollX(file.name!.length / 2), damping: 0.2, delay: 1.2 }}
             >
               {audioFormats.includes(getFileType(file.name!)) ? (
@@ -254,26 +256,9 @@ export default function VideoFile({
                         handleUnwatchVideo(file);
                       }}
                     >
-                      <Eye
-                        className={cn(
-                          "h-auto w-4 mr-0.5 stroke-[2.3px]",
-                          userSettings?.fontSize === "Medium" && "h-auto w-5",
-                          userSettings?.fontSize === "Large" &&
-                          "h-auto w-[1.3.5rem]",
-                          userSettings?.fontSize === "XLarge" && "h-auto w-7",
-                        )}
-                      />
+                      <CustomEyeIcon userSettings={userSettings} />
                     </motion.div>
-                    <span
-                      className={cn(
-                        "text-sm ",
-                        userSettings?.fontSize === "Medium" && "text-base",
-                        userSettings?.fontSize === "Large" && "text-lg",
-                        userSettings?.fontSize === "XLarge" && "text-2xl",
-                      )}
-                    >
-                      {file.name}
-                    </span>
+                    <DynTextSpan text={file.name} userSettings={userSettings} className="font-semibold" />
                   </motion.div>
                 </>
               ) : (
@@ -293,16 +278,8 @@ export default function VideoFile({
                   }
                   transition={{ duration: 0.2, bounce: 0.3, type: "spring" }}
                 >
-                  <span
-                    className={cn(
-                      "text-sm",
-                      userSettings?.fontSize === "Medium" && "text-base",
-                      userSettings?.fontSize === "Large" && "text-lg",
-                      userSettings?.fontSize === "XLarge" && "text-2xl",
-                    )}
-                  >
-                    {file.name}
-                  </span>
+
+                  <DynTextSpan text={file.name} userSettings={userSettings} className="font-semibold" />
                 </motion.div>
               )}
             </motion.div>
